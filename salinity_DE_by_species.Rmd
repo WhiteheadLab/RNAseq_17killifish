@@ -46,9 +46,9 @@ This is the number of annotated contigs:
 ```{r, echo=FALSE}
 gene_names <- read.csv("~/Documents/UCDavis/Whitehead/annotation_gene_names/A_xenica_gene_names.csv")
 dim(gene_names)
-gene_names <- gene_names[,c(2,6)]
+gene_names_id <- gene_names[,c(2,6)]
 cols<-c("transcript_id","gene_id")
-colnames(gene_names)<-cols
+colnames(gene_names_id)<-cols
 ```
 
 Summarizing by gene:
@@ -91,7 +91,6 @@ This is the number of genes in the expression counts table:
 # get counts
 counts_table = counts( dds, normalized=TRUE )
 dim(counts_table)
-
 ```
 
 After filtering for low expression (where th rowSum is greater than or equal to 1):
@@ -230,4 +229,29 @@ heatmap.2(d, main="Adenia xenica (padj<0.05, log2FC = ±1)",
 # Version Info
 ```{r echo=TRUE}
 sessionInfo()
+```
+# Tables
+```{r echo=TRUE}
+# merge gene_names, counts, and results for TR vs. BW and TR vs. FW in one massive table
+dim(gene_names)
+res.2<-as.data.frame(res.2)# TR vs. FW
+res.3<-as.data.frame(res.3)# TR vs. BW
+dim(counts_table)
+GeneID<-rownames(res.2)
+TR_FW_results<-cbind(res.2,GeneID)
+GeneID<-rownames(res.3)
+TR_BW_results<-cbind(res.3,GeneID)
+GeneID<-rownames(counts_table)
+counts_table_all<-cbind(counts_table,GeneID)
+cols<-c("Row","Trinity_contigID","Trinity_gene","Trinity_gene2,","dammit_ID","GeneID","dammit_ID2","NCBI_Fhet")
+colnames(gene_names)<-cols
+all_matrix<-merge(counts_table_all,TR_FW_results,by="GeneID")
+all_matrix<-merge(all_matrix,TR_BW_results,by="GeneID")
+all_matrix<-merge(all_matrix,gene_names,by="GeneID")
+write.csv(all_matrix,"~/Documents/UCDavis/Whitehead/RNAseq_15killifish/DE_results/A_xenica_DE_all.csv")
+print("Written: A_xenica_DE.csv" )
+TR_BW_all<-all_matrix[all_matrix$GeneID %in% combined_transfer_BW,]
+write.csv(TR_BW_all,"~/Documents/UCDavis/Whitehead/RNAseq_15killifish/DE_results/A_xenica_DE_TR_BW.csv")
+TR_FW_all<-all_matrix[all_matrix$GeneID %in% combined_transfer_FW,]
+write.csv(TR_BW_all,"~/Documents/UCDavis/Whitehead/RNAseq_15killifish/DE_results/A_xenica_DE_TR_FW.csv")
 ```
