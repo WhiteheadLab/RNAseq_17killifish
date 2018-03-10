@@ -1,0 +1,22 @@
+{
+    "read_files": "( /home/ljcohen/osmotic_trim/F_chrysotus_BW_1.trim_1P.fq, /home/ljcohen/osmotic_trim/F_chrysotus_BW_1.trim_2P.fq )",
+    "expected_format": "IU",
+    "compatible_fragment_ratio": 0.9953780713844399,
+    "num_compatible_fragments": 7791075,
+    "num_assigned_fragments": 7827252,
+    "num_consistent_mappings": 13167674,
+    "num_inconsistent_mappings": 8400904,
+    "strand_mapping_bias": 0.4951520671000816,
+    "MSF": 0,
+    "OSF": 9538,
+    "ISF": 6647673,
+    "MSR": 0,
+    "OSR": 9272,
+    "ISR": 6520001,
+    "SF": 4161848,
+    "SR": 4116201,
+    "MU": 0,
+    "OU": 0,
+    "IU": 0,
+    "U": 0
+}

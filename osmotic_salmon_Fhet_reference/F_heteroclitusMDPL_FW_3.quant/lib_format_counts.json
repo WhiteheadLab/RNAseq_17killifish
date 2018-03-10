@@ -1,0 +1,22 @@
+{
+    "read_files": "( /home/ljcohen/osmotic_trim/F_heteroclitusMDPL_FW_3.trim_1P.fq, /home/ljcohen/osmotic_trim/F_heteroclitusMDPL_FW_3.trim_2P.fq )",
+    "expected_format": "IU",
+    "compatible_fragment_ratio": 0.9935536614196907,
+    "num_compatible_fragments": 12125311,
+    "num_assigned_fragments": 12203982,
+    "num_consistent_mappings": 24579446,
+    "num_inconsistent_mappings": 4896912,
+    "strand_mapping_bias": 0.4967686415714984,
+    "MSF": 0,
+    "OSF": 12941,
+    "ISF": 12369148,
+    "MSR": 0,
+    "OSR": 12657,
+    "ISR": 12210298,
+    "SF": 2304295,
+    "SR": 2352108,
+    "MU": 0,
+    "OU": 0,
+    "IU": 0,
+    "U": 0
+}

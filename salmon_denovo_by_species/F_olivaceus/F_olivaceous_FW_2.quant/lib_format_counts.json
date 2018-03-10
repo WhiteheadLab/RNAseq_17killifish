@@ -1,0 +1,22 @@
+{
+    "read_files": "( /home/ljcohen/osmotic_trim/F_olivaceous_FW_2.trim_1P.fq, /home/ljcohen/osmotic_trim/F_olivaceous_FW_2.trim_2P.fq )",
+    "expected_format": "IU",
+    "compatible_fragment_ratio": 0.9939218846246382,
+    "num_compatible_fragments": 8192096,
+    "num_assigned_fragments": 8242193,
+    "num_consistent_mappings": 21147148,
+    "num_inconsistent_mappings": 2055949,
+    "strand_mapping_bias": 0.49994623388458817,
+    "MSF": 0,
+    "OSF": 8147,
+    "ISF": 10574711,
+    "MSR": 0,
+    "OSR": 8340,
+    "ISR": 10572437,
+    "SF": 957122,
+    "SR": 953819,
+    "MU": 0,
+    "OU": 0,
+    "IU": 0,
+    "U": 0
+}

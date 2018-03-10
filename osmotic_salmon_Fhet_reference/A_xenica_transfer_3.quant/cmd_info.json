@@ -1,0 +1,9 @@
+{
+    "salmon_version": "0.9.1",
+    "index": "/home/ljcohen/reference/kfish2rae5/kfish2rae5g",
+    "libType": "IU",
+    "mates1": "/home/ljcohen/osmotic_trim/A_xenica_transfer_3.trim_1P.fq",
+    "mates2": "/home/ljcohen/osmotic_trim/A_xenica_transfer_3.trim_2P.fq",
+    "output": "A_xenica_transfer_3.quant",
+    "auxDir": "aux_info"
+}

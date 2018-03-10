@@ -1,0 +1,50 @@
+[2018-02-28 11:22:51.074] [jointLog] [info] parsing read library format
+[2018-02-28 11:22:51.074] [jointLog] [info] There is 1 library.
+[2018-02-28 11:26:18.527] [jointLog] [info] parsing read library format
+[2018-02-28 11:26:18.527] [jointLog] [info] There is 1 library.
+[2018-02-28 11:26:18.573] [jointLog] [info] Loading Quasi index
+[2018-02-28 11:35:58.607] [jointLog] [info] parsing read library format
+[2018-02-28 11:35:58.607] [jointLog] [info] There is 1 library.
+[2018-02-28 12:35:30.953] [jointLog] [info] parsing read library format
+[2018-02-28 12:35:30.953] [jointLog] [info] There is 1 library.
+[2018-02-28 12:35:31.038] [jointLog] [info] Loading Quasi index
+[2018-02-28 12:35:31.038] [jointLog] [info] Loading 32-bit quasi index
+[2018-02-28 12:35:35.989] [jointLog] [info] done
+[2018-02-28 12:35:35.989] [jointLog] [info] Index contained 109997 targets
+[2018-02-28 12:36:26.206] [jointLog] [info] Computed 165829 rich equivalence classes for further processing
+[2018-02-28 12:36:26.206] [jointLog] [info] Counted 3464512 total reads in the equivalence classes 
+[2018-02-28 12:36:26.214] [jointLog] [warning] 0.00112674% of fragments were shorter than the k used to build the index (31).
+If this fraction is too large, consider re-building the index with a smaller k.
+The minimum read size found was 25.
+
+
+[2018-02-28 12:36:26.223] [jointLog] [warning] Only 3464512 fragments were mapped, but the number of burn-in fragments was set to 5000000.
+The effective lengths have been computed using the observed mappings.
+
+[2018-02-28 12:36:26.223] [jointLog] [info] Mapping rate = 50.6963%
+
+[2018-02-28 12:36:26.223] [jointLog] [info] finished quantifyLibrary()
+[2018-02-28 12:36:26.223] [jointLog] [info] Starting optimizer
+[2018-02-28 12:36:26.326] [jointLog] [info] Marked 0 weighted equivalence classes as degenerate
+[2018-02-28 12:36:26.331] [jointLog] [info] iteration = 0 | max rel diff. = 51.1418
+[2018-02-28 12:36:26.206] [fileLog] [info] 
+At end of round 0
+==================
+Observed 6833861 total fragments (6833861 in most recent round)
+
+[2018-02-28 12:36:26.752] [jointLog] [info] iteration = 100 | max rel diff. = 0.106922
+[2018-02-28 12:36:27.191] [jointLog] [info] iteration = 200 | max rel diff. = 0.0473415
+[2018-02-28 12:36:27.629] [jointLog] [info] iteration = 300 | max rel diff. = 0.0351431
+[2018-02-28 12:36:28.066] [jointLog] [info] iteration = 400 | max rel diff. = 0.0253871
+[2018-02-28 12:36:28.506] [jointLog] [info] iteration = 500 | max rel diff. = 0.0185806
+[2018-02-28 12:36:28.940] [jointLog] [info] iteration = 600 | max rel diff. = 0.0170599
+[2018-02-28 12:36:29.410] [jointLog] [info] iteration = 700 | max rel diff. = 0.0130279
+[2018-02-28 12:36:29.894] [jointLog] [info] iteration = 800 | max rel diff. = 0.0126303
+[2018-02-28 12:36:30.330] [jointLog] [info] iteration = 900 | max rel diff. = 0.0100643
+[2018-02-28 12:36:30.758] [jointLog] [info] iteration = 1000 | max rel diff. = 0.0100649
+[2018-02-28 12:36:31.190] [jointLog] [info] iteration = 1100 | max rel diff. = 0.0100651
+[2018-02-28 12:36:31.619] [jointLog] [info] iteration = 1200 | max rel diff. = 0.0100652
+[2018-02-28 12:36:31.754] [jointLog] [info] iteration = 1232 | max rel diff. = 0.00939287
+[2018-02-28 12:36:31.773] [jointLog] [info] Finished optimizer
+[2018-02-28 12:36:31.773] [jointLog] [info] writing output 
+

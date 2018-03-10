@@ -1,0 +1,22 @@
+{
+    "read_files": "( /home/ljcohen/osmotic_trim/F_similis_transfer_3.trim_1P.fq, /home/ljcohen/osmotic_trim/F_similis_transfer_3.trim_2P.fq )",
+    "expected_format": "IU",
+    "compatible_fragment_ratio": 0.9936333111130525,
+    "num_compatible_fragments": 4981519,
+    "num_assigned_fragments": 5013438,
+    "num_consistent_mappings": 7808289,
+    "num_inconsistent_mappings": 5337137,
+    "strand_mapping_bias": 0.49619641383662929,
+    "MSF": 0,
+    "OSF": 7424,
+    "ISF": 3933844,
+    "MSR": 0,
+    "OSR": 6935,
+    "ISR": 3874445,
+    "SF": 2614801,
+    "SR": 2617858,
+    "MU": 0,
+    "OU": 0,
+    "IU": 0,
+    "U": 0
+}

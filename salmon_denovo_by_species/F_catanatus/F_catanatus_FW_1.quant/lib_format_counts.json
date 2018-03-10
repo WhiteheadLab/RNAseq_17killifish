@@ -1,0 +1,22 @@
+{
+    "read_files": "( /home/ljcohen/osmotic_trim/F_catanatus_FW_1.trim_1P.fq, /home/ljcohen/osmotic_trim/F_catanatus_FW_1.trim_2P.fq )",
+    "expected_format": "IU",
+    "compatible_fragment_ratio": 0.9903868785132031,
+    "num_compatible_fragments": 6341260,
+    "num_assigned_fragments": 6402811,
+    "num_consistent_mappings": 17325432,
+    "num_inconsistent_mappings": 2206676,
+    "strand_mapping_bias": 0.5004716765504029,
+    "MSF": 0,
+    "OSF": 9180,
+    "ISF": 8654544,
+    "MSR": 0,
+    "OSR": 8610,
+    "ISR": 8670888,
+    "SF": 1005740,
+    "SR": 999840,
+    "MU": 0,
+    "OU": 0,
+    "IU": 0,
+    "U": 0
+}

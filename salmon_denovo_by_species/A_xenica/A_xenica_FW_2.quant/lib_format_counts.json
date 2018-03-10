@@ -1,0 +1,22 @@
+{
+    "read_files": "( /home/ljcohen/osmotic_trim/A_xenica_FW_2.trim_1P.fq, /home/ljcohen/osmotic_trim/A_xenica_FW_2.trim_2P.fq )",
+    "expected_format": "IU",
+    "compatible_fragment_ratio": 0.9879183868414414,
+    "num_compatible_fragments": 6155676,
+    "num_assigned_fragments": 6230956,
+    "num_consistent_mappings": 15534448,
+    "num_inconsistent_mappings": 1359096,
+    "strand_mapping_bias": 0.4999139332147496,
+    "MSF": 0,
+    "OSF": 10302,
+    "ISF": 7768561,
+    "MSR": 0,
+    "OSR": 10309,
+    "ISR": 7765887,
+    "SF": 574506,
+    "SR": 575348,
+    "MU": 0,
+    "OU": 0,
+    "IU": 0,
+    "U": 0
+}

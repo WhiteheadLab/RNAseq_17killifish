@@ -1,0 +1,42 @@
+[2018-03-07 12:12:32.528] [jointLog] [info] parsing read library format
+[2018-03-07 12:12:32.528] [jointLog] [info] There is 1 library.
+[2018-03-07 12:12:32.618] [jointLog] [info] Loading Quasi index
+[2018-03-07 12:12:32.618] [jointLog] [info] Loading 32-bit quasi index
+[2018-03-07 12:12:46.411] [jointLog] [info] done
+[2018-03-07 12:12:46.411] [jointLog] [info] Index contained 501215 targets
+[2018-03-07 12:16:20.776] [fileLog] [info] 
+At end of round 0
+==================
+Observed 23829203 total fragments (23829203 in most recent round)
+
+[2018-03-07 12:16:20.776] [jointLog] [info] Computed 496703 rich equivalence classes for further processing
+[2018-03-07 12:16:20.776] [jointLog] [info] Counted 19665153 total reads in the equivalence classes 
+[2018-03-07 12:16:20.937] [jointLog] [warning] 0.000600104% of fragments were shorter than the k used to build the index (31).
+If this fraction is too large, consider re-building the index with a smaller k.
+The minimum read size found was 25.
+
+
+[2018-03-07 12:16:20.937] [jointLog] [info] Mapping rate = 82.5254%
+
+[2018-03-07 12:16:20.937] [jointLog] [info] finished quantifyLibrary()
+[2018-03-07 12:16:20.938] [jointLog] [info] Starting optimizer
+[2018-03-07 12:16:21.301] [jointLog] [info] Marked 0 weighted equivalence classes as degenerate
+[2018-03-07 12:16:21.317] [jointLog] [info] iteration = 0 | max rel diff. = 18.1106
+[2018-03-07 12:16:23.234] [jointLog] [info] iteration = 100 | max rel diff. = 0.105152
+[2018-03-07 12:16:25.188] [jointLog] [info] iteration = 200 | max rel diff. = 0.0505663
+[2018-03-07 12:16:27.144] [jointLog] [info] iteration = 300 | max rel diff. = 0.0388436
+[2018-03-07 12:16:29.112] [jointLog] [info] iteration = 400 | max rel diff. = 0.029106
+[2018-03-07 12:16:31.063] [jointLog] [info] iteration = 500 | max rel diff. = 0.0578028
+[2018-03-07 12:16:33.041] [jointLog] [info] iteration = 600 | max rel diff. = 0.0201081
+[2018-03-07 12:16:34.973] [jointLog] [info] iteration = 700 | max rel diff. = 0.0200887
+[2018-03-07 12:16:36.924] [jointLog] [info] iteration = 800 | max rel diff. = 0.0192977
+[2018-03-07 12:16:38.900] [jointLog] [info] iteration = 900 | max rel diff. = 0.0154904
+[2018-03-07 12:16:40.840] [jointLog] [info] iteration = 1000 | max rel diff. = 0.0126615
+[2018-03-07 12:16:42.806] [jointLog] [info] iteration = 1100 | max rel diff. = 0.0122033
+[2018-03-07 12:16:44.749] [jointLog] [info] iteration = 1200 | max rel diff. = 0.013848
+[2018-03-07 12:16:46.755] [jointLog] [info] iteration = 1300 | max rel diff. = 0.0137988
+[2018-03-07 12:16:48.729] [jointLog] [info] iteration = 1400 | max rel diff. = 0.0104305
+[2018-03-07 12:16:49.965] [jointLog] [info] iteration = 1465 | max rel diff. = 0.00883907
+[2018-03-07 12:16:50.052] [jointLog] [info] Finished optimizer
+[2018-03-07 12:16:50.052] [jointLog] [info] writing output 
+

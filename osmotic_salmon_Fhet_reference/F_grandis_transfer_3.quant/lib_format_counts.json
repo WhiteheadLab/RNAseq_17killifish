@@ -1,0 +1,22 @@
+{
+    "read_files": "( /home/ljcohen/osmotic_trim/F_grandis_transfer_3.trim_1P.fq, /home/ljcohen/osmotic_trim/F_grandis_transfer_3.trim_2P.fq )",
+    "expected_format": "IU",
+    "compatible_fragment_ratio": 0.99289397659974,
+    "num_compatible_fragments": 10998088,
+    "num_assigned_fragments": 11076800,
+    "num_consistent_mappings": 19707761,
+    "num_inconsistent_mappings": 4763879,
+    "strand_mapping_bias": 0.5009008379998113,
+    "MSF": 0,
+    "OSF": 12877,
+    "ISF": 9836127,
+    "MSR": 0,
+    "OSR": 12717,
+    "ISR": 9871634,
+    "SF": 2237092,
+    "SR": 2302442,
+    "MU": 0,
+    "OU": 0,
+    "IU": 0,
+    "U": 0
+}

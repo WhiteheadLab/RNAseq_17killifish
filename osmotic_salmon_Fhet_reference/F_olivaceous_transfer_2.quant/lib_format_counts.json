@@ -1,0 +1,22 @@
+{
+    "read_files": "( /home/ljcohen/osmotic_trim/F_olivaceous_transfer_2.trim_1P.fq, /home/ljcohen/osmotic_trim/F_olivaceous_transfer_2.trim_2P.fq )",
+    "expected_format": "IU",
+    "compatible_fragment_ratio": 0.9945918848894357,
+    "num_compatible_fragments": 3757778,
+    "num_assigned_fragments": 3778211,
+    "num_consistent_mappings": 6120666,
+    "num_inconsistent_mappings": 3921765,
+    "strand_mapping_bias": 0.4943563331179973,
+    "MSF": 0,
+    "OSF": 5279,
+    "ISF": 3094876,
+    "MSR": 0,
+    "OSR": 5369,
+    "ISR": 3025790,
+    "SF": 1926901,
+    "SR": 1923203,
+    "MU": 0,
+    "OU": 0,
+    "IU": 0,
+    "U": 0
+}

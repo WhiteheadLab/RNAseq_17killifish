@@ -1,0 +1,22 @@
+{
+    "read_files": "( /home/ljcohen/osmotic_trim/F_diaphanus_transfer_1.trim_1P.fq, /home/ljcohen/osmotic_trim/F_diaphanus_transfer_1.trim_2P.fq )",
+    "expected_format": "IU",
+    "compatible_fragment_ratio": 0.9947379717660031,
+    "num_compatible_fragments": 14672968,
+    "num_assigned_fragments": 14750586,
+    "num_consistent_mappings": 32909565,
+    "num_inconsistent_mappings": 3355978,
+    "strand_mapping_bias": 0.4993539112413063,
+    "MSF": 0,
+    "OSF": 14320,
+    "ISF": 16476045,
+    "MSR": 0,
+    "OSR": 14157,
+    "ISR": 16433520,
+    "SF": 1568167,
+    "SR": 1564375,
+    "MU": 0,
+    "OU": 0,
+    "IU": 0,
+    "U": 0
+}

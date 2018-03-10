@@ -1,0 +1,22 @@
+{
+    "read_files": "( /home/ljcohen/osmotic_trim/F_sciadicus_BW_1.trim_1P.fq, /home/ljcohen/osmotic_trim/F_sciadicus_BW_1.trim_2P.fq )",
+    "expected_format": "IU",
+    "compatible_fragment_ratio": 0.9927669012237772,
+    "num_compatible_fragments": 22960698,
+    "num_assigned_fragments": 23127985,
+    "num_consistent_mappings": 61303359,
+    "num_inconsistent_mappings": 6190031,
+    "strand_mapping_bias": 0.5003370859335783,
+    "MSF": 0,
+    "OSF": 20904,
+    "ISF": 30631015,
+    "MSR": 0,
+    "OSR": 21673,
+    "ISR": 30672344,
+    "SF": 2817900,
+    "SR": 2838952,
+    "MU": 0,
+    "OU": 0,
+    "IU": 0,
+    "U": 0
+}

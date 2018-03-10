@@ -1,0 +1,22 @@
+{
+    "read_files": "( /home/ljcohen/osmotic_trim/A_xenica_transfer_1.trim_1P.fq, /home/ljcohen/osmotic_trim/A_xenica_transfer_1.trim_2P.fq )",
+    "expected_format": "IU",
+    "compatible_fragment_ratio": 0.9964246017768385,
+    "num_compatible_fragments": 5091929,
+    "num_assigned_fragments": 5110200,
+    "num_consistent_mappings": 8512807,
+    "num_inconsistent_mappings": 6418118,
+    "strand_mapping_bias": 0.4948062372376115,
+    "MSF": 0,
+    "OSF": 6578,
+    "ISF": 4300617,
+    "MSR": 0,
+    "OSR": 6332,
+    "ISR": 4212190,
+    "SF": 3191204,
+    "SR": 3155210,
+    "MU": 0,
+    "OU": 0,
+    "IU": 0,
+    "U": 0
+}

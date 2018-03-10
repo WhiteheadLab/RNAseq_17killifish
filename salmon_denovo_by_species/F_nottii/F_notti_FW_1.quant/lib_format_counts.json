@@ -1,0 +1,22 @@
+{
+    "read_files": "( /home/ljcohen/osmotic_trim/F_notti_FW_1.trim_1P.fq, /home/ljcohen/osmotic_trim/F_notti_FW_1.trim_2P.fq )",
+    "expected_format": "IU",
+    "compatible_fragment_ratio": 0.996133573628216,
+    "num_compatible_fragments": 9801533,
+    "num_assigned_fragments": 9839577,
+    "num_consistent_mappings": 23122389,
+    "num_inconsistent_mappings": 1608559,
+    "strand_mapping_bias": 0.49906274823073,
+    "MSF": 0,
+    "OSF": 8174,
+    "ISF": 11582866,
+    "MSR": 0,
+    "OSR": 8145,
+    "ISR": 11539523,
+    "SF": 748549,
+    "SR": 755488,
+    "MU": 0,
+    "OU": 0,
+    "IU": 0,
+    "U": 0
+}

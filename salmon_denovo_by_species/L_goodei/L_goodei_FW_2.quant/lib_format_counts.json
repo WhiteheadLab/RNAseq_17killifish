@@ -1,0 +1,22 @@
+{
+    "read_files": "( /home/ljcohen/osmotic_trim/L_goodei_FW_2.trim_1P.fq, /home/ljcohen/osmotic_trim/L_goodei_FW_2.trim_2P.fq )",
+    "expected_format": "IU",
+    "compatible_fragment_ratio": 0.9926282573638032,
+    "num_compatible_fragments": 5688691,
+    "num_assigned_fragments": 5730938,
+    "num_consistent_mappings": 10782469,
+    "num_inconsistent_mappings": 1036380,
+    "strand_mapping_bias": 0.49919086250097269,
+    "MSF": 0,
+    "OSF": 5408,
+    "ISF": 5399959,
+    "MSR": 0,
+    "OSR": 5212,
+    "ISR": 5382510,
+    "SF": 480502,
+    "SR": 462936,
+    "MU": 0,
+    "OU": 0,
+    "IU": 0,
+    "U": 0
+}

@@ -1,0 +1,22 @@
+{
+    "read_files": "( /home/ljcohen/osmotic_trim/F_notatus_FW_3.trim_1P.fq, /home/ljcohen/osmotic_trim/F_notatus_FW_3.trim_2P.fq )",
+    "expected_format": "IU",
+    "compatible_fragment_ratio": 0.9950914768952515,
+    "num_compatible_fragments": 10748397,
+    "num_assigned_fragments": 10801416,
+    "num_consistent_mappings": 18666227,
+    "num_inconsistent_mappings": 10049343,
+    "strand_mapping_bias": 0.4970911904157171,
+    "MSF": 0,
+    "OSF": 14022,
+    "ISF": 9387410,
+    "MSR": 0,
+    "OSR": 13974,
+    "ISR": 9278817,
+    "SF": 4952221,
+    "SR": 4920296,
+    "MU": 0,
+    "OU": 0,
+    "IU": 0,
+    "U": 0
+}

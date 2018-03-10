@@ -1,0 +1,22 @@
+{
+    "read_files": "( /home/ljcohen/osmotic_trim/F_zebrinus_FW_2.trim_1P.fq, /home/ljcohen/osmotic_trim/F_zebrinus_FW_2.trim_2P.fq )",
+    "expected_format": "IU",
+    "compatible_fragment_ratio": 0.9890299439135668,
+    "num_compatible_fragments": 11589262,
+    "num_assigned_fragments": 11717807,
+    "num_consistent_mappings": 24418683,
+    "num_inconsistent_mappings": 2030549,
+    "strand_mapping_bias": 0.5008237340236572,
+    "MSF": 0,
+    "OSF": 9371,
+    "ISF": 12189227,
+    "MSR": 0,
+    "OSR": 10763,
+    "ISR": 12229456,
+    "SF": 865131,
+    "SR": 858473,
+    "MU": 0,
+    "OU": 0,
+    "IU": 0,
+    "U": 0
+}

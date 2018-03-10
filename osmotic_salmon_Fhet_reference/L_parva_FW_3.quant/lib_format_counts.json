@@ -1,0 +1,22 @@
+{
+    "read_files": "( /home/ljcohen/osmotic_trim/L_parva_FW_3.trim_1P.fq, /home/ljcohen/osmotic_trim/L_parva_FW_3.trim_2P.fq )",
+    "expected_format": "IU",
+    "compatible_fragment_ratio": 0.9942499158837459,
+    "num_compatible_fragments": 6852616,
+    "num_assigned_fragments": 6892247,
+    "num_consistent_mappings": 10670658,
+    "num_inconsistent_mappings": 9350702,
+    "strand_mapping_bias": 0.4950568184267549,
+    "MSF": 0,
+    "OSF": 10113,
+    "ISF": 5388076,
+    "MSR": 0,
+    "OSR": 9500,
+    "ISR": 5282582,
+    "SF": 4632076,
+    "SR": 4578889,
+    "MU": 0,
+    "OU": 0,
+    "IU": 0,
+    "U": 0
+}

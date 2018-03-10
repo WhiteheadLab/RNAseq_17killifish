@@ -1,0 +1,9 @@
+{
+    "salmon_version": "0.9.1",
+    "index": "/home/ljcohen/osmotic_assemblies_farm/F_heteroclitusMDPP_index",
+    "libType": "IU",
+    "mates1": "/home/ljcohen/osmotic_trim/F_heteroclitusMDPP_BW_2.trim_1P.fq",
+    "mates2": "/home/ljcohen/osmotic_trim/F_heteroclitusMDPP_BW_2.trim_2P.fq",
+    "output": "F_heteroclitusMDPP_BW_2.quant",
+    "auxDir": "aux_info"
+}
