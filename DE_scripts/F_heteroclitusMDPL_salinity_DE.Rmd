@@ -1,0 +1,256 @@
+---
+title: "Fundulus heteroclitus MDPL"
+author: "Lisa K. Johnson"
+date: "3/11/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE, echo = FALSE}
+library(DESeq2)
+library(RColorBrewer)
+library(gplots)
+library(tximport)
+source('~/Documents/UCDavis/Whitehead/plotPCAWithSampleNames.R')
+source('~/Documents/UCDavis/Whitehead/overLapper_original.R')
+```
+
+## Importing quantification files, by species
+
+The following is a DE analysis with the freshwater native, *Fundulus heteroclitus (MDPL)* killifish to identify candidate genes to be interested in for downstream analysis.
+
+These are the quantification files, and whether they exist:
+
+```{r, echo = FALSE}
+dir="~/Documents/UCDavis/Whitehead/RNAseq_15killifish/salmon_denovo_by_species"
+files_list = list.files("~/Documents/UCDavis/Whitehead/RNAseq_15killifish/salmon_denovo_by_species/F_heteroclitusMDPL")
+files <- file.path(dir,"F_heteroclitusMDPL",files_list, "quant.sf")
+files
+print(file.exists(files))
+```
+
+# De novo assemblies and annotations
+
+De novo assemblies were run with Trinity (version 2.2.0) and annotated with dammit (version 1.0 with translated amino acid database from Fundulus heteroclitus, NCBI version - need to run again with Don Gilbert's kfish2rae5g aa fasta file to get Funhe id). 
+
+This resulted in Trinity contigs (transcripts) that were annotated against F. heteroclitus, Pfam, Rfam, and orthodb protein databases. The highest E-value match was selected as an annotated, one per contig. If an annotated contig matched with the F. heteroclitus database, it was kept separately for reference later.
+
+This is the number of contigs:
+
+```{r, echo=FALSE}
+contigs <- read.csv("~/Documents/UCDavis/Whitehead/intermediate_denovo_annotation_files/F_heteroclitusMDPL_gene_transcript_table.txt")
+dim(contigs)
+```
+
+This is the number of annotated contigs:
+
+```{r, echo=FALSE}
+gene_names <- read.csv("~/Documents/UCDavis/Whitehead/annotation_gene_names/F_heteroclitusMDPL_gene_names.csv")
+dim(gene_names)
+gene_names_id <- gene_names[,c(2,6)]
+cols<-c("transcript_id","gene_id")
+colnames(gene_names_id)<-cols
+```
+
+Summarizing by gene:
+
+```{r, echo=FALSE}
+tx2gene <- gene_names_id
+txi.salmon <- tximport(files, type = "salmon", tx2gene = tx2gene)
+dim(txi.salmon$counts)
+```
+
+## Experimental Design
+
+```{r, echo=FALSE}
+cols<-files_list
+colnames(txi.salmon$counts)<-cols
+conditions = factor(c("BW","BW","BW","FW","FW","FW","TR","TR","TR"))
+ExpDesign <- data.frame(row.names=colnames(txi.salmon$counts), condition = conditions)
+ExpDesign
+```
+
+## Dispersion
+
+```{r, echo=FALSE}
+dds <- DESeqDataSetFromTximport(txi.salmon, ExpDesign, ~condition)
+dds<-DESeq(dds,betaPrior=FALSE)
+matrix(resultsNames(dds))
+log_cds<-rlog(dds)
+plotDispEsts(dds)
+```
+## PCA
+
+```{r, echo=FALSE}
+plotPCAWithSampleNames(log_cds,intgroup="condition",ntop=40000)
+```
+
+# Get normalized counts and filter out genes with low expression
+
+This is the number of genes in the expression counts table:
+```{r, echo=FALSE}
+# get counts
+counts_table = counts( dds, normalized=TRUE )
+dim(counts_table)
+```
+
+After filtering for low expression (where th rowSum is greater than or equal to 1):
+```{r, echo=FALSE}
+filtered_norm_counts<-counts_table[!rowSums(counts_table==0)>=1, ]
+dim(filtered_norm_counts)
+filtered_norm_counts<-as.data.frame(filtered_norm_counts)
+GeneID<-rownames(filtered_norm_counts)
+filtered_norm_counts<-cbind(filtered_norm_counts,GeneID)
+```
+
+# MA plot, BW vs. FW
+```{r, echo=FALSE}
+res.1<-results(dds,contrast=c("condition","BW","FW"))
+dim(res.1)
+res.2<-results(dds,contrast=c("condition","TR","FW"))
+res.3<-results(dds,contrast=c("condition","TR","BW"))
+res1_ordered <-as.data.frame(res.1[order(res.1$padj),])
+res1_filtered <-subset(res1_ordered,res1_ordered$padj<0.05)
+res1_filtered <-subset(res1_filtered,res1_filtered$log2FoldChange>1 | res1_filtered$log2FoldChange< -1)
+id<-rownames(res1_filtered)
+res1_filtered<-cbind(res1_filtered,id)
+res2_ordered <-as.data.frame(res.2[order(res.2$padj),])
+res2_filtered<-subset(res2_ordered,res2_ordered$padj<0.05)
+res2_filtered <-subset(res2_filtered,res2_filtered$log2FoldChange>1 | res2_filtered$log2FoldChange< -1)
+id<-rownames(res2_filtered)
+res2_filtered<-cbind(res2_filtered,id)
+res3_ordered<-as.data.frame(res.3[order(res.3$padj),])
+res3_filtered<-subset(res3_ordered,res3_ordered$padj<0.05)
+res3_filtered <-subset(res3_filtered,res3_filtered$log2FoldChange>1 | res3_filtered$log2FoldChange< -1)
+id<-rownames(res3_filtered)
+res3_filtered<-cbind(res3_filtered,id)
+plot(log2(res.1$baseMean), res.1$log2FoldChange, 
+     col=ifelse(res.1$padj < 0.05, "red","gray67"),
+     main="Fundulus heteroclitus MDPL (BW vs. FW) (padj<0.05)",xlim=c(1,15),pch=20,cex=1)
+abline(h=c(-1,1), col="blue")
+```
+
+# MA plot, TR vs. FW
+
+```{r, echo=FALSE}
+plot(log2(res.2$baseMean), res.2$log2FoldChange, 
+     col=ifelse(res.2$padj < 0.05, "red","gray67"),
+     main="Fundulus heteroclitus MDPL (transfer vs. FW) (padj<0.05)",xlim=c(1,15),pch=20,cex=1)
+abline(h=c(-1,1), col="blue")
+```
+
+# MA plot, TR vs. BW
+```{r, echo=FALSE}
+plot(log2(res.3$baseMean), res.3$log2FoldChange, 
+     col=ifelse(res.3$padj < 0.05, "red","gray67"),
+     main="Fundulus heteroclitus MDPL (transfer vs. BW) (padj<0.05)",xlim=c(1,15),pch=20,cex=1)
+abline(h=c(-1,1), col="blue")
+```
+
+# Overlap of genes in each comparison
+
+```{r, echo=FALSE,fig.width=14, fig.height=12}
+m<-res1_filtered$id
+n<-res2_filtered$id
+o<-res3_filtered$id
+setlist <- list(BW_FW=as.vector(m),transfer_FW=as.vector(n),transfer_BW=as.vector(o))
+OLlist <- overLapper(setlist=setlist, sep="", type="vennsets")
+counts <- sapply(OLlist$Venn_List, length)
+vennPlot(counts=counts)
+```
+
+```{r, echo=FALSE}
+# extract intersections:
+names(OLlist$Venn_List)
+overlap_BW_FWtransfer_FW<-OLlist$Venn_List$BW_FWtransfer_FW
+length(overlap_BW_FWtransfer_FW)
+overlap_BW_FWtransfer_BW<-OLlist$Venn_List$BW_FWtransfer_BW
+length(overlap_BW_FWtransfer_BW)
+overlap_transfer_FWtransfer_BW<-OLlist$Venn_List$transfer_FWtransfer_BW
+length(overlap_transfer_FWtransfer_BW)
+overlap_BW_FW<-OLlist$Venn_List$BW_FW
+length(overlap_BW_FW)
+overlap_transfer_FW<-OLlist$Venn_List$transfer_FW
+length(overlap_transfer_FW)
+overlap_transfer_BW<-OLlist$Venn_List$transfer_BW
+length(overlap_transfer_BW)
+combined_BW_FW<-union(overlap_BW_FW,overlap_BW_FW)
+length(combined_BW_FW)
+combined_transfer_FW<-union(overlap_transfer_FW,overlap_transfer_FW)
+length(combined_transfer_FW)
+combined_transfer_BW<-union(overlap_transfer_BW,overlap_transfer_BW)
+length(combined_transfer_BW)
+```
+
+# Heatmap, Transfer vs. FW
+```{r echo=FALSE}
+# TR vs. FW samples
+counts_TR_FW <- filtered_norm_counts[,c(4:9)]
+id <-rownames(counts_TR_FW)
+length(combined_transfer_FW)
+TR_FW <- counts_TR_FW[rownames(counts_TR_FW) %in% combined_transfer_FW,]
+d<-as.matrix(TR_FW)
+hr <- hclust(as.dist(1-cor(t(d), method="pearson")), method="complete")
+mycl <- cutree(hr, h=max(hr$height/1.5))
+clusterCols <- rainbow(length(unique(mycl)))
+myClusterSideBar <- clusterCols[mycl]
+myheatcol <- greenred(75)
+heatmap.2(d, main="Fundulus heteroclitus MDPL (padj<0.05, log2FC = ±1)", 
+          Rowv=as.dendrogram(hr),
+          cexRow=0.75,cexCol=0.8,srtCol= 90,
+          adjCol = c(NA,0),offsetCol=2.5, 
+          Colv=NA, dendrogram="row", 
+          scale="row", col=myheatcol, 
+          density.info="none", 
+          trace="none", RowSideColors= myClusterSideBar)
+```
+
+# Heatmap, Transfer vs. BW
+```{r echo=FALSE}
+# TR vs. BW samples
+counts_TR_BW <- filtered_norm_counts[,c(1,2,3,7,8,9)]
+length(combined_transfer_BW)
+TR_BW <- counts_TR_BW[rownames(counts_TR_BW) %in% combined_transfer_BW,]
+d<-as.matrix(TR_BW)
+hr <- hclust(as.dist(1-cor(t(d), method="pearson")), method="complete")
+mycl <- cutree(hr, h=max(hr$height/1.5))
+clusterCols <- rainbow(length(unique(mycl)))
+myClusterSideBar <- clusterCols[mycl]
+myheatcol <- greenred(75)
+heatmap.2(d, main="Fundulus heteroclitus MDPL (padj<0.05, log2FC = ±1)", 
+          Rowv=as.dendrogram(hr),
+          cexRow=0.75,cexCol=0.8,srtCol= 90,
+          adjCol = c(NA,0),offsetCol=2.5, 
+          Colv=NA, dendrogram="row", 
+          scale="row", col=myheatcol, 
+          density.info="none", 
+          trace="none", RowSideColors= myClusterSideBar)
+```
+
+# Version Info
+```{r echo=TRUE}
+sessionInfo()
+```
+# Tables
+```{r echo=TRUE}
+# merge gene_names, counts, and results for TR vs. BW and TR vs. FW in one massive table
+dim(gene_names)
+res.2<-as.data.frame(res.2)# TR vs. FW
+res.3<-as.data.frame(res.3)# TR vs. BW
+dim(counts_table)
+GeneID<-rownames(res.2)
+TR_FW_results<-cbind(res.2,GeneID)
+GeneID<-rownames(res.3)
+TR_BW_results<-cbind(res.3,GeneID)
+GeneID<-rownames(counts_table)
+counts_table_all<-cbind(counts_table,GeneID)
+cols<-c("Row","Trinity_contigID","Trinity_gene","Trinity_gene2,","dammit_ID","GeneID","dammit_ID2","NCBI_Fhet")
+colnames(gene_names)<-cols
+all_matrix<-merge(counts_table_all,TR_FW_results,by="GeneID")
+all_matrix<-merge(all_matrix,TR_BW_results,by="GeneID")
+all_matrix<-merge(all_matrix,gene_names,by="GeneID")
+write.csv(all_matrix,"~/Documents/UCDavis/Whitehead/RNAseq_15killifish/DE_results/F_heteroclitusMDPL_DE_all.csv")
+TR_BW_all<-all_matrix[all_matrix$GeneID %in% combined_transfer_BW,]
+write.csv(TR_BW_all,"~/Documents/UCDavis/Whitehead/RNAseq_15killifish/DE_results/F_heteroclitusMDPL_DE_TR_BW.csv")
+TR_FW_all<-all_matrix[all_matrix$GeneID %in% combined_transfer_FW,]
+write.csv(TR_BW_all,"~/Documents/UCDavis/Whitehead/RNAseq_15killifish/DE_results/F_heteroclitusMDPL_DE_TR_FW.csv")
+```
