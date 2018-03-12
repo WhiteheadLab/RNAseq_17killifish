@@ -1,0 +1,376 @@
+---
+title: "salinity_Fundulus_DE"
+author: "Lisa Johnson"
+date: "02/9/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Salinity RNAseq, 17 species killifish
+
+## RNAseq data from 17 species of Fundulus aligned with salmon to kfish2rae Fundulus heteroclitus reference transcriptome (alt and main files combined). Combined padj and p values for all parts of model and two experimental comparisons: FW vs. BW and FW vs. Transfer
+
+Which genes change in expression due to experimental condition?
+
+
+### Libraries
+```{r echo=TRUE}
+#source("https://bioconductor.org/biocLite.R")
+#biocLite("DESeq2")
+#biocLite("tximport")
+#install.packages("readr")
+#install.packges("gplots")
+library(DESeq2)
+library("lattice")
+library(tximport)
+library(readr)
+library(gplots)
+library(RColorBrewer)
+source('~/Documents/UCDavis/Whitehead/plotPCAWithSampleNames.R')
+setwd("~/Documents/UCDavis/Whitehead/RNAseq_17killifish/osmotic_salmon_Fhet_reference/")
+```
+## FW vs. Transfer
+### Import quantification counts from salmon (TPM)
+```{r echo=TRUE}
+setwd("~/Documents/UCDavis/Whitehead/RNAseq_17killifish/osmotic_salmon_Fhet_reference/")
+dir<-"~/Documents/UCDavis/Whitehead/RNAseq_17killifish/"
+files_list = list.files("~/Documents/UCDavis/Whitehead/RNAseq_17killifish/osmotic_salmon_Fhet_reference/")
+#files <- files_list
+files <- file.path(dir, "osmotic_salmon_Fhet_reference",files_list, "quant.sf")
+files
+print(file.exists(files))
+gene_names <- read.csv("~/Documents/UCDavis/Whitehead/RNAseq_17killifish/Fhet_gene_transcript_names.csv")
+cols<-c("row","transcript_id","gene_id")
+colnames(gene_names)<-cols
+tx2gene<-gene_names[,2:3]
+head(tx2gene)
+txi.salmon <- tximport(files, type = "salmon", tx2gene = tx2gene)
+cols<-files_list
+colnames(txi.salmon$counts)<-cols
+head(txi.salmon$counts)
+dim(txi.salmon$counts)
+```
+### Experimental Design for FW vs. Transfer
+
+```{r echo=TRUE}
+#salmon_counts_small<-txi.salmon$counts
+#salmon_counts_small<-salmon_counts_small[,c(1:24,31:66,69:93,98:106,111:128)]
+species = factor(c("A_xenica","A_xenica","A_xenica","A_xenica","A_xenica","A_xenica","A_xenica","A_xenica","A_xenica",
+                   "F_catanatus","F_catanatus","F_catanatus","F_catanatus","F_catanatus","F_catanatus","F_catanatus",
+                   "F_chrysotus","F_chrysotus","F_chrysotus","F_chrysotus","F_chrysotus","F_chrysotus","F_chrysotus","F_chrysotus",
+                   "F_grandis","F_grandis","F_grandis","F_grandis","F_grandis","F_grandis","F_grandis","F_grandis","F_grandis",
+                   "F_heteroclitusMDPL","F_heteroclitusMDPL","F_heteroclitusMDPL","F_heteroclitusMDPL","F_heteroclitusMDPL","F_heteroclitusMDPL","F_heteroclitusMDPL","F_heteroclitusMDPL","F_heteroclitusMDPL",
+                   "F_heteroclitusMDPP","F_heteroclitusMDPP","F_heteroclitusMDPP","F_heteroclitusMDPP","F_heteroclitusMDPP","F_heteroclitusMDPP","F_heteroclitusMDPP","F_heteroclitusMDPP","F_heteroclitusMDPP",
+                   "F_notatus","F_notatus","F_notatus","F_notatus","F_notatus","F_notatus","F_notatus","F_notatus","F_notatus",
+                   "F_olivaceous","F_olivaceous","F_olivaceous","F_olivaceous","F_olivaceous","F_olivaceous","F_olivaceous","F_olivaceous",
+                   "F_parvapinis","F_parvapinis","F_parvapinis","F_parvapinis","F_parvapinis","F_parvapinis","F_parvapinis","F_parvapinis",
+                   "F_rathbuni","F_rathbuni","F_rathbuni","F_rathbuni","F_rathbuni","F_rathbuni","F_rathbuni","F_rathbuni","F_rathbuni",
+                   "F_similis","F_similis","F_similis","F_similis","F_similis","F_similis","F_similis","F_similis","F_similis",
+                   "L_goodei","L_goodei","L_goodei","L_goodei","L_goodei","L_goodei","L_goodei","L_goodei","L_goodei",
+                   "L_parva","L_parva","L_parva","L_parva","L_parva","L_parva","L_parva","L_parva","L_parva"))
+
+#species = factor(c("A_xenica","A_xenica","A_xenica","A_xenica","A_xenica","A_xenica","A_xenica","A_xenica","A_xenica",
+#                   "F_catanatus","F_catanatus","F_catanatus","F_catanatus","F_catanatus","F_catanatus","F_catanatus",
+#                   "F_chrysotus","F_chrysotus","F_chrysotus","F_chrysotus","F_chrysotus","F_chrysotus","F_chrysotus","F_chrysotus",
+#                   "F_diaphanus","F_diaphanus","F_diaphanus","F_diaphanus","F_diaphanus","F_diaphanus",
+#                   "F_grandis","F_grandis","F_grandis","F_grandis","F_grandis","F_grandis","F_grandis","F_grandis","F_grandis",
+#                   "F_heteroclitusMDPL","F_heteroclitusMDPL","F_heteroclitusMDPL","F_heteroclitusMDPL","F_heteroclitusMDPL","F_heteroclitusMDPL","F_heteroclitusMDPL","F_heteroclitusMDPL","F_heteroclitusMDPL",
+#                   "F_heteroclitusMDPP","F_heteroclitusMDPP","F_heteroclitusMDPP","F_heteroclitusMDPP","F_heteroclitusMDPP","#F_heteroclitusMDPP","F_heteroclitusMDPP","F_heteroclitusMDPP","F_heteroclitusMDPP",
+#                   "F_notatus","F_notatus","F_notatus","F_notatus","F_notatus","F_notatus","F_notatus","F_notatus","F_notatus",
+#                   "F_notti","F_notti",
+#                   "F_olivaceous","F_olivaceous","F_olivaceous","F_olivaceous","F_olivaceous","F_olivaceous","F_olivaceous","F_olivaceous",
+#                   "F_parvapinis","F_parvapinis","F_parvapinis","F_parvapinis","F_parvapinis","F_parvapinis","F_parvapinis","F_parvapinis",
+#                   "F_rathbuni","F_rathbuni","F_rathbuni","F_rathbuni","F_rathbuni","F_rathbuni","F_rathbuni","F_rathbuni","F_rathbuni",
+#                   "F_sciadicus","F_sciadicus","F_sciadicus","F_sciadicus",
+#                   "F_similis","F_similis","F_similis","F_similis","F_similis","F_similis","F_similis","F_similis","F_similis",
+#                   "F_zebrinus","F_zebrinus","F_zebrinus","F_zebrinus",
+#                   "L_goodei","L_goodei","L_goodei","L_goodei","L_goodei","L_goodei","L_goodei","L_goodei","L_goodei",
+#                   "L_parva","L_parva","L_parva","L_parva","L_parva","L_parva","L_parva","L_parva","L_parva"))
+condition = factor(c("BW","BW","BW","FW","FW","FW","TR","TR","TR",
+                     "BW","BW","BW","FW","FW","TR","TR",
+                     "BW","BW","BW","FW","FW","FW","TR","TR",
+                     "BW","BW","BW","FW","FW","FW","TR","TR","TR",
+                     "BW","BW","BW","FW","FW","FW","TR","TR","TR",
+                     "BW","BW","BW","FW","FW","FW","TR","TR","TR",
+                     "BW","BW","BW","FW","FW","FW","TR","TR","TR",
+                     "BW","BW","BW","FW","FW","FW","TR","TR",
+                     "BW","BW","BW","FW","FW","FW","TR","TR",
+                     "BW","BW","BW","FW","FW","FW","TR","TR","TR",
+                     "BW","BW","BW","FW","FW","FW","TR","TR","TR",
+                     "BW","BW","BW","FW","FW","FW","TR","TR","TR",
+                     "BW","BW","BW","FW","FW","FW","TR","TR","TR"))
+
+#condition = factor(c("BW","BW","BW","FW","FW","FW","TR","TR","TR",
+#                     "BW","BW","BW","FW","FW","TR","TR",
+#                     "BW","BW","BW","FW","FW","FW","TR","TR",
+#                     "BW","BW","FW","FW","TR","TR",
+#                     "BW","BW","BW","FW","FW","FW","TR","TR","TR",
+#                     "BW","BW","BW","FW","FW","FW","TR","TR","TR",
+#                     "BW","BW","BW","FW","FW","FW","TR","TR","TR",
+#                     "BW","BW","BW","FW","FW","FW","TR","TR","TR",
+#                     "FW","FW",
+#                     "BW","BW","BW","FW","FW","FW","TR","TR",
+#                     "BW","BW","BW","FW","FW","FW","TR","TR",
+#                     "BW","BW","BW","FW","FW","FW","TR","TR","TR",
+#                     "BW","FW","FW","TR",
+#                     "BW","BW","BW","FW","FW","FW","TR","TR","TR",
+#                     "BW","BW","FW","FW",
+#                     "BW","BW","BW","FW","FW","FW","TR","TR","TR",
+#                     "BW","BW","BW","FW","FW","FW","TR","TR","TR"))
+ExpDesign <- data.frame(row.names=colnames(txi.salmon$counts), species = species,condition=condition)
+ExpDesign
+dim(ExpDesign)
+```
+
+### DESeq2 with model for population, condition and interaction between population:condition
+
+```{r echo=TRUE}
+dds <- DESeqDataSetFromTximport(txi.salmon, ExpDesign, ~species + condition + species:condition)
+dds<-DESeq(dds,betaPrior=FALSE)
+matrix(resultsNames(dds))
+```
+
+### Get normalized counts and filter out genes with low expression 
+```{r echo=TRUE}
+# get counts
+counts_table = counts(dds,normalized=TRUE )
+filtered_norm_counts<-counts_table[!rowSums(counts_table==0)>=1, ]
+filtered_norm_counts<-as.data.frame(filtered_norm_counts)
+GeneID<-rownames(filtered_norm_counts)
+filtered_norm_counts<-cbind(filtered_norm_counts,GeneID)
+dim(filtered_norm_counts)
+head(filtered_norm_counts)
+```
+### Plot dispersion estimates
+```{r echo=TRUE}
+plotDispEsts(dds)
+```
+
+### PCA for FW vs. Transfer, colored by population
+```{r echo=TRUE}
+log_dds<-rlog(dds)
+plotPCAWithSampleNames(log_dds, intgroup="species", ntop=40000)
+```
+
+### Get GeneID and names from F. heteroclitus reference genome ([version kfish2rae5 ](http://arthropods.eugenes.org/EvidentialGene/killifish/genes/kfish2rae5/)) 
+```{r echo=TRUE}
+# get gene id names
+gene_id<-read.csv("~/Documents/Whitehead/Fhet_salmon_quant/Fhet_gene_id_clean.csv")
+cols<-c("row","GeneID","Name")
+colnames(gene_id)<-cols
+gene_id<-gene_id[,2:3]
+dim(gene_id)
+head(gene_id)
+unique_genes<-unique(gene_id$GeneID)
+length(unique_genes)
+gene_id <- gene_id[unique(gene_id$GeneID),]
+dim(gene_id)
+head(gene_id)
+```
+### Get results table for each part of model (population,condition,population:condition), merge with counts and add gene names
+```{r echo=TRUE}
+res_pop<-results(dds,name="population_MDPL_vs_MDPP")
+res_condition<-results(dds,name="condition_transfer_vs_FW")
+res_interaction<-results(dds, name="populationMDPL.conditiontransfer")
+#head(res_pop)
+#head(res_condition)
+#head(res_interaction)
+res_pop_ordered<-res_pop[order(res_pop$padj),]
+res_cond_ordered<-res_condition[order(res_condition$padj),]
+res_int_ordered<-res_interaction[order(res_interaction$padj),]
+GeneID_pop<-rownames(res_pop_ordered)
+GeneID_cond<-rownames(res_cond_ordered)
+GeneID_int<-rownames(res_int_ordered)
+res_pop_ordered<-as.data.frame(res_pop_ordered)
+res_cond_ordered<-as.data.frame(res_cond_ordered)
+res_int_ordered<-as.data.frame(res_int_ordered)
+res_pop_genes<-cbind(res_pop_ordered,GeneID_pop)
+res_cond_genes<-cbind(res_cond_ordered,GeneID_cond)
+res_int_genes<-cbind(res_int_ordered,GeneID_int)
+col.names<-c("baseMean","log2FoldChange","lfcSE","stat","pvalue","padj","GeneID")
+dim(res_pop_genes)
+dim(res_cond_genes)
+dim(res_int_genes)
+head(res_pop_genes)
+head(res_cond_genes)
+head(res_int_genes)
+colnames(res_pop_genes)<-col.names
+colnames(res_cond_genes)<-col.names
+colnames(res_int_genes)<-col.names
+head(res_pop_genes)
+head(res_cond_genes)
+head(res_int_genes)
+res_genes_merged <- merge(res_pop_genes,res_cond_genes,by=unique("GeneID"))
+head(res_genes_merged)
+res_genes_merged <- merge(res_genes_merged,res_int_genes,by=unique("GeneID"))
+head(res_genes_merged)
+colnames(res_genes_merged)<-c("GeneID","baseMean.TR_FW.pop","log2FoldChange.TR_FW.pop","lfcSE.TR_FW.pop","stat.TR_FW.pop","pvalue.TR_FW.pop","padj.TR_FW.pop","baseMean.TR_FW.condition","log2FoldChange.TR_FW.condition","lfcSE.TR_FW.condition","stat.TR_FW.condition","pvalue.TR_FW.condition","padj.TR_FW.condition","baseMean.TR_FW.interaction","log2FoldChange.TR_FW.interaction","lfcSE.TR_FW.interaction","stat.TR_FW.interaction","pvalue.TR_FW.interaction","padj.TR_FW.interaction")
+head(res_genes_merged)
+res_genes_merged <- merge(res_genes_merged,filtered_norm_counts,by=unique("GeneID"))
+dim(res_genes_merged)
+head(res_genes_merged)
+res_genes_merged_names <- merge(gene_id,res_genes_merged,by=unique("GeneID"))
+dim(res_genes_merged_names)
+head(res_genes_merged_names)
+res_genes_merged_names <- res_genes_merged_names[order(res_genes_merged_names$padj.TR_FW.pop),]
+dim(res_genes_merged_names)
+head(res_genes_merged_names)
+##### removed duplicate GeneID
+res_genes_merged_names_unique<-res_genes_merged_names[!duplicated(res_genes_merged_names$GeneID),]
+res_ordered<-res_genes_merged_names_unique[order(res_genes_merged_names_unique$padj.TR_FW.pop),]
+head(res_ordered)
+dim(res_ordered)
+colnames(res_ordered)
+res_ordered_Transfer_FW <- res_ordered
+write.csv(res_ordered_Transfer_FW, file="Fhet_Transfer_FW_DESeq2_allmodelterms.csv" )
+```
+
+## FW vs. BW
+### Import quantification counts from salmon (TPM)
+```{r echo=TRUE}
+dir<-"~/Documents/Whitehead/Fhet_salmon_quant"
+files_list = list.files("~/Documents/Whitehead/Fhet_salmon_quant/combined_isoforms/")
+files <- file.path(dir, "combined_isoforms",c("F_heteroclitusMDPL_BW_1.quant","F_heteroclitusMDPL_BW_2.quant","F_heteroclitusMDPL_BW_3.quant","F_heteroclitusMDPL_FW_1.quant","F_heteroclitusMDPL_FW_2.quant","F_heteroclitusMDPL_FW_3.quant","F_heteroclitusMDPP_BW_1.quant","F_heteroclitusMDPP_BW_2.quant","F_heteroclitusMDPP_BW_3.quant","F_heteroclitusMDPP_FW_1.quant","F_heteroclitusMDPP_FW_2.quant","F_heteroclitusMDPP_FW_3.quant"), "quant.sf")
+#files <- files_list
+names(files) <- c("MDPL_BW_1","MDPL_BW_2","MDPL_BW_3","MDPL_FW_1","MDPL_FW_2","MDPL_FW_3","MDPP_BW_1","MDPP_BW_2","MDPP_BW_3","MDPP_FW_1","MDPP_FW_2","MDPP_FW_3")
+files
+print(file.exists(files))
+gene_names <- read.csv("~/Documents/Whitehead/Fhet_salmon_quant/Fhet_gene_transcript_names.csv")
+cols<-c("row","transcript_id","gene_id")
+colnames(gene_names)<-cols
+tx2gene<-gene_names[,2:3]
+head(tx2gene)
+txi.salmon <- tximport(files, type = "salmon", tx2gene = tx2gene, reader = read_tsv)
+head(txi.salmon$counts)
+dim(txi.salmon$counts)
+```
+### Experimental Design for FW vs. Transfer
+
+```{r echo=TRUE}
+population = factor(c("MDPL","MDPL","MDPL","MDPL","MDPL","MDPL","MDPP","MDPP","MDPP","MDPP","MDPP","MDPP"))
+condition = factor(c("BW","BW","BW","FW","FW","FW","BW","BW","BW","FW","FW","FW"))
+ExpDesign <- data.frame(row.names=colnames(txi.salmon$counts), population = population,condition=condition)
+ExpDesign
+```
+
+### DESeq2 with model for population, condition and interaction between population:condition
+
+```{r echo=TRUE}
+dds <- DESeqDataSetFromTximport(txi.salmon, ExpDesign, ~population + condition + population:condition)
+dds$population<-relevel(dds$population,ref="MDPP")
+dds<-DESeq(dds,betaPrior=FALSE)
+matrix(resultsNames(dds))
+```
+
+### Get normalized counts and filter out genes with low expression 
+```{r echo=TRUE}
+# get counts
+counts_table = counts( dds, normalized=TRUE )
+filtered_norm_counts<-counts_table[!rowSums(counts_table==0)>=1, ]
+filtered_norm_counts<-as.data.frame(filtered_norm_counts)
+GeneID<-rownames(filtered_norm_counts)
+filtered_norm_counts<-cbind(filtered_norm_counts,GeneID)
+dim(filtered_norm_counts)
+head(filtered_norm_counts)
+```
+### Plot dispersion estimates
+```{r echo=TRUE}
+plotDispEsts(dds)
+```
+
+### PCA for FW vs. Transfer, colored by population
+```{r echo=TRUE}
+log_dds<-rlog(dds)
+plotPCAWithSampleNames(log_dds, intgroup="population", ntop=40000)
+```
+
+### Get results table for each part of model (population,condition,population:condition), merge with counts and add gene names
+```{r echo=TRUE}
+res_pop<-results(dds,name="population_MDPL_vs_MDPP")
+res_condition<-results(dds,name="condition_FW_vs_BW")
+res_interaction<-results(dds, name="populationMDPL.conditionFW")
+#head(res_pop)
+#head(res_condition)
+#head(res_interaction)
+res_pop_ordered<-res_pop[order(res_pop$padj),]
+res_cond_ordered<-res_condition[order(res_condition$padj),]
+res_int_ordered<-res_interaction[order(res_interaction$padj),]
+GeneID_pop<-rownames(res_pop_ordered)
+GeneID_cond<-rownames(res_cond_ordered)
+GeneID_int<-rownames(res_int_ordered)
+res_pop_ordered<-as.data.frame(res_pop_ordered)
+res_cond_ordered<-as.data.frame(res_cond_ordered)
+res_int_ordered<-as.data.frame(res_int_ordered)
+res_pop_genes<-cbind(res_pop_ordered,GeneID_pop)
+res_cond_genes<-cbind(res_cond_ordered,GeneID_cond)
+res_int_genes<-cbind(res_int_ordered,GeneID_int)
+col.names<-c("baseMean","log2FoldChange","lfcSE","stat","pvalue","padj","GeneID")
+dim(res_pop_genes)
+dim(res_cond_genes)
+dim(res_int_genes)
+head(res_pop_genes)
+head(res_cond_genes)
+head(res_int_genes)
+colnames(res_pop_genes)<-col.names
+colnames(res_cond_genes)<-col.names
+colnames(res_int_genes)<-col.names
+head(res_pop_genes)
+head(res_cond_genes)
+head(res_int_genes)
+res_genes_merged <- merge(res_pop_genes,res_cond_genes,by=unique("GeneID"))
+head(res_genes_merged)
+res_genes_merged <- merge(res_genes_merged,res_int_genes,by=unique("GeneID"))
+head(res_genes_merged)
+colnames(res_genes_merged)<-c("GeneID","baseMean.FW_BW.pop","log2FoldChange.FW_BW.pop","lfcSE.FW_BW.pop","stat.FW_BW.pop","pvalue.FW_BW.pop","padj.FW_BW.pop","baseMean.FW_BW.condition","log2FoldChange.FW_BW.condition","lfcSE.FW_BW.condition","stat.FW_BW.condition","pvalue.FW_BW.condition","padj.FW_BW.condition","baseMean.FW_BW.interaction","log2FoldChange.FW_BW.interaction","lfcSE.FW_BW.interaction","stat.FW_BW.interaction","pvalue.FW_BW.interaction","padj.FW_BW.interaction")
+head(res_genes_merged)
+res_genes_merged <- merge(res_genes_merged,filtered_norm_counts,by=unique("GeneID"))
+dim(res_genes_merged)
+head(res_genes_merged)
+res_genes_merged_names <- merge(gene_id,res_genes_merged,by=unique("GeneID"))
+dim(res_genes_merged_names)
+head(res_genes_merged_names)
+res_genes_merged_names <- res_genes_merged_names[order(res_genes_merged_names$padj.FW_BW.pop),]
+dim(res_genes_merged_names)
+head(res_genes_merged_names)
+##### removed duplicate GeneID
+res_genes_merged_names_unique<-res_genes_merged_names[!duplicated(res_genes_merged_names$GeneID),]
+res_ordered<-res_genes_merged_names_unique[order(res_genes_merged_names_unique$padj.FW_BW.pop),]
+head(res_ordered)
+dim(res_ordered)
+colnames(res_ordered)
+res_ordered_FW_BW <- res_ordered
+write.csv(res_ordered, file="Fhet_FW_BW_DESeq2_allmodelterms.csv" )
+```
+
+### Combine FW_BW and Transfer_FW
+
+```{r echo=TRUE}
+all_merged <- merge(res_ordered_FW_BW,res_ordered_Transfer_FW,by=unique("GeneID"))
+head(all_merged)
+# too many redundant cols, so remove
+colnames(all_merged)
+all_merged<- all_merged[,c(1:20,34:51,21:32,55:57,61:63)]
+colnames(all_merged)<-c("GeneID","Name",
+                        "baseMean.FW_BW.pop","log2FoldChange.FW_BW.pop","lfcSE.FW_BW.pop","stat.FW_BW.pop","pvalue.FW_BW.pop","padj.FW_BW.pop",
+                        "baseMean.FW_BW.condition","log2FoldChange.FW_BW.condition","lfcSE.FW_BW.condition","stat.FW_BW.condition","pvalue.FW_BW.condition","padj.FW_BW.condition",
+                        "baseMean.FW_BW.interaction","log2FoldChange.FW_BW.interaction","lfcSE.FW_BW.interaction","stat.FW_BW.interaction","pvalue.FW_BW.interaction","padj.FW_BW.interaction",
+                        "baseMean.TR_FW.pop","log2FoldChange.TR_FW.pop","lfcSE.TR_FW.pop","stat.TR_FW.pop","pvalue.TR_FW.pop","padj.TR_FW.pop",
+                        "baseMean.TR_FW.condition","log2FoldChange.TR_FW.condition","lfcSE.TR_FW.condition","stat.TR_FW.condition","pvalue.TR_FW.condition","padj.TR_FW.condition",
+                        "baseMean.TR_FW.interaction","log2FoldChange.TR_FW.interaction","lfcSE.TR_FW.interaction","stat.TR_FW.interaction","pvalue.TR_FW.interaction","padj.TR_FW.interaction",
+                        "MDPL_BW_1","MDPL_BW_2","MDPL_BW_3",
+                        "MDPL_FW_1","MDPL_FW_2","MDPL_FW_3",
+                        "MDPP_BW_1","MDPP_BW_2","MDPP_BW_3",
+                        "MDPP_FW_1","MDPP_FW_2","MDPP_FW_3",
+                        "MDPL_transfer_1","MDPL_transfer_2","MDPL_transfer_3",
+                        "MDPP_transfer_1","MDPP_transfer_2","MDPP_transfer_3")
+head(all_merged)
+res_ordered<-all_merged[order(all_merged$padj.FW_BW.pop),]
+write.csv(res_ordered, file="Fhet_MDPL_vs_MDPP_DESeq2_allmodelterms_TR_FW_and_FW_BW.csv" )
+```
+### Version Info
+```{r echo=TRUE}
+sessionInfo()
+```
