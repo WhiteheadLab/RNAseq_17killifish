@@ -1,5 +1,5 @@
 ---
-title: "Multiple Fundulus killifish osmotic challenge RNAseq, Differential Expression by species"
+title: "Adenia xenica"
 author: "Lisa K. Johnson"
 date: "3/10/2018"
 output: html_document
@@ -16,7 +16,7 @@ source('~/Documents/UCDavis/Whitehead/overLapper_original.R')
 
 ## Importing quantification files, by species
 
-The following is just DE analysis with the *Adinia xenica* species as example species to test. Will later do this on each species separate, then look at up-down trends per species, as a quantifiable trait to compare between clades in a phylogenetic context. This is just to identify candidate genes to be interested in for downstream analysis.
+The following is a DE analysis with the freshwater native, *Adenia xenica* killifish to identify candidate genes to be interested in for downstream analysis.
 
 These are the quantification files, and whether they exist:
 
@@ -253,5 +253,5 @@ print("Written: A_xenica_DE.csv" )
 TR_BW_all<-all_matrix[all_matrix$GeneID %in% combined_transfer_BW,]
 write.csv(TR_BW_all,"~/Documents/UCDavis/Whitehead/RNAseq_15killifish/DE_results/A_xenica_DE_TR_BW.csv")
 TR_FW_all<-all_matrix[all_matrix$GeneID %in% combined_transfer_FW,]
-write.csv(TR_BW_all,"~/Documents/UCDavis/Whitehead/RNAseq_15killifish/DE_results/A_xenica_DE_TR_FW.csv")
+write.csv(TR_FW_all,"~/Documents/UCDavis/Whitehead/RNAseq_15killifish/DE_results/A_xenica_DE_TR_FW.csv")
 ```

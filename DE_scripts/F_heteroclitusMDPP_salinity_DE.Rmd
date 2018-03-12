@@ -252,5 +252,5 @@ write.csv(all_matrix,"~/Documents/UCDavis/Whitehead/RNAseq_15killifish/DE_result
 TR_BW_all<-all_matrix[all_matrix$GeneID %in% combined_transfer_BW,]
 write.csv(TR_BW_all,"~/Documents/UCDavis/Whitehead/RNAseq_15killifish/DE_results/F_heteroclitusMDPP_DE_TR_BW.csv")
 TR_FW_all<-all_matrix[all_matrix$GeneID %in% combined_transfer_FW,]
-write.csv(TR_BW_all,"~/Documents/UCDavis/Whitehead/RNAseq_15killifish/DE_results/F_heteroclitusMDPP_DE_TR_FW.csv")
+write.csv(TR_FW_all,"~/Documents/UCDavis/Whitehead/RNAseq_15killifish/DE_results/F_heteroclitusMDPP_DE_TR_FW.csv")
 ```
