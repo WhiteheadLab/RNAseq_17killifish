@@ -3,7 +3,7 @@ Differential expression analysis with RNAseq data from 15 species of Fundulus ki
 
 DE analysis by species (N=8 and N=9):
 
-1. [Adenia xenica](https://htmlpreview.github.io/?https://github.com/ljcohen/RNAseq_15killifish/blob/master/DE_scripts/A_xenica_salinity_DE.html)
+1. [Adinia xenica](https://htmlpreview.github.io/?https://github.com/ljcohen/RNAseq_15killifish/blob/master/DE_scripts/A_xenica_salinity_DE.html)
 2. [Fundulus chrysotus](https://htmlpreview.github.io/?https://github.com/ljcohen/RNAseq_15killifish/blob/master/DE_scripts/F_chrysotus_salinity_DE.html)
 3. [Fundulus grandis](https://htmlpreview.github.io/?https://github.com/ljcohen/RNAseq_15killifish/blob/master/DE_scripts/F_grandis_salinity_DE.html)
 4. [Fundulus heteroclitus (MDPL population)](https://htmlpreview.github.io/?https://github.com/ljcohen/RNAseq_15killifish/blob/master/DE_scripts/F_heteroclitusMDPL_salinity_DE.html)
