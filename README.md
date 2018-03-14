@@ -16,6 +16,6 @@ DE analysis by species:
 11. [Lucania goodei](https://htmlpreview.github.io/?https://github.com/ljcohen/RNAseq_15killifish/blob/master/DE_scripts/L_goodei_salinity_DE.html)
 12. [Lucania parva](https://htmlpreview.github.io/?https://github.com/ljcohen/RNAseq_15killifish/blob/master/DE_scripts/L_parva_salinity_DE.html)
 
-De novo assemblies for each species are located here:
+*De novo* transcriptome assemblies and annotations for each species are located here:
 
 http://farm.cse.ucdavis.edu/~ljcohen/killifish/
