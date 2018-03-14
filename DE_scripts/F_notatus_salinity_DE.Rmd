@@ -10,19 +10,19 @@ library(DESeq2)
 library(RColorBrewer)
 library(gplots)
 library(tximport)
-source('~/Documents/UCDavis/Whitehead/plotPCAWithSampleNames.R')
-source('~/Documents/UCDavis/Whitehead/overLapper_original.R')
+source('../extra_scripts/plotPCAWithSampleNames.R')
+source('../extra_scripts/overLapper_original.R')
 ```
 
 ## Importing quantification files, by species
 
-The following is a DE analysis with the freshwater native, *Fundulus notatus* killifish to identify candidate genes to be interested in for downstream analysis.
+The following is a DE analysis with *Fundulus notatus* to identify candidate genes for downstream comparative gene expression analysis.
 
 These are the quantification files, and whether they exist:
 
 ```{r, echo = FALSE}
-dir="~/Documents/UCDavis/Whitehead/RNAseq_15killifish/salmon_denovo_by_species"
-files_list = list.files("~/Documents/UCDavis/Whitehead/RNAseq_15killifish/salmon_denovo_by_species/F_notatus")
+dir="../salmon_denovo_by_species"
+files_list = list.files("../salmon_denovo_by_species/F_notatus")
 files <- file.path(dir,"F_notatus",files_list, "quant.sf")
 files
 print(file.exists(files))
@@ -30,7 +30,9 @@ print(file.exists(files))
 
 # De novo assemblies and annotations
 
-De novo assemblies were run with Trinity (version 2.2.0) and annotated with dammit (version 1.0 with translated amino acid database from Fundulus heteroclitus, NCBI version - need to run again with Don Gilbert's kfish2rae5g aa fasta file to get Funhe id). 
+De novo assemblies were run with Trinity (version 2.2.0) and annotated with dammit (version 1.0) with translated amino acid database from the [NCBI version of the Fundulus heteroclitus genome](https://www.ncbi.nlm.nih.gov/genome/743).
+
+(eed to run again with [Don Gilbert's kfish2rae5g](http://arthropods.eugenes.org/EvidentialGene/killifish/) aa fasta file to get Funhe id) 
 
 This resulted in Trinity contigs (transcripts) that were annotated against F. heteroclitus, Pfam, Rfam, and orthodb protein databases. The highest E-value match was selected as an annotated, one per contig. If an annotated contig matched with the F. heteroclitus database, it was kept separately for reference later.
 
@@ -110,17 +112,17 @@ res.2<-results(dds,contrast=c("condition","TR","FW"))
 res.3<-results(dds,contrast=c("condition","TR","BW"))
 res1_ordered <-as.data.frame(res.1[order(res.1$padj),])
 res1_filtered <-subset(res1_ordered,res1_ordered$padj<0.05)
-res1_filtered <-subset(res1_filtered,res1_filtered$log2FoldChange>1 | res1_filtered$log2FoldChange< -1)
+#res1_filtered <-subset(res1_filtered,res1_filtered$log2FoldChange>1 | res1_filtered$log2FoldChange< -1)
 id<-rownames(res1_filtered)
 res1_filtered<-cbind(res1_filtered,id)
 res2_ordered <-as.data.frame(res.2[order(res.2$padj),])
 res2_filtered<-subset(res2_ordered,res2_ordered$padj<0.05)
-res2_filtered <-subset(res2_filtered,res2_filtered$log2FoldChange>1 | res2_filtered$log2FoldChange< -1)
+#res2_filtered <-subset(res2_filtered,res2_filtered$log2FoldChange>1 | res2_filtered$log2FoldChange< -1)
 id<-rownames(res2_filtered)
 res2_filtered<-cbind(res2_filtered,id)
 res3_ordered<-as.data.frame(res.3[order(res.3$padj),])
 res3_filtered<-subset(res3_ordered,res3_ordered$padj<0.05)
-res3_filtered <-subset(res3_filtered,res3_filtered$log2FoldChange>1 | res3_filtered$log2FoldChange< -1)
+#res3_filtered <-subset(res3_filtered,res3_filtered$log2FoldChange>1 | res3_filtered$log2FoldChange< -1)
 id<-rownames(res3_filtered)
 res3_filtered<-cbind(res3_filtered,id)
 plot(log2(res.1$baseMean), res.1$log2FoldChange, 
@@ -160,25 +162,25 @@ vennPlot(counts=counts)
 
 ```{r, echo=FALSE}
 # extract intersections:
-names(OLlist$Venn_List)
+#names(OLlist$Venn_List)
 overlap_BW_FWtransfer_FW<-OLlist$Venn_List$BW_FWtransfer_FW
-length(overlap_BW_FWtransfer_FW)
+#length(overlap_BW_FWtransfer_FW)
 overlap_BW_FWtransfer_BW<-OLlist$Venn_List$BW_FWtransfer_BW
-length(overlap_BW_FWtransfer_BW)
+#length(overlap_BW_FWtransfer_BW)
 overlap_transfer_FWtransfer_BW<-OLlist$Venn_List$transfer_FWtransfer_BW
-length(overlap_transfer_FWtransfer_BW)
+#length(overlap_transfer_FWtransfer_BW)
 overlap_BW_FW<-OLlist$Venn_List$BW_FW
-length(overlap_BW_FW)
+#length(overlap_BW_FW)
 overlap_transfer_FW<-OLlist$Venn_List$transfer_FW
-length(overlap_transfer_FW)
+#length(overlap_transfer_FW)
 overlap_transfer_BW<-OLlist$Venn_List$transfer_BW
-length(overlap_transfer_BW)
+#length(overlap_transfer_BW)
 combined_BW_FW<-union(overlap_BW_FW,overlap_BW_FW)
-length(combined_BW_FW)
+#length(combined_BW_FW)
 combined_transfer_FW<-union(overlap_transfer_FW,overlap_transfer_FW)
-length(combined_transfer_FW)
+#length(combined_transfer_FW)
 combined_transfer_BW<-union(overlap_transfer_BW,overlap_transfer_BW)
-length(combined_transfer_BW)
+#length(combined_transfer_BW)
 ```
 
 # Heatmap, Transfer vs. FW
@@ -194,7 +196,7 @@ mycl <- cutree(hr, h=max(hr$height/1.5))
 clusterCols <- rainbow(length(unique(mycl)))
 myClusterSideBar <- clusterCols[mycl]
 myheatcol <- greenred(75)
-heatmap.2(d, main="Fundulus notatus (padj<0.05, log2FC = ±1)", 
+heatmap.2(d, main="padj<0.05", 
           Rowv=as.dendrogram(hr),
           cexRow=0.75,cexCol=0.8,srtCol= 90,
           adjCol = c(NA,0),offsetCol=2.5, 
@@ -216,7 +218,7 @@ mycl <- cutree(hr, h=max(hr$height/1.5))
 clusterCols <- rainbow(length(unique(mycl)))
 myClusterSideBar <- clusterCols[mycl]
 myheatcol <- greenred(75)
-heatmap.2(d, main="Fundulus notatus (padj<0.05, log2FC = ±1)", 
+heatmap.2(d, main="padj<0.05", 
           Rowv=as.dendrogram(hr),
           cexRow=0.75,cexCol=0.8,srtCol= 90,
           adjCol = c(NA,0),offsetCol=2.5, 
@@ -233,24 +235,33 @@ sessionInfo()
 # Tables
 ```{r echo=TRUE}
 # merge gene_names, counts, and results for TR vs. BW and TR vs. FW in one massive table
-dim(gene_names)
+#dim(gene_names)
 res.2<-as.data.frame(res.2)# TR vs. FW
+cols<-c("baseMean_TR_v_FW","log2FC_TR_v_FW","lfcSE_TR_v_FW","stat_TR_v_FW","pvalue_TR_v_FW","padj_TR_v_FW")
+colnames(res.2)<-cols
 res.3<-as.data.frame(res.3)# TR vs. BW
-dim(counts_table)
+cols<-c("baseMean_TR_v_BW","log2FC_TR_v_BW","lfcSE_TR_v_BW","stat_TR_v_BW","pvalue_TR_v_BW","padj_TR_v_BW")
+colnames(res.3)<-cols
+res.3<-as.data.frame(res.3)# TR vs. BW
+#dim(counts_table)
 GeneID<-rownames(res.2)
 TR_FW_results<-cbind(res.2,GeneID)
 GeneID<-rownames(res.3)
 TR_BW_results<-cbind(res.3,GeneID)
 GeneID<-rownames(counts_table)
 counts_table_all<-cbind(counts_table,GeneID)
-cols<-c("Row","Trinity_contigID","Trinity_gene","Trinity_gene2,","dammit_ID","GeneID","dammit_ID2","NCBI_Fhet")
+cols<-c("Row","Trinity_contigID","Trinity_gene","Trinity_gene2","dammit_ID","GeneID","dammit_ID2","NCBI_Fhet")
 colnames(gene_names)<-cols
 all_matrix<-merge(counts_table_all,TR_FW_results,by="GeneID")
 all_matrix<-merge(all_matrix,TR_BW_results,by="GeneID")
 all_matrix<-merge(all_matrix,gene_names,by="GeneID")
+all_matrix <- all_matrix[,c(1:22,24,25,27,29)]
+all_matrix <- all_matrix[order(all_matrix$padj_TR_v_FW),]
 write.csv(all_matrix,"~/Documents/UCDavis/Whitehead/RNAseq_15killifish/DE_results/F_notatus_DE_all.csv")
 TR_BW_all<-all_matrix[all_matrix$GeneID %in% combined_transfer_BW,]
+TR_BW_all <- TR_BW_all[order(TR_BW_all$padj_TR_v_BW),]
 write.csv(TR_BW_all,"~/Documents/UCDavis/Whitehead/RNAseq_15killifish/DE_results/F_notatus_DE_TR_BW.csv")
 TR_FW_all<-all_matrix[all_matrix$GeneID %in% combined_transfer_FW,]
+TR_FW_all <- TR_FW_all[order(TR_FW_all$padj_TR_v_FW),]
 write.csv(TR_FW_all,"~/Documents/UCDavis/Whitehead/RNAseq_15killifish/DE_results/F_notatus_DE_TR_FW.csv")
 ```
