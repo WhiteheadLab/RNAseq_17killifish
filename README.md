@@ -19,3 +19,5 @@ DE analysis by species (N=8 and N=9):
 *De novo* transcriptome assemblies and annotations for each species are located here:
 
 http://farm.cse.ucdavis.edu/~ljcohen/killifish/
+
+See [this repository](https://github.com/ljcohen/osmotic) for assembly/evaluation scripts and data.
