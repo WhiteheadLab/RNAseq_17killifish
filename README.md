@@ -1,7 +1,9 @@
 # RNAseq_15killifish
 differential expression analysis with RNAseq data from 15 species of Fundulus killifish following a salinity exposure experiment (FW, BW, transfer)
 
-DE analysis by species:
+*Fundulus nottii* (N=2), *Fundulus diaphanus* (N=7), *Fundulus catanatus* (N=7), Fundulus zebrinus (N=4), and Fundulus sciadicus (N=5) were removed because of low replicate N.
+
+DE analysis by species (N=8 and N=9):
 
 1. [Adenia xenica](https://htmlpreview.github.io/?https://github.com/ljcohen/RNAseq_15killifish/blob/master/DE_scripts/A_xenica_salinity_DE.html)
 2. [Fundulus chrysotus](https://htmlpreview.github.io/?https://github.com/ljcohen/RNAseq_15killifish/blob/master/DE_scripts/F_chrysotus_salinity_DE.html)
