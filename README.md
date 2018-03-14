@@ -1,7 +1,5 @@
 # RNAseq_15killifish
-differential expression analysis with RNAseq data from 15 species of Fundulus killifish following a salinity exposure experiment (FW, BW, transfer)
-
-*Fundulus nottii* (N=2), *Fundulus diaphanus* (N=7), *Fundulus catanatus* (N=7), Fundulus zebrinus (N=4), and Fundulus sciadicus (N=5) were removed because of low replicate N.
+Differential expression analysis with RNAseq data from 15 species of Fundulus killifish following a salinity exposure experiment (FW, BW, transfer). Transfer (TR) treatment was an acute FW to BW (15 ppt) challenge for 24 hr. FW and BW were acclimated for a prolonged period. *Fundulus nottii* (N=2), *Fundulus diaphanus* (N=7), *Fundulus catanatus* (N=7), Fundulus zebrinus (N=4), and Fundulus sciadicus (N=5) were removed because of low replicate N.
 
 DE analysis by species (N=8 and N=9):
 
