@@ -1,7 +1,7 @@
 ---
 title: "Fundulus heteroclitus MDPP"
 author: "Lisa K. Johnson"
-date: "3/11/2018"
+date: "3/20/2018"
 output: html_document
 ---
 
@@ -14,7 +14,7 @@ source('../extra_scripts/plotPCAWithSampleNames.R')
 source('../extra_scripts/overLapper_original.R')
 ```
 
-## Importing quantification files, by species
+# DE by species
 
 The following is a DE analysis with *Fundulus heteroclitus (MDPP)* to identify candidate genes for downstream comparative gene expression analysis.
 
@@ -61,7 +61,7 @@ txi.salmon <- tximport(files, type = "salmon", tx2gene = tx2gene)
 dim(txi.salmon$counts)
 ```
 
-## Experimental Design
+# Experimental Design
 
 ```{r, echo=FALSE}
 cols<-files_list
@@ -71,7 +71,7 @@ ExpDesign <- data.frame(row.names=colnames(txi.salmon$counts), condition = condi
 ExpDesign
 ```
 
-## Dispersion
+# Dispersion
 
 ```{r, echo=FALSE}
 dds <- DESeqDataSetFromTximport(txi.salmon, ExpDesign, ~condition)
@@ -80,7 +80,8 @@ matrix(resultsNames(dds))
 log_cds<-rlog(dds)
 plotDispEsts(dds)
 ```
-## PCA
+
+# PCA
 
 ```{r, echo=FALSE}
 plotPCAWithSampleNames(log_cds,intgroup="condition",ntop=40000)
@@ -228,14 +229,39 @@ heatmap.2(d, main="padj<0.05",
           trace="none", RowSideColors= myClusterSideBar)
 ```
 
+# Heatmap, BW vs. FW
+```{r echo=FALSE}
+# BW vs. FW samples
+counts_BW_FW <- filtered_norm_counts[,c(1:6)]
+#length(combined_BW_FW)
+BR_FW <- counts_BW_FW[rownames(counts_BW_FW) %in% combined_BW_FW,]
+d<-as.matrix(BR_FW)
+hr <- hclust(as.dist(1-cor(t(d), method="pearson")), method="complete")
+mycl <- cutree(hr, h=max(hr$height/1.5))
+clusterCols <- rainbow(length(unique(mycl)))
+myClusterSideBar <- clusterCols[mycl]
+myheatcol <- greenred(75)
+heatmap.2(d, main="padj<0.05", 
+          Rowv=as.dendrogram(hr),
+          cexRow=0.75,cexCol=0.8,srtCol= 90,
+          adjCol = c(NA,0),offsetCol=2.5, 
+          Colv=NA, dendrogram="row", 
+          scale="row", col=myheatcol, 
+          density.info="none", 
+          trace="none", RowSideColors= myClusterSideBar)
+```
+
 # Version Info
 ```{r echo=TRUE}
 sessionInfo()
 ```
+
 # Tables
 ```{r echo=TRUE}
-# merge gene_names, counts, and results for TR vs. BW and TR vs. FW in one massive table
-#dim(gene_names)
+# merge gene_names, counts, and results for TR vs. BW, TR vs. FW, and BW vs. FW in one massive table
+res.1<-as.data.frame(res.1)# BW vs. FW
+cols<-c("baseMean_BW_v_FW","log2FC_BW_v_FW","lfcSE_BW_v_FW","stat_BW_v_FW","pvalue_BW_v_FW","padj_BW_v_FW")
+colnames(res.1)<-cols
 res.2<-as.data.frame(res.2)# TR vs. FW
 cols<-c("baseMean_TR_v_FW","log2FC_TR_v_FW","lfcSE_TR_v_FW","stat_TR_v_FW","pvalue_TR_v_FW","padj_TR_v_FW")
 colnames(res.2)<-cols
@@ -244,6 +270,8 @@ cols<-c("baseMean_TR_v_BW","log2FC_TR_v_BW","lfcSE_TR_v_BW","stat_TR_v_BW","pval
 colnames(res.3)<-cols
 res.3<-as.data.frame(res.3)# TR vs. BW
 #dim(counts_table)
+GeneID<-rownames(res.1)
+BW_FW_results<-cbind(res.1,GeneID)
 GeneID<-rownames(res.2)
 TR_FW_results<-cbind(res.2,GeneID)
 GeneID<-rownames(res.3)
@@ -254,8 +282,9 @@ cols<-c("Row","Trinity_contigID","Trinity_gene","Trinity_gene2","dammit_ID","Gen
 colnames(gene_names)<-cols
 all_matrix<-merge(counts_table_all,TR_FW_results,by="GeneID")
 all_matrix<-merge(all_matrix,TR_BW_results,by="GeneID")
+all_matrix<-merge(all_matrix,BW_FW_results,by="GeneID")
 all_matrix<-merge(all_matrix,gene_names,by="GeneID")
-all_matrix <- all_matrix[,c(1:22,24,25,27,29)]
+all_matrix <- all_matrix[,c(1:28,30,31,33,35)]
 all_matrix <- all_matrix[order(all_matrix$padj_TR_v_FW),]
 write.csv(all_matrix,"~/Documents/UCDavis/Whitehead/RNAseq_15killifish/DE_results/F_heteroclitusMDPP_DE_all.csv")
 TR_BW_all<-all_matrix[all_matrix$GeneID %in% combined_transfer_BW,]
@@ -264,4 +293,7 @@ write.csv(TR_BW_all,"~/Documents/UCDavis/Whitehead/RNAseq_15killifish/DE_results
 TR_FW_all<-all_matrix[all_matrix$GeneID %in% combined_transfer_FW,]
 TR_FW_all <- TR_FW_all[order(TR_FW_all$padj_TR_v_FW),]
 write.csv(TR_FW_all,"~/Documents/UCDavis/Whitehead/RNAseq_15killifish/DE_results/F_heteroclitusMDPP_DE_TR_FW.csv")
+BW_FW_all<-all_matrix[all_matrix$GeneID %in% combined_BW_FW,]
+BW_FW_all <- BW_FW_all[order(BW_FW_all$padj_BW_v_FW),]
+write.csv(BW_FW_all,"~/Documents/UCDavis/Whitehead/RNAseq_15killifish/DE_results/F_heteroclitusMDPP_DE_BW_FW.csv")
 ```
