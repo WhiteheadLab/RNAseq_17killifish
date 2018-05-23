@@ -130,6 +130,7 @@ plot(log2(res.1$baseMean), res.1$log2FoldChange,
      col=ifelse(res.1$padj < 0.05, "red","gray67"),
      main="Fundulus grandis (BW vs. FW) (padj<0.05)",xlim=c(1,15),pch=20,cex=1)
 abline(h=c(-1,1), col="blue")
+plotMA(dds,)
 ```
 
 # MA plot, TR vs. FW
@@ -163,7 +164,7 @@ vennPlot(counts=counts)
 
 ```{r, echo=FALSE}
 # extract intersections:
-#names(OLlist$Venn_List)
+names(OLlist$Venn_List)
 overlap_BW_FWtransfer_FW<-OLlist$Venn_List$BW_FWtransfer_FW
 #length(overlap_BW_FWtransfer_FW)
 overlap_BW_FWtransfer_BW<-OLlist$Venn_List$BW_FWtransfer_BW
@@ -278,13 +279,13 @@ GeneID<-rownames(res.3)
 TR_BW_results<-cbind(res.3,GeneID)
 GeneID<-rownames(counts_table)
 counts_table_all<-cbind(counts_table,GeneID)
-cols<-c("Row","Trinity_contigID","Trinity_gene","Trinity_gene2","dammit_ID","GeneID","dammit_ID2","NCBI_Fhet")
+cols<-c("Row","Trinity_contigID","Trinity_gene","dammit_ID","GeneID","dammit_ID2","NCBI_Fhet")
 colnames(gene_names)<-cols
 all_matrix<-merge(counts_table_all,TR_FW_results,by="GeneID")
 all_matrix<-merge(all_matrix,TR_BW_results,by="GeneID")
 all_matrix<-merge(all_matrix,BW_FW_results,by="GeneID")
 all_matrix<-merge(all_matrix,gene_names,by="GeneID")
-all_matrix <- all_matrix[,c(1:28,30,31,33,35)]
+all_matrix <- all_matrix[,c(1:28,30,31,32,34)]
 all_matrix <- all_matrix[order(all_matrix$padj_TR_v_FW),]
 write.csv(all_matrix,"~/Documents/UCDavis/Whitehead/RNAseq_15killifish/DE_results/F_grandis_DE_all.csv")
 TR_BW_all<-all_matrix[all_matrix$GeneID %in% combined_transfer_BW,]
