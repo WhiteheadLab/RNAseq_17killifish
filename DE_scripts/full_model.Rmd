@@ -17,12 +17,13 @@ source('../scripts/overLapper_original.R')
 # DE by all species (full model)
 
 ```{r, echo = FALSE}
+setwd("~/Documents/UCDavis/Whitehead/RNAseq_15killifish/DE_scripts")
 dir="../salmon_denovo_by_species"
 files_list = list.files("../salmon_denovo_by_species/")
 files_list
-gene_names_list = list.files("~/Documents/UCDavis/Whitehead/annotation_files_test/")
+#gene_names_list = list.files("~/Documents/UCDavis/Whitehead/annotation_files_test/")
 
-gene_names_list
+#gene_names_list
 for (species in files_list){
   species_files = paste("../salmon_denovo_by_species/",species,sep="")
   species_files_list = list.files(species_files)
@@ -31,26 +32,24 @@ for (species in files_list){
   files <- file.path(dir,species,species_files_list,"quant.sf")
   files
   print(file.exists(files))
-  contigs_file = paste("~/Documents/UCDavis/Whitehead/trinity_contig_gene_tables/",species,sep="")
-  contigs = read.csv(paste(contigs_file,"_trinity_contig_gene_table.txt",sep=""))
-  print(dim(contigs))
-  gene_names_file = paste("~/Documents/UCDavis/Whitehead/Fhet_counts_ncbi/",species,sep="")
-  gene_names <- read.csv(paste(gene_names_file,"_genenames.csv_NCBI.csv",sep=""))
-  print(gene_names_file)
+  #contigs_file = paste("~/Documents/UCDavis/Whitehead/trinity_contig_gene_tables/",species,sep="")
+  #contigs = read.csv(paste(contigs_file,"_trinity_contig_gene_table.txt",sep=""))
+  #print(dim(contigs))
+  gene_names_file = paste("~/Documents/UCDavis/Whitehead/contig_gene_23June2018/",species,sep="")
+  gene_names <- read.csv(paste(gene_names_file,"_contig_gene.csv",sep=""))
   print(dim(gene_names))
-  gene_names_id <- gene_names[,c(2,12)]
-  #cols<-c("transcript_id","gene_id")
-  #colnames(gene_names_id)<-cols
+  gene_names_id <- gene_names[,c(2,3)]
   tx2gene <- gene_names_id
   txi.salmon <- tximport(files, type = "salmon", tx2gene = tx2gene)
   print(dim(txi.salmon$counts))
   counts <- txi.salmon$counts
   colnames(counts) <- species_files_list
-  gene <- rownames(counts)
-  counts <- cbind(gene,counts)
-  counts <- as.data.frame(counts)
-  colnames(gene_names)<-c("index","contig","seqid","start","end","length","NCBI.id","NCBI.protein","Notes","NCBI.transcript","NCBI.product","gene","NCBI.gene")
-  counts <- merge(gene_names,counts,by="gene")
+  head(counts)
+  #gene <- rownames(counts)
+  #counts <- cbind(gene,counts)
+  #counts <- as.data.frame(counts)
+  #colnames(gene_names)<-c("index","contig","seqid","start","end","length","NCBI.id","NCBI.protein","Notes","NCBI.transcript","NCBI.product","gene","NCBI.gene")
+  #counts <- merge(gene_names,counts,by="gene")
   counts_matrix = paste("~/Documents/UCDavis/Whitehead/counts_matrices/",species,sep="")
   counts_matrix = paste(counts_matrix,"_counts.csv",sep="")
   write.csv(counts,counts_matrix)
