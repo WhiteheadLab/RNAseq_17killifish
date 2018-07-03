@@ -5,8 +5,8 @@ library(tximport)
 library(lattice)
 source('~/Documents/UCDavis/Whitehead/RNAseq_15killifish/scripts/plotPCAWithSampleNames.R')
 source('~/Documents/UCDavis/Whitehead/RNAseq_15killifish/scripts/overLapper_original.R')
-counts <- read.csv("~/Documents/UCDavis/Whitehead/16killifish_counts_RNAseq_filtered_26June2018_test.csv",stringsAsFactors = FALSE)
-counts2 <-read.csv("~/Documents/UCDavis/Whitehead/16killifish_counts_RNAseq_filtered_26June2018.csv",stringsAsFactors = FALSE)
+counts <- read.csv("/Users/johnsolk/Documents/UCDavis/Whitehead/16killifish_counts_RNAseq_filtered_2July2018_test.csv",stringsAsFactors = FALSE)
+counts2 <-read.csv("~/Documents/UCDavis/Whitehead/16killifish_counts_RNAseq_filtered_2July2018.csv",stringsAsFactors = FALSE)
 dim(counts)
 head(counts)
 #design<-read.csv("~/Documents/UCDavis/Whitehead/salinity_killifish_design.csv",header=TRUE)
@@ -33,7 +33,7 @@ pca = prcomp(t(log_x))
 #fac = factor(sapply(names,function(x){strsplit(x,'.quant')[[1]][1]}))
 #fac2 = factor(sapply(fac,function(x){strsplit(x,'_')[[1]][1]}))
 #fac= factor(c("sal25ppt","sal25ppt","sal25ppt","sal30ppt","sal30ppt","sal30ppt","sal35ppt","sal35ppt"))
-fac = factor(de)
+fac = factor(cl)
 fac
 colours = function(vec){
   #cols=cols=palette(brewer.pal(n=7,name="Dark2"))
@@ -44,9 +44,21 @@ colours = function(vec){
   print(cols)
   return(cols[as.numeric(as.factor(vec))])}
 
-plot(pca$x[,1:2], col=colours(fac), pch=19,
-     xlab="PC1",ylab="PC2")
-legend(200,150,legend=sort(unique(fac)),col=rainbow(length(unique(fac))),cex=0.8, pch=19)
+#pdf("PCA.pdf", width=11, height=8.5)
+mar.default <- c(5,4,4,2) + 0.1
+par(mar = mar.default + c(0, 4, 0, 0)) 
+plot(pca$x[,1:2], 
+     col=colours(fac), 
+     #pch=19,
+     pch = c(16, 2, 9)[as.numeric(as.factor(ph))],
+     cex=2,
+     xlab="PC1",
+     ylab="PC2",
+     cex.lab=2,
+     cex.axis = 2)
+legend(160,-100,legend=sort(unique(fac)),col=rainbow(length(unique(fac))),cex=2, pch=19)
+legend(90,-100,legen=sort(unique(factor(ph))),cex=2,pch=c(16, 2, 9))
+#dev.off()
 
 geneID <- counts2$GeneName
 rownames(counts2) <- counts2$GeneName 
