@@ -56,8 +56,8 @@ plot(pca$x[,1:2],
      ylab="PC2",
      cex.lab=2,
      cex.axis = 2)
-legend(160,-100,legend=sort(unique(fac)),col=rainbow(length(unique(fac))),cex=2, pch=19)
-legend(90,-100,legen=sort(unique(factor(ph))),cex=2,pch=c(16, 2, 9))
+legend(185,-150,legend=c("Clade 1","Clade 2","Clade 3"),col=rainbow(length(unique(fac))),cex=1.5, pch=19)
+legend(80,-150,legend=c("Brackish","Freshwater","Marine"),cex=1.5,pch=c(16, 2, 9))
 #dev.off()
 
 geneID <- counts2$GeneName
