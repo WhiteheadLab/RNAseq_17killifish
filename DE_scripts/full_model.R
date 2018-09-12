@@ -6,11 +6,11 @@ library(lattice)
 source('~/Documents/UCDavis/Whitehead/RNAseq_15killifish/scripts/plotPCAWithSampleNames.R')
 source('~/Documents/UCDavis/Whitehead/RNAseq_15killifish/scripts/overLapper_original.R')
 counts <- read.csv("/Users/johnsolk/Documents/UCDavis/Whitehead/16killifish_counts_RNAseq_filtered_2July2018_test.csv",stringsAsFactors = FALSE)
-counts2 <-read.csv("~/Documents/UCDavis/Whitehead/16killifish_counts_RNAseq_filtered_2July2018.csv",stringsAsFactors = FALSE)
+counts2 <-read.csv("~/Documents/UCDavis/Whitehead/16killifish_counts_RNAseq_filtered_2July2018_56K.csv",stringsAsFactors = FALSE)
 dim(counts)
 head(counts)
 #design<-read.csv("~/Documents/UCDavis/Whitehead/salinity_killifish_design.csv",header=TRUE)
-design <- counts[counts$GeneName == 'Empty',]
+design <- counts2[counts2$GeneName == 'Empty',]
 design
 sp<-as.character(unlist(design[1,]))
 sp<-sp[-c(1,2)]
@@ -21,7 +21,7 @@ cl<-cl[-c(1,2)]
 de<-as.character(unlist(design[4,]))
 de<-de[-c(1,2)]
 
-x <- counts2[ -c(1,2) ]
+x <- counts[ -c(1,2) ]
 x <- x+1
 log_x<-log(x)
 colnames(log_x)
@@ -45,6 +45,7 @@ colours = function(vec){
   return(cols[as.numeric(as.factor(vec))])}
 
 #pdf("PCA.pdf", width=11, height=8.5)
+summary(pca)
 mar.default <- c(5,4,4,2) + 0.1
 par(mar = mar.default + c(0, 4, 0, 0)) 
 plot(pca$x[,1:2], 
@@ -58,19 +59,38 @@ plot(pca$x[,1:2],
      cex.axis = 2)
 legend(185,-150,legend=c("Clade 1","Clade 2","Clade 3"),col=rainbow(length(unique(fac))),cex=1.5, pch=19)
 legend(80,-150,legend=c("Brackish","Freshwater","Marine"),cex=1.5,pch=c(16, 2, 9))
+text(pca$x[,1:2], labels=names, pos=3)
 #dev.off()
 
-geneID <- counts2$GeneName
-rownames(counts2) <- counts2$GeneName 
-counts2 <- counts2[-c(1)]
-colnames(counts2)
+
+mar.default <- c(5,4,4,2) + 0.1
+par(mar = mar.default + c(0, 4, 0, 0)) 
+plot(pca$x[,2:3], 
+     col=colours(fac), 
+     #pch=19,
+     pch = c(16, 2, 9)[as.numeric(as.factor(ph))],
+     cex=2,
+     xlab="PC2",
+     ylab="PC3",
+     cex.lab=2,
+     cex.axis = 2)
+legend(185,-150,legend=c("Clade 1","Clade 2","Clade 3"),col=rainbow(length(unique(fac))),cex=1.5, pch=19)
+legend(80,-150,legend=c("Brackish","Freshwater","Marine"),cex=1.5,pch=c(16, 2, 9))
+text(pca$x[,1:2], labels=names, pos=3)
+
+
+geneID <- counts$GeneName
+rownames(counts) <- counts$GeneName 
+counts <- counts[-c(1)]
+counts <- counts[-c(1)]
+colnames(counts)
   
-cols<-colnames(x)
+cols<-colnames(counts)
 ExpDesign <- data.frame(row.names=cols, physiology = ph,clade = cl)
 ExpDesign
 
-all(rownames(ExpDesign) == colnames(counts2))
-counts_round<- round(counts2,digits=0)
+all(rownames(ExpDesign) == colnames(counts))
+counts_round<- round(counts,digits=0)
 dds <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,design = ~ clade)
 #dds <- DESeqDataSetFromTximport(countData = counts2,colData = ExpDesign,design = ~ clade)
 dds<-DESeq(dds,betaPrior=FALSE)
