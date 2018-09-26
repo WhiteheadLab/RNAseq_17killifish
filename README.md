@@ -1,6 +1,6 @@
 # RNAseq_15killifish
 
-**This is repository is a WORK IN PROGRESS**
+**This repository is a WORK IN PROGRESS**
 
 Differential expression analysis with RNAseq data from 16 species of Fundulus killifish following a salinity exposure experiment (FW, BW, transfer). 
 
