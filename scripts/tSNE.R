@@ -21,7 +21,6 @@ ggplot(a,
   geom_point(cex=3) +
   geom_text(aes(label=names),hjust=0,vjust=2)+
   theme_classic() +
-  scale_color_brewer(type="seq",palette = "Set1") +
   labs(x="tsne1",y="tsne2")+
   theme(axis.line=element_line(size=1.5),
         axis.title = element_text(size=20),
