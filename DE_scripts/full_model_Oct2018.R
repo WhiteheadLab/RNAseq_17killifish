@@ -1,11 +1,13 @@
 library(DESeq2)
 library(RColorBrewer)
-library(gplots)
 library(tximport)
 library(lattice)
 library("Rtsne")
 library(dplyr)
 library(ggplot2)
+library('gtable')
+library('grid')
+library('magrittr')
 library(tidyr)
 library("biomaRt")
 source('~/Documents/UCDavis/Whitehead/RNAseq_15killifish/scripts/plotPCAWithSampleNames.R')
@@ -25,8 +27,8 @@ head(design)
 dim(design)
 design$type <- c("species","native_salinity","clade","group","condition")
 
-
 #remove transfer treatment
+
 transfer_samples<-design[design$type=="condition",]
 transfer_samples<-transfer_samples[, transfer_samples[1, ] == c("transfer")]
 transfer_samples<-colnames(transfer_samples)
@@ -37,7 +39,6 @@ rownames(BW_FW_counts)<-rows
 proteinID <- BW_FW_counts$NCBIproteinID
 BW_FW_counts<-BW_FW_counts[ -c(1,2,3,4,5) ]
 dim(BW_FW_counts)
-
 
 # design cateogories (full)
 sp<-as.character(unlist(design[1,]))
@@ -55,7 +56,6 @@ de<-de[-129]
 condition<-as.character(unlist(design[5,]))
 condition<-condition[-c(1,2,3,4,5)]
 condition<-condition[-129]
-
 
 
 # normal full counts
@@ -86,9 +86,11 @@ condition<-as.character(unlist(design_BW_FW[5,]))
 condition<-condition[-c(1,2,3,4,5)]
 condition<-condition[-91]
 length(condition)
+species_group<-as.vector(paste(de, sp, sep="_"))
+
 # ================================================
 # PCA analysis
-
+# ================================================
 x <- x+1
 log_x<-log(x)
 colnames(log_x)
@@ -124,8 +126,8 @@ plot(pca$x[,1:2],
      ylab="PC2",
      cex.lab=2,
      cex.axis = 2)
-legend(-160,150,legend=c("Clade 1","Clade 2","Clade 3"),col=rainbow(length(unique(fac))),cex=1.5, pch=19)
-legend(-160,-50,legend=c("0.2 ppt","15 ppt"),cex=1.5,pch=c(16, 2, 9))
+legend(120,120,legend=c("Clade 1","Clade 2","Clade 3"),col=rainbow(length(unique(fac))),cex=1.5, pch=19)
+legend(120,-115,legend=c("0.2 ppt","15 ppt"),cex=1.5,pch=c(16, 2, 9))
 #text(pca$x[,1:2], labels=names, pos=3)
 #dev.off()
 
@@ -142,8 +144,8 @@ plot(pca$x[,1:2],
      ylab="PC2",
      cex.lab=2,
      cex.axis = 2)
-legend(-160,150,legend=c("Clade 1","Clade 2","Clade 3"),col=rainbow(length(unique(fac))),cex=1.5, pch=19)
-legend(-160,-50,legend=c("Brackish","Freshwater","Marine"),cex=1.5,pch=c(16, 2, 9))
+legend(120,120,legend=c("Clade 1","Clade 2","Clade 3"),col=rainbow(length(unique(fac))),cex=1.5, pch=19)
+legend(102,-110,legend=c("Brackish","Freshwater","Marine"),cex=1.5,pch=c(16, 2, 9))
 #text(pca$x[,1:2], labels=names, pos=3)
 #dev.off()
 
@@ -156,10 +158,10 @@ legend(-160,-50,legend=c("Brackish","Freshwater","Marine"),cex=1.5,pch=c(16, 2, 
 #counts <- counts[-c(1)]
 #counts <- counts[-c(1)]
 #colnames(counts)
- 
+
 cols<-colnames(BW_FW_counts) 
 #cols<-colnames(counts)
-ExpDesign <- data.frame(row.names=cols, group = de,condition=condition)
+ExpDesign <- data.frame(row.names=cols, group = species_group,condition=condition)
 ExpDesign
 
 #all(rownames(ExpDesign) == colnames(counts))
@@ -173,22 +175,29 @@ dds<-DESeq(dds,betaPrior=FALSE)
 matrix(resultsNames(dds))
 #log_cds<-rlog(dds)
 plotDispEsts(dds)
+colData(dds)$physiology <- ph
+colData(dds)$clade <- cl
+colData(dds)$species <- sp
 colData(dds)
 #res <- results(dds, contrast=c("condition","15_ppt","0.2_ppt"))
 #res <- as.data.frame(res[order(res$padj),])
 #res
 res <- results(dds, tidy=TRUE, contrast=c("condition", "15_ppt", "0.2_ppt")) %>% arrange(padj) %>% tbl_df()
 
-ENSproteinID <- res$row
-ensembl_proteinID <- startsWith(ENSproteinID,"ENS")
-ensembl_proteinID<- ENSproteinID[ensembl_proteinID]
+
+# From orthodb annotations, pick only Ensembl ID
+# ENSproteinID <- res$row
+# ensembl_proteinID <- startsWith(ENSproteinID,"ENS")
+# ensembl_proteinID<- ENSproteinID[ensembl_proteinID]
 
 # ============================================
+#
 # biomart annotation
-# platyfish
+# 
 # ============================================
-ensembl=useMart("ensembl")
-ensembl = useDataset("xmaculatus_gene_ensembl",mart=ensembl)
+
+ensembl=useMart("ENSEMBL_MART_ENSEMBL")
+ensembl = useDataset("fheteroclitus_gene_ensembl",mart=ensembl)
 #ensembl = useDataset("drerio_gene_ensembl",mart=ensembl)
 #ensembl = useDataset("amexicanus_gene_ensembl",mart=ensembl)
 #ensembl = useDataset("mmusculus_gene_ensembl",mart=ensembl)
@@ -201,46 +210,123 @@ query_platy<-query
 #query_cave<-query
 #query_mouse<-query
 write.csv(query,"~/Documents/UCDavis/Whitehead/reference/biomart_playfish_query.csv")
-ann<-read.csv("~/Documents/UCDavis/Whitehead/counts_annotations.csv")
-colnames(ann) <- c("x","gene","annotation")
+#ann<-read.csv("~/Documents/UCDavis/Whitehead/counts_annotations.csv")
+ann<-counts[,c(2,3,4,5)]
+colnames(ann)<-c("gene","scaffold","product","geneID")
+#colnames(ann) <- c("x","gene","annotation")
+
+
+
 # ============================================
+#
+# Genes of Interest
+# This was very helpful:
+# https://rpubs.com/turnersd/plot-deseq-results-multipage-pdf
+# 
+# ============================================
+# 
+#goi <-res$row[c(1:30000)]
+#goi <-res$row[c(1:3)]
+# cftr
+goi <- res$row[res$row == "XP_012719100.1"]
+# polyamine-modulated factor 1-like
+goi <- res$row[res$row == "XP_012727384.1"]
+# sodium/potassium/calcium exchanger 1 isoform X2
+goi <- res$row[res$row == "XP_012706756.1"]
+# septin-2B isoform X2
+goi <- res$row[res$row == "XP_012716423.1"]
+# CLOCK-interacting pacemaker-like
+goi <- res$row[res$row == "XP_012722124.1"]
+# vasopressin V2 receptor-like
+goi <- res$row[res$row == "XP_012721985.1"]
+# aquaporin-3 KEEP THIS
+goi <- res$row[res$row == "XP_012716807.1"]
+# sodium/potassium-transporting ATPase subunit beta-1-interacting protein 1
+goi <- res$row[res$row == "XP_012716889.1"]
+# septin-2B isoform X2
+goi <- res$row[res$row == "XP_012716423.1"]
+# otopetrin-1
+goi <- res$row[res$row == "XP_012717582.1"]
+# claudin-15-like
+goi <- res$row[res$row == "XP_012715395.1"]
+# claudin-1-like
+goi <- res$row[res$row == "XP_012716345.1"]
+# claudin 34
+goi <- res$row[res$row == "XP_012716562.1"]
+# claudin-3-like
+goi <- res$row[res$row == "XP_012727928.1"]
 
 
-goi <-res$row[c(1:3000)]
-salinity_proteins<-c(207,224,383,420,902,1561,1997,2378,2666,2758,2808,2997,403,492,84,199,469,364,271,217,277,332,532,607,724,848,959,1580,2758,2806,2827,2997,596,672,688,690,778,1130,1266,1955,364,814,1004,1015,2134,614,784,805,1196,1199,1891,1892,1902,2197,2670,2999,3000,248,542,692,1100,1487,2074,2080,2679,861,685,832,1512,1995,249,1333,1478,1957,232,528,280,627,700,2301,373,548,575,1405,383,969,1277,1308,2416,2885,186,1635,189,402,2046,1333,386,186,241,913,1655,596,598,663,672,688,837,1540,2895,257,296,298,387,446,839,1496,231,641)
-length(salinity_proteins)
-goi <-res$row[salinity_proteins]
-goi <- res$row
+#salinity_proteins<-c(207,224,383,420,902,1561,1997,2378,2666,2758,2808,2997,403,492,84,199,469,364,271,217,277,332,532,607,724,848,959,1580,2758,2806,2827,2997,596,672,688,690,778,1130,1266,1955,364,814,1004,1015,2134,614,784,805,1196,1199,1891,1892,1902,2197,2670,2999,3000,248,542,692,1100,1487,2074,2080,2679,861,685,832,1512,1995,249,1333,1478,1957,232,528,280,627,700,2301,373,548,575,1405,383,969,1277,1308,2416,2885,186,1635,189,402,2046,1333,386,186,241,913,1655,596,598,663,672,688,837,1540,2895,257,296,298,387,446,839,1496,231,641)
+#length(salinity_proteins)
+#goi <-res$row[salinity_proteins]
+#goi <- res$row
 stopifnot(all(goi %in% names(dds)))
 goi
-colData(dds)$physiology <- ph
-colData(dds)$clade <- cl
-
 tcounts <- t(log2((counts(dds[goi, ], normalized=TRUE, replaced=FALSE)+.5))) %>% 
   merge(colData(dds), ., by="row.names") %>% 
   gather(gene, expression, (ncol(.)-length(goi)+1):ncol(.))
 tcounts_test <- merge(tcounts,ann,by="gene")
-tcounts_test %>% 
-  select(Row.names, group, clade, physiology, condition, gene, annotation, expression) %>% 
-  head %>% 
-  knitr::kable()
+tcounts_test %>% select(Row.names, group, species, clade, physiology, condition, gene, product, scaffold,geneID, expression) %>% head %>% knitr::kable()
 
-ggplot(tcounts_test, aes(condition, expression)) + 
+# --------
+# nested facets
+# --------
+
+library(gridExtra)
+
+C1<-ggplot(tcounts_test %>%
+             filter(clade=='Clade1'),
+           aes(condition, expression)) + 
+        geom_point(aes(color=physiology)) +
+        stat_summary(fun.y="mean", geom="line", aes(group=physiology,color=physiology)) +
+        facet_grid(~product~species,scales='free_y',labeller=) +
+        stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+               geom="errorbar", aes(color=physiology), width=0.2) +
+        theme_bw() +
+        theme(legend.position="bottom",panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.text.x = element_text(angle = 90, hjust = 1)) +
+        labs(x="salinity treatment", 
+        y="Expression (log normalized counts)")
+
+C2<-ggplot(tcounts_test %>%
+             filter(clade=='Clade2'),
+           aes(condition, expression)) + 
   geom_point(aes(color=physiology)) +
   stat_summary(fun.y="mean", geom="line", aes(group=physiology,color=physiology)) +
-  facet_grid(~annotation~clade,scales='free_y') +
+  facet_grid(~product~species,scales='free_y',labeller=) +
   stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
                geom="errorbar", aes(color=physiology), width=0.2) +
   theme_bw() +
-  theme(legend.position="bottom",panel.grid.major = element_blank(),panel.grid.minor = element_blank()) +
+  theme(legend.position="bottom",panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.text.x = element_text(angle = 90, hjust = 1)) +
   labs(x="salinity treatment", 
        y="Expression (log normalized counts)")
 
-pdf("~/Documents/UCDavis/Whitehead/RNAseq_15killifish/multi-ggplot2-catalog_salinity.pdf")
+
+C3<-ggplot(tcounts_test %>%
+             filter(clade=='Clade3'),
+           aes(condition, expression)) + 
+  geom_point(aes(color=physiology)) +
+  stat_summary(fun.y="mean", geom="line", aes(group=physiology,color=physiology)) +
+  facet_grid(~product~species,scales='free_y',labeller=) +
+  stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+               geom="errorbar", aes(color=physiology), width=0.2) +
+  theme_bw() +
+  theme(legend.position="bottom",panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(x="salinity treatment", 
+       y="Expression (log normalized counts)")+
+  ggtitle("Clade 3")
+
+
+grid.arrange(C1,C2,C3,ncol=3)
+
+# ----------
+# make a pdf
+# ----------
+pdf("~/Documents/UCDavis/Whitehead/RNAseq_15killifish/multi-ggplot2-catalog_salinity_31Oct2018.pdf")
 for (i in goi) {
   p <- ggplot(filter(tcounts_test, gene==i), aes(condition, expression, fill=physiology)) +  geom_point(aes(color=physiology)) +
     stat_summary(fun.y="mean", geom="line", aes(group=physiology,color=physiology)) +
-    facet_grid(~annotation~clade,scales='free_y') +
+    facet_grid(~product~clade+species,scales='free_y') +
     stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
                  geom="errorbar", aes(color=physiology), width=0.2) +
     theme_bw() +
@@ -251,8 +337,9 @@ for (i in goi) {
 }
 dev.off()
 
-plotPCAWithSampleNames(log_cds,intgroup="clade",ntop=40000)
 
+
+plotPCAWithSampleNames(log_cds,intgroup="clade",ntop=40000)
 
 counts_table = counts(dds, normalized=TRUE )
 dim(counts_table)
