@@ -286,8 +286,10 @@ C1<-ggplot(tcounts_test %>%
         theme_bw() +
         theme(legend.position="bottom",panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.text.x = element_text(angle = 90, hjust = 1)) +
         labs(x="salinity treatment", 
-        y="Expression (log normalized counts)")
+             y="Expression (log normalized counts)")+
+        ggtitle("Clade 1")
 
+plot(C1)
 C2<-ggplot(tcounts_test %>%
              filter(clade=='Clade2'),
            aes(condition, expression)) + 
@@ -298,10 +300,9 @@ C2<-ggplot(tcounts_test %>%
                geom="errorbar", aes(color=physiology), width=0.2) +
   theme_bw() +
   theme(legend.position="bottom",panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.text.x = element_text(angle = 90, hjust = 1)) +
-  labs(x="salinity treatment", 
-       y="Expression (log normalized counts)")
-
-
+  labs(x="salinity treatment")+
+  ggtitle("Clade 2")
+plot(C2)
 C3<-ggplot(tcounts_test %>%
              filter(clade=='Clade3'),
            aes(condition, expression)) + 
@@ -312,10 +313,9 @@ C3<-ggplot(tcounts_test %>%
                geom="errorbar", aes(color=physiology), width=0.2) +
   theme_bw() +
   theme(legend.position="bottom",panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.text.x = element_text(angle = 90, hjust = 1)) +
-  labs(x="salinity treatment", 
-       y="Expression (log normalized counts)")+
+  labs(x="salinity treatment")+
   ggtitle("Clade 3")
-
+plot(C3)
 
 grid.arrange(C1,C2,C3,ncol=3)
 
@@ -331,8 +331,7 @@ for (i in goi) {
                  geom="errorbar", aes(color=physiology), width=0.2) +
     theme_bw() +
     theme(legend.position="bottom",panel.grid.major = element_blank(),panel.grid.minor = element_blank()) +
-    labs(x="salinity treatment", 
-         y="Expression (log normalized counts)")
+    labs(x="salinity treatment")
   print(p)
 }
 dev.off()
