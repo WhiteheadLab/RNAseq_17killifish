@@ -182,6 +182,7 @@ colData(dds)
 #res <- results(dds, contrast=c("condition","15_ppt","0.2_ppt"))
 #res <- as.data.frame(res[order(res$padj),])
 #res
+
 res <- results(dds, tidy=TRUE, contrast=c("condition", "15_ppt", "0.2_ppt")) %>% arrange(padj) %>% tbl_df()
 
 
@@ -227,6 +228,32 @@ colnames(ann)<-c("gene","scaffold","product","geneID")
 # 
 #goi <-res$row[c(1:30000)]
 #goi <-res$row[c(1:3)]
+# Andrew's genes of interest DG/NCBI
+# Funhe2EKm029929 XM_012870449.1
+# zymogen granule membrane protein 16
+goi <- res$row[res$row == "XP_012725903.1"]
+# Funhe2EKm029931 XM_012870466.1
+# zymogen granule membrane protein 16
+goi <- res$row[res$row == "XP_012725920.1"]
+# solute carrier family 12 member 3-like (removed) 
+# Funhe2EKm006896 XM_012852549.1
+goi <- res$row[res$row == "XP_012708003.1"]
+# chloride channel, voltage-sensitive 2 (clcn2), transcript variant X2 (removed)
+# Funhe2EKm024148 XM_012863211.1
+goi <- res$row[res$row == "XP_012718665.1"]
+# ATP-sensitive inward rectifier potassium channel 1 
+# Funhe2EKm001965 XM_012866790.1
+goi <- res$row[res$row == "XP_012722244.1"]
+# inward rectifier potassium channel 2
+#Funhe2EKm023780 XM_012862821.1
+goi <- res$row[res$row == "XP_012718275.1"]
+
+
+
+
+
+
+# ============================================
 # cftr
 goi <- res$row[res$row == "XP_012719100.1"]
 # polyamine-modulated factor 1-like
@@ -289,7 +316,7 @@ C1<-ggplot(tcounts_test %>%
              y="Expression (log normalized counts)")+
         ggtitle("Clade 1")
 
-plot(C1)
+#plot(C1)
 C2<-ggplot(tcounts_test %>%
              filter(clade=='Clade2'),
            aes(condition, expression)) + 
@@ -302,7 +329,7 @@ C2<-ggplot(tcounts_test %>%
   theme(legend.position="bottom",panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.text.x = element_text(angle = 90, hjust = 1)) +
   labs(x="salinity treatment")+
   ggtitle("Clade 2")
-plot(C2)
+#plot(C2)
 C3<-ggplot(tcounts_test %>%
              filter(clade=='Clade3'),
            aes(condition, expression)) + 
@@ -315,7 +342,7 @@ C3<-ggplot(tcounts_test %>%
   theme(legend.position="bottom",panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.text.x = element_text(angle = 90, hjust = 1)) +
   labs(x="salinity treatment")+
   ggtitle("Clade 3")
-plot(C3)
+#plot(C3)
 
 grid.arrange(C1,C2,C3,ncol=3)
 
