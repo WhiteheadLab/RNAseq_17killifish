@@ -1,0 +1,22 @@
+---
+title: "full_model"
+author: "Lisa K. Johnson"
+date: "01/25/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE, echo = FALSE}
+library(DESeq2)
+library(RColorBrewer)
+library(gplots)
+library(tximport)
+source('../scripts/plotPCAWithSampleNames.R')
+source('../scripts/overLapper_original.R')
+```
+
+# DE by all species (full model)
+
+```{r, echo = FALSE}
+
+
+```
