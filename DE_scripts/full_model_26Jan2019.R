@@ -1,34 +1,46 @@
+# for QA
+library("RColorBrewer")
+library("pheatmap")
+library("vsn")
+# for DESeq
 library(DESeq2)
 library(RColorBrewer)
 library(tximport)
 library(lattice)
-library("Rtsne")
 library(dplyr)
 library(ggplot2)
-library('gtable')
-library('grid')
-library('magrittr')
+#library('gtable')
+#library('grid')
+#library('magrittr')
 library(tidyr)
-library("biomaRt")
+#library("biomaRt")
 source('~/Documents/UCDavis/Whitehead/RNAseq_15killifish/scripts/plotPCAWithSampleNames.R')
 source('~/Documents/UCDavis/Whitehead/RNAseq_15killifish/scripts/overLapper_original.R')
 # This is the one with just counts
-counts <- read.csv("/Users/johnsolk/Documents/UCDavis/Whitehead/16killifish_counts_RNAseq_filtered_16October2018.csv",stringsAsFactors = FALSE)
+counts <- read.csv("/Users/johnsolk/Documents/UCDavis/Whitehead/kfish_salmon/OG_species_counts.csv",stringsAsFactors = FALSE)
 # This is just the counts with Experimental Design Info in the last 4 rows
-counts2 <-read.csv("~/Documents/UCDavis/Whitehead/16killifish_counts_RNAseq_filtered_16October2018_designfactors.csv",stringsAsFactors = FALSE)
+counts2 <-read.csv("/Users/johnsolk/Documents/UCDavis/Whitehead/kfish_salmon/OG_species_counts_designfactors.csv",stringsAsFactors = FALSE)
+rownames(counts)<-counts$OG
+colnames(counts)
+drops <- c("OG")
+counts <- counts[ , !(names(counts) %in% drops)]
 dim(counts)
 dim(counts2)
 head(counts)
 tail(counts)
 tail(counts2)
-#design<-read.csv("~/Documents/UCDavis/Whitehead/salinity_killifish_design.csv",header=TRUE)
-design <- counts2[counts2$NCBIproteinID == 'Empty',]
+#design<-read.csv("~/Documents/UCDavis/Whitehead/kfish_salmon/OG_combined_replicates",header=FALSE,sep="\t")
+design <- counts2[counts2$OG == 'Empty',]
 head(design)
 dim(design)
 design$type <- c("species","native_salinity","clade","group","condition")
+colnames(design)
+drops <- c("X","OG")
+design <- design[ , !(names(design) %in% drops)]
+head(design)
+dim(design)
 
 #remove transfer treatment
-
 transfer_samples<-design[design$type=="condition",]
 transfer_samples<-transfer_samples[, transfer_samples[1, ] == c("transfer")]
 transfer_samples<-colnames(transfer_samples)
@@ -42,26 +54,26 @@ dim(BW_FW_counts)
 
 # design cateogories (full)
 sp<-as.character(unlist(design[1,]))
-sp<-sp[-c(1,2,3,4,5)]
-sp<-sp[-129]
+#sp<-sp[-c(1,2,3,4,5)]
+#sp<-sp[-129]
 ph<-as.character(unlist(design[2,]))
-ph<-ph[-c(1,2,3,4,5)]
-ph<-ph[-129]
+#ph<-ph[-c(1,2,3,4,5)]
+#ph<-ph[-129]
 cl<-as.character(unlist(design[3,]))
-cl<-cl[-c(1,2,3,4,5)]
-cl<-cl[-129]
+#cl<-cl[-c(1,2,3,4,5)]
+#cl<-cl[-129]
 de<-as.character(unlist(design[4,]))
-de<-de[-c(1,2,3,4,5)]
-de<-de[-129]
+#de<-de[-c(1,2,3,4,5)]
+#de<-de[-129]
 condition<-as.character(unlist(design[5,]))
-condition<-condition[-c(1,2,3,4,5)]
-condition<-condition[-129]
-
+#condition<-condition[-c(1,2,3,4,5)]
+#condition<-condition[-129]
+species_group<-as.vector(paste(de, sp, sep="_"))
 
 # normal full counts
-#x <- counts[ -c(1,2,3,4,5) ]
+x <- counts
 # remove transfer samples
-x <-BW_FW_counts
+#x <-BW_FW_counts
 
 # design categories, remove "transfer" samples
 design_BW_FW <- design[, -which(colnames(design) %in% transfer_samples)]
@@ -102,11 +114,11 @@ pca = prcomp(t(log_x))
 #fac = factor(sapply(names,function(x){strsplit(x,'.quant')[[1]][1]}))
 #fac2 = factor(sapply(fac,function(x){strsplit(x,'_')[[1]][1]}))
 #fac= factor(c("sal25ppt","sal25ppt","sal25ppt","sal30ppt","sal30ppt","sal30ppt","sal35ppt","sal35ppt"))
-fac = factor(cl)
+fac = factor(ph)
 fac
 colours = function(vec){
-  #cols=cols=palette(brewer.pal(n=7,name="Dark2"))
-  cols=rainbow(length(unique(vec)))
+  cols=palette(brewer.pal(n=3,name="Dark2"))
+  #cols=rainbow(length(unique(vec)))
   #print(cols)
   #cols = c('#d53e4f','#f46d43','#fdae61','#fee08b','#ffffbf','#e6f598','#abdda4','#66c2a5','#3288bd')
   #cols = palette(brewer.pal(n=16,name="Dark2"))
@@ -126,8 +138,9 @@ plot(pca$x[,1:2],
      ylab="PC2",
      cex.lab=2,
      cex.axis = 2)
-legend(120,120,legend=c("Clade 1","Clade 2","Clade 3"),col=rainbow(length(unique(fac))),cex=1.5, pch=19)
-legend(120,-115,legend=c("0.2 ppt","15 ppt"),cex=1.5,pch=c(16, 2, 9))
+cols=palette(brewer.pal(n=3,name="Dark2"))
+legend(120,120,legend=c("Clade 1","Clade 2","Clade 3"),col=cols,cex=1.5, pch=19)
+#legend(120,-115,legend=c("0.2 ppt","15 ppt"),cex=1.5,pch=c(16, 2, 9))
 #text(pca$x[,1:2], labels=names, pos=3)
 #dev.off()
 
@@ -154,27 +167,69 @@ legend(102,-110,legend=c("Brackish","Freshwater","Marine"),cex=1.5,pch=c(16, 2, 
 
 # DESeq2 analysis
 
+#==========================================
+
 #rownames(counts) <- counts$GeneName 
 #counts <- counts[-c(1)]
 #counts <- counts[-c(1)]
 #colnames(counts)
 
-cols<-colnames(BW_FW_counts) 
-#cols<-colnames(counts)
+#cols<-colnames(BW_FW_counts) 
+cols<-colnames(counts)
+cols
+species_group<-species_group[-c(120)]
+species_group
+condition
+condition<-condition[-c(120)]
+condition
 ExpDesign <- data.frame(row.names=cols, group = species_group,condition=condition)
 ExpDesign
 
-#all(rownames(ExpDesign) == colnames(counts))
-all(rownames(ExpDesign) == colnames(BW_FW_counts))
-counts_round<- round(BW_FW_counts,digits=0)
-#counts_round<- round(counts,digits=0)
+all(rownames(ExpDesign) == colnames(counts))
+#all(rownames(ExpDesign) == colnames(BW_FW_counts))
+#counts_round<- round(BW_FW_counts,digits=0)
+counts_round<- round(counts,digits=0)
+#dds <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,design = ~condition)
 dds <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,design = ~ group + condition)
-
 #dds <- DESeqDataSetFromTximport(countData = counts2,colData = ExpDesign,design = ~ clade + physiology + clade:condition)
+
 dds<-DESeq(dds,betaPrior=FALSE)
 matrix(resultsNames(dds))
+#==========================================
+
+# QA of DESeq
+
+#==========================================
+
+vsd <- vst(dds, blind=FALSE)
+head(assay(vsd), 3)
+ntd <- normTransform(dds)
+
+meanSdPlot(assay(ntd))
+meanSdPlot(assay(vsd))
 #log_cds<-rlog(dds)
 plotDispEsts(dds)
+
+
+sampleDists <- dist(t(assay(vsd)))
+sampleDistMatrix <- as.matrix(sampleDists)
+rownames(sampleDistMatrix) <- paste(vsd$condition, vsd$type, sep="-")
+colnames(sampleDistMatrix) <- NULL
+colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
+pheatmap(sampleDistMatrix,
+         clustering_distance_rows=sampleDists,
+         clustering_distance_cols=sampleDists,
+         col=colors)
+
+plotPCA(vsd, intgroup=c("condition","species_group"))
+
+resApeT <- lfcShrink(dds, coef=2, type="apeglm", lfcThreshold=1)
+plotMA(resApeT, ylim=c(-3,3), cex=.8)
+abline(h=c(-1,1), col="dodgerblue", lwd=2)
+
+
+
+
 colData(dds)$physiology <- ph
 colData(dds)$clade <- cl
 colData(dds)$species <- sp

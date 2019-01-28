@@ -62,5 +62,6 @@ for (species in files_list){
   head(counts)
   counts_matrix = paste("~/Documents/UCDavis/Whitehead/kfish_salmon/tximport_counts/",species,sep="")
   counts_matrix = paste(counts_matrix,"_counts.csv",sep="")
-  write.csv(counts,counts_matrix)
+  #write.csv(counts,counts_matrix)
+  write.table(counts, file=counts_matrix, quote=FALSE, sep='\t', col.names = NA)
 }
