@@ -17,12 +17,12 @@ library(tidyr)
 source('~/Documents/UCDavis/Whitehead/RNAseq_15killifish/scripts/plotPCAWithSampleNames.R')
 source('~/Documents/UCDavis/Whitehead/RNAseq_15killifish/scripts/overLapper_original.R')
 # This is the one with just counts
-counts <- read.csv("/Users/johnsolk/Documents/UCDavis/Whitehead/kfish_salmon/OG_species_counts.csv",stringsAsFactors = FALSE)
+counts <- read.csv("/Users/johnsolk/Documents/UCDavis/Whitehead/kfish_salmon/Ensembl_species_counts.csv",stringsAsFactors = FALSE)
 # This is just the counts with Experimental Design Info in the last 4 rows
-counts2 <-read.csv("/Users/johnsolk/Documents/UCDavis/Whitehead/kfish_salmon/OG_species_counts_designfactors.csv",stringsAsFactors = FALSE)
-rownames(counts)<-counts$OG
+counts2 <-read.csv("/Users/johnsolk/Documents/UCDavis/Whitehead/kfish_salmon/Ensembl_species_counts_designfactors.csv",stringsAsFactors = FALSE)
+rownames(counts)<-counts$Ensembl
 colnames(counts)
-drops <- c("OG")
+drops <- c("Ensembl")
 counts <- counts[ , !(names(counts) %in% drops)]
 dim(counts)
 dim(counts2)
@@ -30,12 +30,12 @@ head(counts)
 tail(counts)
 tail(counts2)
 #design<-read.csv("~/Documents/UCDavis/Whitehead/kfish_salmon/OG_combined_replicates",header=FALSE,sep="\t")
-design <- counts2[counts2$OG == 'Empty',]
+design <- counts2[counts2$Ensembl == 'Empty',]
 head(design)
 dim(design)
 design$type <- c("species","native_salinity","clade","group","condition")
 colnames(design)
-drops <- c("X","OG")
+drops <- c("X","Ensembl")
 design <- design[ , !(names(design) %in% drops)]
 head(design)
 dim(design)
@@ -116,11 +116,11 @@ pca = prcomp(t(log_x))
 #fac = factor(sapply(names,function(x){strsplit(x,'.quant')[[1]][1]}))
 #fac2 = factor(sapply(fac,function(x){strsplit(x,'_')[[1]][1]}))
 #fac= factor(c("sal25ppt","sal25ppt","sal25ppt","sal30ppt","sal30ppt","sal30ppt","sal35ppt","sal35ppt"))
-fac = factor(ph)
+fac = factor(cl)
 fac
 colours = function(vec){
-  cols=palette(brewer.pal(n=3,name="Dark2"))
-  #cols=rainbow(length(unique(vec)))
+  #cols=palette(brewer.pal(n=3,name="Dark2"))
+  cols=rainbow(length(unique(vec)))
   #print(cols)
   #cols = c('#d53e4f','#f46d43','#fdae61','#fee08b','#ffffbf','#e6f598','#abdda4','#66c2a5','#3288bd')
   #cols = palette(brewer.pal(n=16,name="Dark2"))
@@ -134,17 +134,17 @@ par(mar = mar.default + c(0, 4, 0, 0))
 plot(pca$x[,1:2], 
      col=colours(fac), 
      #pch=19,
-     pch = c(16, 2, 9)[as.numeric(as.factor(condition))],
+     pch = c(16, 2, 9)[as.numeric(as.factor(ph))],
      cex=2,
      xlab="PC1",
      ylab="PC2",
-     cex.lab=2,
-     cex.axis = 2)
-cols=palette(brewer.pal(n=3,name="Dark2"))
-legend(120,120,legend=c("Clade 1","Clade 2","Clade 3"),col=cols,cex=1.5, pch=19)
+     cex.lab=1.5,
+     cex.axis = 1,xlim=c(-200,300),ylim=c(-200,200))
+#cols=palette(brewer.pal(n=3,name="Dark2"))
+legend(120,120,legend=c("Clade 1","Clade 2","Clade 3"),col=rainbow(length(unique(as.factor(cl)))),cex=1.5, pch=19)
 #legend(120,-115,legend=c("0.2 ppt","15 ppt"),cex=1.5,pch=c(16, 2, 9))
 #text(pca$x[,1:2], labels=names, pos=3)
-#dev.off()
+dev.off()
 
 
 summary(pca)
@@ -179,10 +179,10 @@ legend(102,-110,legend=c("Brackish","Freshwater","Marine"),cex=1.5,pch=c(16, 2, 
 #cols<-colnames(BW_FW_counts) 
 cols<-colnames(counts)
 cols
-species_group<-species_group[-c(120)]
+species_group<-species_group[-c(129)]
 species_group
 condition
-condition<-condition[-c(120)]
+condition<-condition[-c(129)]
 condition
 ExpDesign <- data.frame(row.names=cols, group = species_group,condition=condition)
 ExpDesign
@@ -256,14 +256,14 @@ dim(counts_table)
 dim(res_BWvFW)
 dim(res_BWvTR)
 dim(res_FWvTR)
-OGs<-rownames(counts_table)
-counts_table<-cbind(counts_table,OGs)
+IDs<-rownames(counts_table)
+counts_table<-cbind(counts_table,IDs)
 # res_BWvFW
-OGs<-res_BWvFW$row
-res_BWvFW <- cbind(res_BWvFW,OGs)
-counts_stats <- merge(res_BWvFW,counts_table,by="OGs")
+IDs<-res_BWvFW$row
+res_BWvFW <- cbind(res_BWvFW,IDs)
+counts_stats <- merge(res_BWvFW,counts_table,by="IDs")
 dim(counts_stats)
-rownames(counts_stats)<-OGs
+rownames(counts_stats)<-IDs
 head(counts_stats)
 counts_stats<-counts_stats[-c(2)]
 counts_stats<-counts_stats[order(counts_stats$padj),]
@@ -275,9 +275,9 @@ names(counts_stats)[names(counts_stats) == 'lfcSE'] <- 'lfcSE-15ppt-v-0.2ppt'
 names(counts_stats)[names(counts_stats) == 'stat'] <- 'stat-15ppt-v-0.2ppt'
 names(counts_stats)[names(counts_stats) == 'pvalue'] <- 'pvalue-15ppt-v-0.2ppt'
 # res_BWvTR
-OGs<-res_BWvTR$row
-res_BWvTR <- cbind(res_BWvTR,OGs)
-counts_stats <- merge(res_BWvTR,counts_stats,by="OGs")
+IDs<-res_BWvTR$row
+res_BWvTR <- cbind(res_BWvTR,IDs)
+counts_stats <- merge(res_BWvTR,counts_stats,by="IDs")
 dim(counts_stats)
 head(counts_stats)
 counts_stats<-counts_stats[-c(2)]
@@ -288,9 +288,9 @@ names(counts_stats)[names(counts_stats) == 'lfcSE'] <- 'lfcSE-15ppt-v-transfer'
 names(counts_stats)[names(counts_stats) == 'stat'] <- 'stat-15ppt-v-transfer'
 names(counts_stats)[names(counts_stats) == 'pvalue'] <- 'pvalue-15ppt-v-transfer'
 # res_FWvTR
-OGs<-res_FWvTR$row
-res_FWvTR <- cbind(res_FWvTR,OGs)
-counts_stats <- merge(res_FWvTR,counts_stats,by="OGs")
+IDs<-res_FWvTR$row
+res_FWvTR <- cbind(res_FWvTR,IDs)
+counts_stats <- merge(res_FWvTR,counts_stats,by="IDs")
 dim(counts_stats)
 head(counts_stats)
 counts_stats<-counts_stats[-c(2)]
@@ -305,7 +305,7 @@ head(counts_stats)
 
 
 
-write.csv(counts_stats,"~/Documents/UCDavis/Whitehead/RNAseq_15killifish/DE_results/15killifish_normcounts_3-wayexperimentalconditionstats.csv")
+write.csv(counts_stats,"~/Documents/UCDavis/Whitehead/RNAseq_15killifish/DE_results/Ensembl_15killifish_normcounts_3-wayexperimentalconditionstats.csv")
 
 # ============================================
 #
@@ -347,6 +347,7 @@ colnames(ann)<-c("gene","scaffold","product","geneID")
 # Andrew's genes of interest DG/NCBI
 # Funhe2EKm029929 XM_012870449.1
 # zymogen granule membrane protein 16
+goi <- res_BWvTR$row[res_BWvTR$row == "ENSFHEP00000007220.1"]
 goi <- res$row[res$row == "XP_012725903.1"]
 # Funhe2EKm029931 XM_012870466.1
 # zymogen granule membrane protein 16
