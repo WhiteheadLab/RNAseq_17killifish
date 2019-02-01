@@ -69,7 +69,11 @@ condition<-as.character(unlist(design[5,]))
 #condition<-condition[-c(1,2,3,4,5)]
 #condition<-condition[-129]
 species_group<-as.vector(paste(de, sp, sep="_"))
-
+species_group
+species_condition<-as.vector(paste(sp,condition,sep="_"))
+species_condition
+species_condition<-species_condition[-c(129)]
+species_condition
 # normal full counts
 x <- counts
 # remove transfer samples
@@ -103,20 +107,46 @@ x <- counts
 # ================================================
 # PCA analysis
 # ================================================
-x <- x+1
-log_x<-log(x)
-colnames(log_x)
-names<-colnames(log_x)
-names
+# Contrast1 = Mean_species_transfer - Mean_species_FW
+# Contrast2 = Mean_species_BW - Mean_species_FW
+# Contrast3 = Mean_species_transfer - Mean_species_BW
 
-pca = prcomp(t(log_x))
+contrast_TR_v_FW <- read.csv("~/Documents/UCDavis/Whitehead/kfish_salmon/TR_BW_contrasts_design.csv")
+contrast_BW_v_FW <- read.csv("~/Documents/UCDavis/Whitehead/kfish_salmon/BW_FW_contrasts_design.csv")
+contrast_TR_v_BW <- read.csv("~/Documents/UCDavis/Whitehead/kfish_salmon/TR_BW_contrasts_design.csv")
+TR_v_FW_design <- contrast_TR_v_FW[c(29248:29251),]  
+BW_v_FW_design <- contrast_BW_v_FW[contrast_BW_v_FW$X == '0']
+TR_v_BW_design <- contrast_TR_v_BW[c(29248:29251),]
+
+de<-as.character(unlist(TR_v_FW_design[4,]))
+de<-de[-c(1)]
+ph<-as.character(unlist(TR_v_FW_design[2,]))
+ph<-ph[-c(1)]
+dim(TR_v_BW_design)
+contrast_TR_v_FW <- contrast_TR_v_FW[-c(29248:29251),]
+rownames(contrast_TR_v_FW) <- contrast_TR_v_FW$X
+drops <- c("X")
+contrast_TR_v_FW <- contrast_TR_v_FW[ , !(names(contrast_TR_v_FW) %in% drops)]
+
+x <- contrast_TR_v_FW
+x <- na.omit(x)
+x <- data.matrix(x)
+
+#x <- x+1
+#log_x<-log(x)
+#colnames(log_x)
+colnames(x)
+#names<-colnames(log_x)
+names<-colnames(x)
+pca = prcomp(t(x))
+#pca = prcomp(t(log_x))
 
 
 
 #fac = factor(sapply(names,function(x){strsplit(x,'.quant')[[1]][1]}))
 #fac2 = factor(sapply(fac,function(x){strsplit(x,'_')[[1]][1]}))
 #fac= factor(c("sal25ppt","sal25ppt","sal25ppt","sal30ppt","sal30ppt","sal30ppt","sal35ppt","sal35ppt"))
-fac = factor(cl)
+fac = factor(ph)
 fac
 colours = function(vec){
   #cols=palette(brewer.pal(n=3,name="Dark2"))
@@ -133,18 +163,17 @@ mar.default <- c(5,4,4,2) + 0.1
 par(mar = mar.default + c(0, 4, 0, 0)) 
 plot(pca$x[,1:2], 
      col=colours(fac), 
-     #pch=19,
-     pch = c(16, 2, 9)[as.numeric(as.factor(ph))],
+     pch=19,
+     #pch = c(16, 2, 9)[as.numeric(as.factor(ph))],
      cex=2,
      xlab="PC1",
      ylab="PC2",
      cex.lab=1.5,
-     cex.axis = 1,xlim=c(-200,300),ylim=c(-200,200))
+     cex.axis = 1)
 #cols=palette(brewer.pal(n=3,name="Dark2"))
-legend(120,120,legend=c("Clade 1","Clade 2","Clade 3"),col=rainbow(length(unique(as.factor(cl)))),cex=1.5, pch=19)
+legend(300000,400000,legend=c("BW","FW","M"),col=rainbow(length(unique(as.factor(ph)))),cex=1.5, pch=19)
 #legend(120,-115,legend=c("0.2 ppt","15 ppt"),cex=1.5,pch=c(16, 2, 9))
 #text(pca$x[,1:2], labels=names, pos=3)
-dev.off()
 
 
 summary(pca)
@@ -184,18 +213,59 @@ species_group
 condition
 condition<-condition[-c(129)]
 condition
-ExpDesign <- data.frame(row.names=cols, group = species_group,condition=condition)
+species<-sp[-c(129)]
+species
+physiology<-ph[-c(129)]
+physiology
+clade<-cl[-129]
+clade
+ExpDesign <- data.frame(row.names=cols, group = species_group,condition=condition, species = species, physiology = physiology,clade=clade,species_condition=species_condition)
 ExpDesign
+#m1 <- model.matrix(~ species_condition, ExpDesign)
+m2 <- model.matrix(~ species + species_condition, ExpDesign)
+m1 <- model.matrix(~ species + condition + species:condition,ExpDesign)
+colnames(m1)
+colnames(m2)
+m1
+all.zero <- apply(m1, 2, function(x) all(x==0))
+all.zero
+idx <- which(all.zero)
+m1 <- m1[,-idx]
+unname(m1)
 
 all(rownames(ExpDesign) == colnames(counts))
 #all(rownames(ExpDesign) == colnames(BW_FW_counts))
 #counts_round<- round(BW_FW_counts,digits=0)
 counts_round<- round(counts,digits=0)
 #dds <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,design = ~condition)
-dds <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,design = ~ group + condition)
+#dds <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,design = ~ condition:species)
+dds <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,design = m1)
 #dds <- DESeqDataSetFromTximport(countData = counts2,colData = ExpDesign,design = ~ clade + physiology + clade:condition)
-dds<-DESeq(dds,betaPrior=FALSE)
+dds_speciescondition <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,design = ~species_condition)
+#dds<-DESeq(dds,betaPrior=FALSE)
+#dds <- DESeq(dds, full=m1, betaPrior=FALSE)
+#dds_speciescondition$condition <- relevel(dds$condition, ref = "untreated")
+dds_speciescondition <- DESeq(dds_speciescondition)
+#dds<-DESeq(dds, test = "LRT", reduced = ~ 1)
 matrix(resultsNames(dds))
+matrix(resultsNames(dds_speciescondition))
+
+
+## clean
+# if message after the fitting model and testing step: "rows did not converge in beta, labelled in mcols(object)$fullBetaConv. Use larger maxit argument with nbinomLRT"
+# from this reference:
+# https://support.bioconductor.org/p/65091/
+# filter out low expressing genes
+#dds <- estimateSizeFactors(dds)
+#nc <- counts(dds, normalized=TRUE)
+#filter <- rowSums(nc >= 10) >= 2
+#dds <- dds[filter,]
+#dds<-DESeq(dds,betaPrior=FALSE)
+#dds <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,design = ~species_condition)
+#dds <- estimateSizeFactors(dds)
+#dds <- estimateDispersions(dds)
+#dds <- nbinomWaldTest(dds, maxit=500)
+# best to do this:
 ddsClean <- dds[which(mcols(dds)$betaConv),]
 dds<-ddsClean
 
@@ -227,31 +297,50 @@ pheatmap(sampleDistMatrix,
          col=colors)
 
 #log_dds<-rlog(dds)
-plotPCA(vsd, intgroup=c("condition","group"))
-plotPCAWithSampleNames(vsd,intgroup=c("group"),ntop=40000)
+plotPCA(vsd, intgroup=c("species"))
+plotPCAWithSampleNames(vsd,intgroup=c("species"),ntop=40000)
 
 resApeT <- lfcShrink(dds, coef=2, type="apeglm", lfcThreshold=1)
 plotMA(resApeT, ylim=c(-20,20), cex=.8)
 abline(h=c(-1,1), col="dodgerblue", lwd=2)
 
 
-colData(dds)$physiology <- ph
-colData(dds)$clade <- cl
-colData(dds)$species <- sp
-colData(dds)
+# ---------------------------
+# make a matrix of counts
+# ---------------------------
+
+
+counts_table = counts(dds, normalized=TRUE )
+write.csv(counts_table,"~/Documents/UCDavis/Whitehead/RNAseq_15killifish/DE_results/Ensembl_15killifish_normcounts_nostats.csv")
 
 # ---------------------------
 
 # Get Results
 
 # ---------------------------
+resultsNames(dds)
+# speciesA_xen is reference level, and condition0.2 ppt is reference level
+# Is there an effect of TR condition in A_xen, 0.2ppt?
+condition15_ppt
+A_xen_results_BW_v_FW <- results(dds, contrast=list(c("condition15_ppt")))
+A_xen_results_transfer_v_FW <- results(dds, contrast=list(c("conditiontransfer")))
+
+res <- results(dds, contrast=c("condition","B","A")))
 
 
-res_BWvFW <- results(dds, tidy=TRUE, contrast=c("condition", "15_ppt", "0.2_ppt")) %>% arrange(padj) %>% tbl_df()
-res_BWvTR <- results(dds, tidy=TRUE, contrast=c("condition", "15_ppt", "transfer")) %>% arrange(padj) %>% tbl_df()
+res_FWvBW <- results(dds, tidy=TRUE, contrast=c("species_condition","A_xenica_0.2_ppt","A_xenica_15_ppt")) %>% arrange(padj) %>% tbl_df()
+#res_BWvTR <- results(dds, tidy=TRUE, contrast=c("condition", "15_ppt", "transfer")) %>% arrange(padj) %>% tbl_df()
 res_FWvTR <- results(dds, tidy=TRUE, contrast=c("condition", "0.2_ppt", "transfer")) %>% arrange(padj) %>% tbl_df()
 
-counts_table <- counts( dds, normalized=TRUE )
+#res <- results(dds, tidy=TRUE,contrast=list(c("species_condition_A_xenica_15_ppt_vs_A_xenica_0.2_ppt","species_condition_A_xenica_transfer_vs_A_xenica_0.2_ppt","species_condition_F_catanatus_0.2_ppt_vs_A_xenica_0.2_ppt","species_condition_F_catanatus_0.2_ppt_vs_A_xenica_0.2_ppt")))
+
+#res1 <- results(dds, tidy=TRUE,contrast=list(c("speciesF_catanatus.condition15_ppt")))
+#res2 <- results(dds,tidy=TRUE,contrast=list(c("species_condition_L_parva_transfer_vs_A_xenica_0.2_ppt")))
+
+counts_table <- counts(dds, normalized=TRUE )
+
+
+
 dim(counts_table)
 dim(res_BWvFW)
 dim(res_BWvTR)
@@ -348,6 +437,7 @@ colnames(ann)<-c("gene","scaffold","product","geneID")
 # Funhe2EKm029929 XM_012870449.1
 # zymogen granule membrane protein 16
 goi <- res_BWvTR$row[res_BWvTR$row == "ENSFHEP00000007220.1"]
+
 goi <- res$row[res$row == "XP_012725903.1"]
 # Funhe2EKm029931 XM_012870466.1
 # zymogen granule membrane protein 16
@@ -484,7 +574,14 @@ dev.off()
 plotPCAWithSampleNames(log_cds,intgroup="clade",ntop=40000)
 
 counts_table = counts(dds, normalized=TRUE )
+
 dim(counts_table)
+
+
+
+
+
+
 filtered_norm_counts<-subset(counts_table,rownames(counts_table) %in% goi)
 filtered_norm_counts<-counts_table[!rowSums(counts_table==0)>=1, ]
 dim(filtered_norm_counts)
