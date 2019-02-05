@@ -246,7 +246,7 @@ dds_speciescondition <- DESeqDataSetFromMatrix(countData = counts_round,colData 
 #dds <- DESeq(dds, full=m1, betaPrior=FALSE)
 #dds_speciescondition$condition <- relevel(dds$condition, ref = "untreated")
 dds_speciescondition <- DESeq(dds_speciescondition)
-#dds<-DESeq(dds, test = "LRT", reduced = ~ 1)
+#dds_LRT<-DESeq(dds, test = "LRT", reduced = ~ 1)
 matrix(resultsNames(dds))
 matrix(resultsNames(dds_speciescondition))
 
