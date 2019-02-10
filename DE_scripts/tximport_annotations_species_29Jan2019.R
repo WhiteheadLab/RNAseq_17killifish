@@ -23,6 +23,7 @@ gene_names_id_ncbi <- gene_names_ncbi[,c(2,3)]
 tx2gene_ncbi <- gene_names_id_ncbi
 colnames(tx2gene_ncbi)<-c("Name","NCBI")
 head(tx2gene_ncbi)
+dim(tx2gene_ncbi)
 tx2gene_ncbi <- tx2gene_ncbi[!duplicated(tx2gene_ncbi$Name), ]
 #tx2gene_ncbi <- tx2gene_ncbi[!duplicated(tx2gene$OG), ]
 txi_ncbi.salmon <- tximport(files, type = "salmon", tx2gene = tx2gene_ncbi)

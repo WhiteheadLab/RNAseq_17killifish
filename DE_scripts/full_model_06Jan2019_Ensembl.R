@@ -115,6 +115,27 @@ x <- counts
 contrast_TR_v_FW <- read.csv("~/Documents/UCDavis/Whitehead/kfish_salmon/TR_BW_contrasts_design.csv")
 contrast_BW_v_FW <- read.csv("~/Documents/UCDavis/Whitehead/kfish_salmon/BW_FW_contrasts_design.csv")
 contrast_TR_v_BW <- read.csv("~/Documents/UCDavis/Whitehead/kfish_salmon/TR_BW_contrasts_design.csv")
+
+# filter to only those expressed in all genes
+# no 0, going across all rows
+
+contrast_TR_v_FW <- contrast_TR_v_FW[-c(29248:29251),]
+names<-contrast_TR_v_FW$X
+rownames(contrast_TR_v_FW) <- names
+head(contrast_TR_v_FW)
+dim(contrast_TR_v_FW)
+drops <- c("X")
+contrast_TR_v_FW <- contrast_TR_v_FW[ , !(names(contrast_TR_v_FW) %in% drops)]
+contrast_TR_v_FW <- na.omit(contrast_TR_v_FW)
+dim(contrast_TR_v_FW)
+df_contrast_TR_v_FW<-data.matrix(contrast_TR_v_FW)
+# get rownames where counts are low
+filtered_names<-rownames(counts[!rowSums(counts==0)>=1, ])
+length(filtered_names)
+filtered_contrast_TR_v_FW<- contrast_TR_v_FW[rownames(contrast_TR_v_FW) %in% filtered_names,] 
+dim(filtered_contrast_TR_v_FW)
+
+
 TR_v_FW_design <- contrast_TR_v_FW[c(29248:29251),]  
 BW_v_FW_design <- contrast_BW_v_FW[contrast_BW_v_FW$X == '0']
 TR_v_BW_design <- contrast_TR_v_BW[c(29248:29251),]
@@ -129,8 +150,10 @@ rownames(contrast_TR_v_FW) <- contrast_TR_v_FW$X
 drops <- c("X")
 contrast_TR_v_FW <- contrast_TR_v_FW[ , !(names(contrast_TR_v_FW) %in% drops)]
 
-x <- contrast_TR_v_FW
+x <- filtered_contrast_TR_v_FW
+dim(x)
 x <- na.omit(x)
+dim(x)
 x <- data.matrix(x)
 
 #x <- x+1
@@ -223,10 +246,10 @@ clade
 ExpDesign <- data.frame(row.names=cols, group = species_group,condition=condition, species = species, physiology = physiology,clade=clade,species_condition=species_condition)
 ExpDesign
 #m1 <- model.matrix(~ species_condition, ExpDesign)
-m2 <- model.matrix(~ species + species_condition, ExpDesign)
-m1 <- model.matrix(~ species + condition + species:condition,ExpDesign)
+#m2 <- model.matrix(~ species + species_condition, ExpDesign)
+m1 <- model.matrix(~ clade + species + condition,ExpDesign)
 colnames(m1)
-colnames(m2)
+#colnames(m2)
 m1
 all.zero <- apply(m1, 2, function(x) all(x==0))
 all.zero
@@ -242,11 +265,11 @@ counts_round<- round(counts,digits=0)
 #dds <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,design = ~ condition:species)
 dds <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,design = m1)
 #dds <- DESeqDataSetFromTximport(countData = counts2,colData = ExpDesign,design = ~ clade + physiology + clade:condition)
-dds_speciescondition <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,design = ~species_condition)
+#dds_speciescondition <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,design = ~species_condition)
 #dds<-DESeq(dds,betaPrior=FALSE)
-#dds <- DESeq(dds, full=m1, betaPrior=FALSE)
+dds <- DESeq(dds, full=m1, betaPrior=FALSE)
 #dds_speciescondition$condition <- relevel(dds$condition, ref = "untreated")
-dds_speciescondition <- DESeq(dds_speciescondition)
+#dds_speciescondition <- DESeq(dds_speciescondition)
 #dds_LRT<-DESeq(dds, test = "LRT", reduced = ~ 1)
 matrix(resultsNames(dds))
 matrix(resultsNames(dds_speciescondition))
