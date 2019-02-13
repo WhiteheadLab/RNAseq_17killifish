@@ -7,13 +7,14 @@ library(DESeq2)
 library(RColorBrewer)
 library(tximport)
 library(lattice)
+library("biomaRt")
 library(dplyr)
 library(ggplot2)
 #library('gtable')
 #library('grid')
 #library('magrittr')
 library(tidyr)
-library("biomaRt")
+
 source('~/Documents/UCDavis/Whitehead/RNAseq_15killifish/scripts/plotPCAWithSampleNames.R')
 source('~/Documents/UCDavis/Whitehead/RNAseq_15killifish/scripts/overLapper_original.R')
 # This is the one with just counts
@@ -437,8 +438,6 @@ colnames(ann)<-c("gene","scaffold","product","geneID")
 # Andrew's genes of interest DG/NCBI
 # Funhe2EKm029929 XM_012870449.1
 # zymogen granule membrane protein 16
-goi <- res_BWvTR$row[res_BWvTR$row == "ENSFHEP00000007220.1"]
-
 goi <- res$row[res$row == "XP_012725903.1"]
 # Funhe2EKm029931 XM_012870466.1
 # zymogen granule membrane protein 16
@@ -499,8 +498,7 @@ goi
 tcounts <- t(log2((counts(dds[goi, ], normalized=TRUE, replaced=FALSE)+.5))) %>% 
   merge(colData(dds), ., by="row.names") %>% 
   gather(gene, expression, (ncol(.)-length(goi)+1):ncol(.))
-tcounts_test <- merge(tcounts,ann,by="gene")
-tcounts_test %>% select(Row.names, group, species, clade, physiology, condition, gene, product, scaffold,geneID, expression) %>% head %>% knitr::kable()
+tcounts %>% select(Row.names, species, clade, condition, gene, expression) %>% head %>% knitr::kable()
 
 # --------
 # nested facets

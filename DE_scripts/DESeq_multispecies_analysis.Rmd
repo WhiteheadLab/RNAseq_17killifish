@@ -12,9 +12,6 @@ output:
     toc: yes
     toc_depth: 5
     toc_float: yes
-  html_notebook:
-    toc: yes
-    toc_depth: 5
 ---
 
 ```{r LoadPackages, results='hide', include=FALSE}
@@ -95,7 +92,7 @@ species_clade<-as.vector(paste(clade,species,sep="_"))
 ```
 # PCA, all counts
 
-This is the PCA with all counts, not filtered. The dimensions of the counts table are listed below, above the PCA plot. (row=genes, columns=samples)
+This is the PCA with all counts, not filtered. The dimensions of the counts table are listed below. Row=genes, Columns=samples
 ```{r PCA of counts,}
 # normal full counts
 x <- data.matrix(counts)
@@ -125,7 +122,7 @@ legend(140,-67,legend=c("Brackish","Freshwater","Marine"),cex=0.75,pch=c(16, 2, 
 
 # Filtering counts
 
-The following shows the dimensions of the dataframe when we filter out low counts several.
+The following shows the dimensions of the dataframe when we filter out genes with low counts.
 
 ## At least 100 samples have a count of at least 10:
 
@@ -333,7 +330,11 @@ ExpDesign
 
 Clade1_F_catanatus and 0.2 ppt are reference levels for comparison.
 
-```{r run DESeq,}
+```
+m1 <- model.matrix(~condition + species_clade + species_clade:condition,ExpDesign)
+```
+
+```{r run DESeq, results='hide', include=FALSE}
 m1 <- model.matrix(~condition + species_clade + species_clade:condition,ExpDesign)
 colnames(m1)
 all.zero <- apply(m1, 2, function(x) all(x==0))
@@ -345,15 +346,19 @@ dds <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,desig
 dds <- DESeq(dds, full = m1, betaPrior=FALSE)
 ddsClean <- dds[which(mcols(dds)$betaConv),]
 dds<-ddsClean
-resultsNames(dds)
 ```
 
 ```{r QA of DESeq,}
+resultsNames(dds)
 vsd <- vst(dds, blind=FALSE)
 meanSdPlot(assay(vsd))
 plotDispEsts(dds)
 ```
 
+```{r PCA of DESeq,}
+plotPCA(vsd, intgroup=c("species_clade"))
+plotPCAWithSampleNames(vsd,intgroup=c("species_clade"))
+```
 
 ```{r Display versions,}
 sessionInfo()
