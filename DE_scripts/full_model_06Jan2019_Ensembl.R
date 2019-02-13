@@ -186,16 +186,16 @@ summary(pca)
 mar.default <- c(5,4,4,2) + 0.1
 par(mar = mar.default + c(0, 4, 0, 0)) 
 plot(pca$x[,1:2], 
+     ylim=c(-500,500),xlim=c(-500,500),
      col=colours(fac), 
      pch=19,
      #pch = c(16, 2, 9)[as.numeric(as.factor(ph))],
      cex=2,
      xlab="PC1",
      ylab="PC2",
-     cex.lab=1.5,
-     cex.axis = 1)
+     cex.lab=1.5)
 #cols=palette(brewer.pal(n=3,name="Dark2"))
-legend(300000,400000,legend=c("BW","FW","M"),col=rainbow(length(unique(as.factor(ph)))),cex=1.5, pch=19)
+legend(300,400,legend=c("BW","FW","M"),col=rainbow(length(unique(as.factor(physiology)))),cex=1.5, pch=19)
 #legend(120,-115,legend=c("0.2 ppt","15 ppt"),cex=1.5,pch=c(16, 2, 9))
 #text(pca$x[,1:2], labels=names, pos=3)
 
@@ -247,7 +247,7 @@ ExpDesign <- data.frame(row.names=cols, group = species_group,condition=conditio
 ExpDesign
 #m1 <- model.matrix(~ species_condition, ExpDesign)
 #m2 <- model.matrix(~ species + species_condition, ExpDesign)
-m1 <- model.matrix(~ clade + species + condition,ExpDesign)
+m1 <- model.matrix(~ species_condition,ExpDesign)
 colnames(m1)
 #colnames(m2)
 m1
@@ -260,7 +260,8 @@ unname(m1)
 all(rownames(ExpDesign) == colnames(counts))
 #all(rownames(ExpDesign) == colnames(BW_FW_counts))
 #counts_round<- round(BW_FW_counts,digits=0)
-counts_round<- round(counts,digits=0)
+
+counts_round<- round(data.matrix(counts),digits=0)
 #dds <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,design = ~condition)
 #dds <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,design = ~ condition:species)
 dds <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,design = m1)
@@ -322,7 +323,7 @@ pheatmap(sampleDistMatrix,
 
 #log_dds<-rlog(dds)
 plotPCA(vsd, intgroup=c("species"))
-plotPCAWithSampleNames(vsd,intgroup=c("species"),ntop=40000)
+plotPCAWithSampleNames(vsd,intgroup=c("species_"),ntop=40000)
 
 resApeT <- lfcShrink(dds, coef=2, type="apeglm", lfcThreshold=1)
 plotMA(resApeT, ylim=c(-20,20), cex=.8)
@@ -460,7 +461,7 @@ colnames(ann)<-c("gene","scaffold","product","geneID")
 # Andrew's genes of interest DG/NCBI
 # Funhe2EKm029929 XM_012870449.1
 # zymogen granule membrane protein 16
-goi <- res_BWvTR$row[res_BWvTR$row == "ENSFHEP00000007220.1"]
+goi <- res$row[res_BWvTR$row == "ENSFHEP00000007220.1"]
 
 goi <- res$row[res$row == "XP_012725903.1"]
 # Funhe2EKm029931 XM_012870466.1
