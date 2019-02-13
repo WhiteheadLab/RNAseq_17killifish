@@ -277,17 +277,11 @@ C2<-ggplot(tcounts %>%
   labs(x="salinity treatment")+
   ggtitle("Clade 2")
 plot(C2)
-C3<-ggplot(tcounts %>%
-             filter(clade=='Clade3'),
-           aes(condition, expression)) +
+C3<-ggplot(tcounts %>% filter(clade=='Clade3'),aes(condition, expression)) +
   stat_summary(fun.y="mean", geom="line") +
   facet_grid(~product~species,scales='free_y') +
   stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-               geom="errorbar", width=0.2) +
-  theme_bw() +
-  theme(legend.position="bottom",panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.text.x = element_text(angle = 90, hjust = 1)) +
-  labs(x="salinity treatment")+
-  ggtitle("Clade 3")
+               geom="errorbar", width=0.2)
 plot(C3)
 
 grid.arrange(C1,C2,C3,ncol=3)
