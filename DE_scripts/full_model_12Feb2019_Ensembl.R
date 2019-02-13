@@ -235,6 +235,38 @@ goi
 #goi <- res$row[res$row == "XP_012718275.1"]
 goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000009753"]
 
+# --------------------------------
+# other salinity genes of interest
+# --------------------------------
+# ============================================
+# cftr
+goi <- res$row[res$row == "XP_012719100.1"]
+# polyamine-modulated factor 1-like
+goi <- res$row[res$row == "XP_012727384.1"]
+# sodium/potassium/calcium exchanger 1 isoform X2
+goi <- res$row[res$row == "XP_012706756.1"]
+# septin-2B isoform X2
+goi <- res$row[res$row == "XP_012716423.1"]
+# CLOCK-interacting pacemaker-like
+goi <- res$row[res$row == "XP_012722124.1"]
+# vasopressin V2 receptor-like
+goi <- res$row[res$row == "XP_012721985.1"]
+# aquaporin-3 KEEP THIS
+goi <- res$row[res$row == "XP_012716807.1"]
+# sodium/potassium-transporting ATPase subunit beta-1-interacting protein 1
+goi <- res$row[res$row == "XP_012716889.1"]
+# septin-2B isoform X2
+goi <- res$row[res$row == "XP_012716423.1"]
+# otopetrin-1
+goi <- res$row[res$row == "XP_012717582.1"]
+# claudin-15-like
+goi <- res$row[res$row == "XP_012715395.1"]
+# claudin-1-like
+goi <- res$row[res$row == "XP_012716345.1"]
+# claudin 34
+goi <- res$row[res$row == "XP_012716562.1"]
+# claudin-3-like
+goi <- res$row[res$row == "XP_012727928.1"]
 # ============================================
 #
 # Make plots with goi
