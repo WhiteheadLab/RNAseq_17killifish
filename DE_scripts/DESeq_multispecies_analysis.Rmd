@@ -101,7 +101,7 @@ x <- x+1
 log_x<-log(x)
 names<-colnames(log_x)
 pca = prcomp(t(log_x))
-summary(pca)
+#summary(pca)
 fac = factor(nativephysiology)
 colours = function(vec){
   cols=rainbow(length(unique(vec)))

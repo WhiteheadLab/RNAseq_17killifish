@@ -510,18 +510,18 @@ library(gridExtra)
 C1<-ggplot(tcounts_test %>%
              filter(clade=='Clade1'),
            aes(condition, expression)) + 
-        geom_point(aes(color=physiology)) +
-        stat_summary(fun.y="mean", geom="line", aes(group=physiology,color=physiology)) +
-        facet_grid(~product~species,scales='free_y',labeller=) +
+        geom_point(aes(color="green")) +
+        stat_summary(fun.y="mean", geom="line", aes(color="green")) +
+        facet_grid(~gene~species,scales='free_y',labeller=) +
         stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-               geom="errorbar", aes(color=physiology), width=0.2) +
+               geom="errorbar", aes(color="green"), width=0.2) +
         theme_bw() +
         theme(legend.position="bottom",panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.text.x = element_text(angle = 90, hjust = 1)) +
         labs(x="salinity treatment", 
              y="Expression (log normalized counts)")+
         ggtitle("Clade 1")
 
-#plot(C1)
+plot(C1)
 C2<-ggplot(tcounts_test %>%
              filter(clade=='Clade2'),
            aes(condition, expression)) + 
