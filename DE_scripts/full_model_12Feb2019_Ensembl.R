@@ -79,11 +79,114 @@ dim(counts)
 # Filter, all 128 samples have a count of at least 0.01
 
 #------------------------
-
-filter <- rownames(counts[rowSums(counts >= 0.01) >= 100,])
+filter <- rownames(counts[rowSums(counts >= 0.01) >= 64,])
+#filter <- rownames(counts[rowSums(counts >= 0.01) >= 100,])
 #filter <- rownames(counts[rowSums(counts >= 0.01) >= 128,])
 filtered_counts <- counts[filter,]
 dim(filtered_counts)
+
+#------------------------
+
+# goi = Gene of Interest
+# Check whether genes of interest are present after filtering
+# what is the mininum amount of filtering we can get away without getting rid of these genes?
+
+#------------------------
+
+filtered_genes <- rownames(filtered_counts)
+
+# ---------------------------
+# Andrew Whitehead's genes of interest:
+# ---------------------------
+
+# Funhe2EKm029929
+# zymogen granule membrane protein 16
+goi <- filtered_genes[filtered_genes == "ENSFHEP00000007220.1"]
+goi
+# zymogen granule membrane protein 16
+# Funhe2EKm029931
+goi <- filtered_genes[filtered_genes == "ENSFHEP00000025841"]
+goi
+# solute carrier family 12 member 3-like (removed) 
+# Funhe2EKm006896
+goi <- filtered_genes[filtered_genes == "ENSFHEP00000009214"]
+goi
+# chloride channel, voltage-sensitive 2 (clcn2), transcript variant X2 
+# Funhe2EKm024148
+#goi <- res$row[res$row == "XP_012718665.1"]
+goi <- filtered_genes[filtered_genes == "ENSFHEP00000019510"]
+goi
+# ATP-sensitive inward rectifier potassium channel 1 
+# Funhe2EKm001965
+goi <- filtered_genes[filtered_genes == "ENSFHEP00000015383"]
+goi
+# inward rectifier potassium channel 2
+#Funhe2EKm023780
+goi <- filtered_genes[filtered_genes == "ENSFHEP00000009753"]
+goi
+# --------------------------------
+# other salinity genes of interest
+# --------------------------------
+# aquaporin-3
+goi <- filtered_genes[filtered_genes == "ENSFHEP00000006725"]
+goi
+# cftr
+# Funhe2EKm024501
+goi <- filtered_genes[filtered_genes == "ENSFHEP00000008393"]
+goi
+# polyamine-modulated factor 1-like
+# Funhe2EKm031049
+goi <- filtered_genes[filtered_genes == "ENSFHEP00000013324"]
+goi
+# sodium/potassium/calcium exchanger 5 isoform X2
+goi <- filtered_genes[filtered_genes == "ENSFHEP00000001609"]
+goi
+# polyamine-modulated factor 1-like
+# ENSFHEP00000013324
+# Funhe2EKm031049
+goi <- filtered_genes[filtered_genes == "ENSFHEP00000013324"]
+goi
+# sodium/potassium/calcium exchanger 2
+# ENSFHEP00000034177
+# Funhe2EKm025497
+goi <- filtered_genes[filtered_genes == "ENSFHEP00000034177"]
+goi
+# septin-2B isoform X2
+# ENSFHEP00000015765
+goi <- filtered_genes[filtered_genes == "ENSFHEP00000015765"]
+goi
+# CLOCK-interacting pacemaker-like
+# ENSFHEP00000017303
+# Funhe2EKm026846
+goi <- filtered_genes[filtered_genes == "ENSFHEP00000017303"]
+goi
+# vasopressin V2 receptor-like
+# Funhe2EKm026721
+goi <- filtered_genes[filtered_genes == "ENSFHEP00000000036"]
+goi
+# sodium/potassium-transporting ATPase subunit beta-1-interacting protein 1
+# ENSFHEP00000031108
+# Funhe2EKm001174
+goi <- filtered_genes[filtered_genes == "ENSFHEP00000031108"]
+goi
+# septin-2
+# Funhe2EKm012182
+goi <- filtered_genes[filtered_genes == "ENSFHEP00000016853"]
+goi
+# otopetrin-2
+# Funhe2EKm035427
+goi <- filtered_genes[filtered_genes == "ENSFHEP00000026411"]
+goi
+# claudin 8
+# Funhe2EKm037718
+goi <- filtered_genes[filtered_genes == "ENSFHEP00000006282"]
+goi
+# claudin 4
+# ENSFHEP00000003908
+# Funhe2EKm007149
+goi <- filtered_genes[filtered_genes == "ENSFHEP00000003908"]
+goi
+# If these genes are present, then it is okay to proceed.
 
 #------------------------
 
@@ -122,7 +225,11 @@ m1 <- m1[,-idx]
 all(rownames(ExpDesign) == colnames(filtered_counts))
 counts_round<- round(data.matrix(filtered_counts),digits=0)
 dds <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,design = m1)
+# This takes ~30 min to run on Jetstream instance s1.xlarge (CPU: 24, Mem: 60 GB, Disk: 240 GB, Disk: 240 GB root)
+# > 1 hr on Macbook Pro, 16 GB RAM
+
 dds <- DESeq(dds, full = m1, betaPrior=FALSE)
+
 ddsClean <- dds[which(mcols(dds)$betaConv),]
 dds<-ddsClean
 
