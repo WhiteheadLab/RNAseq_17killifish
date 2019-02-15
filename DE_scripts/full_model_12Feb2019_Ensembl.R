@@ -35,6 +35,26 @@ packages(ggplot2)
 bioconductors(DESeq2)
 bioconductors(tximport)
 
+#------------------------
+library(gridExtra)
+# for QA
+library("RColorBrewer")
+library("pheatmap")
+library("vsn")
+# for DESeq
+library(DESeq2)
+library(RColorBrewer)
+library(tximport)
+library(lattice)
+library("biomaRt")
+library(dplyr)
+library(ggplot2)
+#library('gtable')
+#library('grid')
+#library('magrittr')
+library(tidyr)
+#------------------------
+
 
 #------------------------
 
@@ -225,7 +245,7 @@ m1 <- m1[,-idx]
 all(rownames(ExpDesign) == colnames(filtered_counts))
 counts_round<- round(data.matrix(filtered_counts),digits=0)
 dds <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,design = m1)
-# This takes ~30 min to run on Jetstream instance s1.xlarge (CPU: 24, Mem: 60 GB, Disk: 240 GB, Disk: 240 GB root)
+# This takes ~50 min to run on Jetstream instance s1.xlarge (CPU: 24, Mem: 60 GB, Disk: 240 GB, Disk: 240 GB root)
 # > 1 hr on Macbook Pro, 16 GB RAM
 
 dds <- DESeq(dds, full = m1, betaPrior=FALSE)
@@ -255,6 +275,8 @@ plotPCAWithSampleNames(vsd,intgroup=c("species_clade"),ntop=40000)
 # ---------------------------
 
 counts_table = counts(dds, normalized=TRUE)
+write.csv(counts_table,"../../killifish_counts_filtered_64samples0.01.csv")
+
 
 # ---------------------------
 
@@ -264,6 +286,7 @@ counts_table = counts(dds, normalized=TRUE)
 resultsNames(dds)
 
 # what are the genes that are different in BW treatment compared to FW in each species?
+
 # Clade1_F_catanatus (reference level)
 res_Fcatanatus_BW_v_FW <- results(dds, tidy=TRUE, name="condition15_ppt") %>% arrange(padj) %>% tbl_df()
 
@@ -283,9 +306,66 @@ res_Fnotatus_BW_v_FW <- results(dds, tidy=TRUE, contrast=list(c("condition15_ppt
 res_Folivaceous_BW_v_FW <- results(dds, tidy=TRUE, contrast=list(c("condition15_ppt","condition15_ppt.species_cladeClade3_F_olivaceous"  ))) %>% arrange(padj) %>% tbl_df()   
 res_Fsciadicus_BW_v_FW <- results(dds, tidy=TRUE, contrast=list(c("condition15_ppt","condition15_ppt.species_cladeClade3_F_sciadicus"))) %>% arrange(padj) %>% tbl_df()   
 res_Fzebrinus_BW_v_FW <- results(dds, tidy=TRUE, contrast=list(c("condition15_ppt","condition15_ppt.species_cladeClade3_F_zebrinus"))) %>% arrange(padj) %>% tbl_df()           
+
+# write all to files
+write.csv(res_Fcatanatus_BW_v_FW,"../../res_Fcatanatus_BW_v_FW.csv")
+write.csv(res_Fdiaphanus_BW_v_FW,"../../res_Fdiaphanus_BW_v_FW.csv")
+write.csv(res_Fgrandis_BW_v_FW,"../../res_Fgrandis_BW_v_FW.csv")
+write.csv(res_FheteroclitusMDPL_BW_v_FW,"../../res_FheteroclitusMDPL_BW_v_FW.csv")
+write.csv(res_FheteroclitusMDPP_BW_v_FW,"../../res_FheteroclitusMDPP_BW_v_FW.csv")
+write.csv(res_Frathbuni_BW_v_FW,"../../res_Frathbuni_BW_v_FW.csv")
+write.csv(res_Fsimilis_BW_v_FW,"../../res_Fsimilis_BW_v_FW.csv")
+write.csv(res_Fparvapinis_BW_v_FW,"../../res_Fparvapinis_BW_v_FW.csv")
+write.csv(res_Lgoodei_BW_v_FW,"../../res_Lgoodei_BW_v_FW.csv")
+write.csv(res_Lparva_BW_v_FW,"../../res_Lparva_BW_v_FW.csv")
+write.csv(res_Axenica_BW_v_FW,"../../res_Axenica_BW_v_FW.csv")
+write.csv(res_Fchrysotus_BW_v_FW,"../../res_Fchrysotus_BW_v_FW.csv")
+write.csv(res_Fnotatus_BW_v_FW,"../../res_Fnotatus_BW_v_FW.csv")
+write.csv(res_Folivaceous_BW_v_FW,"../../res_Folivaceous_BW_v_FW.csv")
+write.csv(res_Fsciadicus_BW_v_FW,"../../res_Fsciadicus_BW_v_FW.csv")
+write.csv(res_Fzebrinus_BW_v_FW,"../../res_Fzebrinus_BW_v_FW.csv")
        
+# what are the genes that are different in TR treatment compared to FW in each species?
+
+# Clade1_F_catanatus (reference level)
+res_Fcatanatus_TR_v_FW <- results(dds, tidy=TRUE, name="conditiontransfer") %>% arrange(padj) %>% tbl_df()
+
+# all others
+res_Fdiaphanus_TR_v_FW <- results(dds, tidy=TRUE, contrast=list(c("conditiontransfer","conditiontransfer.species_cladeClade1_F_diaphanus"))) %>% arrange(padj) %>% tbl_df()
+res_Fgrandis_TR_v_FW <- results(dds, tidy=TRUE, contrast=list(c("conditiontransfer","conditiontransfer.species_cladeClade1_F_grandis"))) %>% arrange(padj) %>% tbl_df()
+res_FheteroclitusMDPL_TR_v_FW <- results(dds, tidy=TRUE, contrast=list(c("conditiontransfer","conditiontransfer.species_cladeClade1_F_heteroclitusMDPL"))) %>% arrange(padj) %>% tbl_df() 
+res_FheteroclitusMDPP_TR_v_FW <- results(dds, tidy=TRUE, contrast=list(c("conditiontransfer","conditiontransfer.species_cladeClade1_F_heteroclitusMDPP"))) %>% arrange(padj) %>% tbl_df() 
+res_Frathbuni_TR_v_FW <- results(dds, tidy=TRUE, contrast=list(c("conditiontransfer","conditiontransfer.species_cladeClade1_F_rathbuni"))) %>% arrange(padj) %>% tbl_df()
+res_Fsimilis_TR_v_FW <- results(dds, tidy=TRUE, contrast=list(c("conditiontransfer","conditiontransfer.species_cladeClade1_F_similis"))) %>% arrange(padj) %>% tbl_df()         
+res_Fparvapinis_TR_v_FW <- results(dds, tidy=TRUE, contrast=list(c("conditiontransfer","conditiontransfer.species_cladeClade2_F_parvapinis"))) %>% arrange(padj) %>% tbl_df()     
+res_Lgoodei_TR_v_FW <- results(dds, tidy=TRUE, contrast=list(c("conditiontransfer","conditiontransfer.species_cladeClade2_L_goodei"))) %>% arrange(padj) %>% tbl_df()        
+res_Lparva_TR_v_FW <- results(dds, tidy=TRUE, contrast=list(c("conditiontransfer","conditiontransfer.species_cladeClade2_L_parva"))) %>% arrange(padj) %>% tbl_df()           
+res_Axenica_TR_v_FW <- results(dds, tidy=TRUE, contrast=list(c("conditiontransfer","conditiontransfer.species_cladeClade3_A_xenica"))) %>% arrange(padj) %>% tbl_df()       
+res_Fchrysotus_TR_v_FW <- results(dds, tidy=TRUE, contrast=list(c("conditiontransfer","conditiontransfer.species_cladeClade3_F_chrysotus"))) %>% arrange(padj) %>% tbl_df()             
+res_Fnotatus_TR_v_FW <- results(dds, tidy=TRUE, contrast=list(c("conditiontransfer","conditiontransfer.species_cladeClade3_F_notatus"))) %>% arrange(padj) %>% tbl_df()          
+res_Folivaceous_TR_v_FW <- results(dds, tidy=TRUE, contrast=list(c("conditiontransfer","conditiontransfer.species_cladeClade3_F_olivaceous"  ))) %>% arrange(padj) %>% tbl_df()   
+res_Fsciadicus_TR_v_FW <- results(dds, tidy=TRUE, contrast=list(c("conditiontransfer","conditiontransfer.species_cladeClade3_F_sciadicus"))) %>% arrange(padj) %>% tbl_df()   
+# not enough samples for this contrast in F. zebrinus
+#res_Fzebrinus_TR_v_FW <- results(dds, tidy=TRUE, contrast=list(c("conditiontransfer","conditiontransfer.species_cladeClade3_F_zebrinus"))) %>% arrange(padj) %>% tbl_df()           
+
+# write all to files
+write.csv(res_Fcatanatus_TR_v_FW,"../../res_Fcatanatus_TR_v_FW.csv")
+write.csv(res_Fdiaphanus_TR_v_FW,"../../res_Fdiaphanus_TR_v_FW.csv")
+write.csv(res_Fgrandis_TR_v_FW,"../../res_Fgrandis_TR_v_FW.csv")
+write.csv(res_FheteroclitusMDPL_TR_v_FW,"../../res_FheteroclitusMDPL_TR_v_FW.csv")
+write.csv(res_FheteroclitusMDPP_TR_v_FW,"../../res_FheteroclitusMDPP_TR_v_FW.csv")
+write.csv(res_Frathbuni_TR_v_FW,"../../res_Frathbuni_TR_v_FW.csv")
+write.csv(res_Fsimilis_TR_v_FW,"../../res_Fsimilis_TR_v_FW.csv")
+write.csv(res_Fparvapinis_TR_v_FW,"../../res_Fparvapinis_TR_v_FW.csv")
+write.csv(res_Lgoodei_TR_v_FW,"../../res_Lgoodei_TR_v_FW.csv")
+write.csv(res_Lparva_TR_v_FW,"../../res_Lparva_TR_v_FW.csv")
+write.csv(res_Axenica_TR_v_FW,"../../res_Axenica_TR_v_FW.csv")
+write.csv(res_Fchrysotus_TR_v_FW,"../../res_Fchrysotus_TR_v_FW.csv")
+write.csv(res_Fnotatus_TR_v_FW,"../../res_Fnotatus_TR_v_FW.csv")
+write.csv(res_Folivaceous_TR_v_FW,"../../res_Folivaceous_TR_v_FW.csv")
+write.csv(res_Fsciadicus_TR_v_FW,"../../res_Fsciadicus_TR_v_FW.csv")
+
 # ============================================
-#
 # biomart annotation!
 # https://uswest.ensembl.org/Fundulus_heteroclitus/Info/Index
 # ============================================
@@ -294,9 +374,550 @@ ensembl=useMart("ENSEMBL_MART_ENSEMBL")
 ensembl = useDataset("fheteroclitus_gene_ensembl",mart=ensembl)
 ensembl_proteinID = rownames(counts_table)
 length(ensembl_proteinID)
-query<-getBM(attributes=c('ensembl_peptide_id','ensembl_transcript_id','ensembl_gene_id','gene_biotype','external_gene_name','go_id','description','entrezgene'), filters = 'ensembl_peptide_id', values = ensembl_proteinID, mart=ensembl)
+#query<-getBM(attributes=c('ensembl_peptide_id','ensembl_transcript_id','ensembl_gene_id','gene_biotype','external_gene_name','go_id','description','entrezgene'), filters = 'ensembl_peptide_id', values = ensembl_proteinID, mart=ensembl)
+query<-getBM(attributes=c('ensembl_peptide_id','ensembl_transcript_id','ensembl_gene_id','gene_biotype','external_gene_name','description','entrezgene'), filters = 'ensembl_peptide_id', values = ensembl_proteinID, mart=ensembl)
 head(query)
-#ann<-read.csv("~/Documents/UCDavis/Whitehead/counts_annotations.csv")
+dim(query)
+length(unique(query$ensembl_peptide_id))
+query <- query[!duplicated(query[,c(1)]),]
+dim(query)
+# ============================================
+
+# Make stats tables
+# one for each species
+
+# ============================================
+#
+# F. catanatus
+#
+# -----------------------------
+# counts for F. catanatus
+# -----------------------------
+
+Fcat_cols <- c("F_catanatus_BW_1.quant", "F_catanatus_BW_2.quant", "F_catanatus_BW_3.quant", 
+               "F_catanatus_FW_1.quant", "F_catanatus_FW_2.quant",
+               "F_catanatus_transfer_1.quant","F_catanatus_transfer_2.quant")
+Fcat_counts_table <- as.data.frame(counts_table[,Fcat_cols])
+dim(Fcat_counts_table)
+
+# -----------------------------
+# column names for stats from TR_v_FW specific contrast
+# -----------------------------
+names(res_Fcatanatus_TR_v_FW)[names(res_Fcatanatus_TR_v_FW) == 'padj'] <- 'padj-TR-v-0.2ppt'
+names(res_Fcatanatus_TR_v_FW)[names(res_Fcatanatus_TR_v_FW) == 'baseMean'] <- 'baseMean-ALL'
+names(res_Fcatanatus_TR_v_FW)[names(res_Fcatanatus_TR_v_FW) == 'log2FoldChange'] <- 'log2FoldChange-TR-v-0.2ppt'
+names(res_Fcatanatus_TR_v_FW)[names(res_Fcatanatus_TR_v_FW) == 'lfcSE'] <- 'lfcSE-TR-v-0.2ppt'
+names(res_Fcatanatus_TR_v_FW)[names(res_Fcatanatus_TR_v_FW) == 'stat'] <- 'stat-TR-v-0.2ppt'
+names(res_Fcatanatus_TR_v_FW)[names(res_Fcatanatus_TR_v_FW) == 'pvalue'] <- 'pvalue-TR-v-0.2ppt'
+# -----------------------------
+# column names for stats from BW_v_FW specific contrast
+# -----------------------------
+names(res_Fcatanatus_BW_v_FW)[names(res_Fcatanatus_BW_v_FW) == 'padj'] <- 'padj-15ppt-v-0.2ppt'
+names(res_Fcatanatus_BW_v_FW)[names(res_Fcatanatus_BW_v_FW) == 'baseMean'] <- 'baseMean-ALL'
+names(res_Fcatanatus_BW_v_FW)[names(res_Fcatanatus_BW_v_FW) == 'log2FoldChange'] <- 'log2FoldChange-15ppt-v-0.2ppt'
+names(res_Fcatanatus_BW_v_FW)[names(res_Fcatanatus_BW_v_FW) == 'lfcSE'] <- 'lfcSE-15ppt-v-0.2ppt'
+names(res_Fcatanatus_BW_v_FW)[names(res_Fcatanatus_BW_v_FW) == 'stat'] <- 'stat-15ppt-v-0.2ppt'
+names(res_Fcatanatus_BW_v_FW)[names(res_Fcatanatus_BW_v_FW) == 'pvalue'] <- 'pvalue-15ppt-v-0.2ppt'
+# -----------------------------
+# merge counts and TR_v_FW stats
+# -----------------------------
+Fcat_counts_table_stats <- merge(as.data.frame(res_Fcatanatus_TR_v_FW),Fcat_counts_table,by=0)
+Fcat_counts_table_stats <- merge(as.data.frame(res_Fcatanatus_BW_v_FW),Fcat_counts_table_stats,by='row')
+head(Fcat_counts_table_stats)
+dim(Fcat_counts_table_stats)
+Fcat_counts_table_stats <- Fcat_counts_table_stats[,-Fcat_counts_table_stats$Row.names]
+# [1] 18356    15
+# -----------------------------
+# merge annotations with stats
+# -----------------------------
+Fcat_counts_table_ann <- merge(query,Fcat_counts_table_stats,by.x = "ensembl_peptide_id", by.y = "row", all = TRUE)
+rownames(Fcat_counts_table_ann) <- Fcat_counts_table_ann$ensembl_peptide_id
+dim(Fcat_counts_table_ann)
+# [1] 18356    20
+Fcat_counts_table_ann <- Fcat_counts_table_ann[ , -which(names(Fcat_counts_table_ann) %in% c("Row.names"))]
+
+# ==============================
+# F. diaphanus
+# ==============================
+# -----------------------------
+# counts for F. diaphanus
+# -----------------------------
+
+Fdia_cols <- c("F_diaphanus_BW_1.quant", "F_diaphanus_BW_2.quant", 
+               "F_diaphanus_FW_2.quant", "F_diaphanus_FW_3.quant",
+               "F_diaphanus_transfer_1.quant","F_diaphanus_transfer_2.quant")
+Fdia_counts_table <- as.data.frame(counts_table[,Fdia_cols])
+dim(Fdia_counts_table)
+
+# -----------------------------
+# column names for stats from TR_v_FW specific contrast
+# -----------------------------
+names(res_Fdiaphanus_TR_v_FW)[names(res_Fdiaphanus_TR_v_FW) == 'padj'] <- 'padj-TR-v-0.2ppt'
+names(res_Fdiaphanus_TR_v_FW)[names(res_Fdiaphanus_TR_v_FW) == 'baseMean'] <- 'baseMean-ALL'
+names(res_Fdiaphanus_TR_v_FW)[names(res_Fdiaphanus_TR_v_FW) == 'log2FoldChange'] <- 'log2FoldChange-TR-v-0.2ppt'
+names(res_Fdiaphanus_TR_v_FW)[names(res_Fdiaphanus_TR_v_FW) == 'lfcSE'] <- 'lfcSE-TR-v-0.2ppt'
+names(res_Fdiaphanus_TR_v_FW)[names(res_Fdiaphanus_TR_v_FW) == 'stat'] <- 'stat-TR-v-0.2ppt'
+names(res_Fdiaphanus_TR_v_FW)[names(res_Fdiaphanus_TR_v_FW) == 'pvalue'] <- 'pvalue-TR-v-0.2ppt'
+# -----------------------------
+# column names for stats from BW_v_FW specific contrast
+# -----------------------------
+names(res_Fdiaphanus_BW_v_FW)[names(res_Fdiaphanus_BW_v_FW) == 'padj'] <- 'padj-15ppt-v-0.2ppt'
+names(res_Fdiaphanus_BW_v_FW)[names(res_Fdiaphanus_BW_v_FW) == 'baseMean'] <- 'baseMean-ALL'
+names(res_Fdiaphanus_BW_v_FW)[names(res_Fdiaphanus_BW_v_FW) == 'log2FoldChange'] <- 'log2FoldChange-15ppt-v-0.2ppt'
+names(res_Fdiaphanus_BW_v_FW)[names(res_Fdiaphanus_BW_v_FW) == 'lfcSE'] <- 'lfcSE-15ppt-v-0.2ppt'
+names(res_Fdiaphanus_BW_v_FW)[names(res_Fdiaphanus_BW_v_FW) == 'stat'] <- 'stat-15ppt-v-0.2ppt'
+names(res_Fdiaphanus_BW_v_FW)[names(res_Fdiaphanus_BW_v_FW) == 'pvalue'] <- 'pvalue-15ppt-v-0.2ppt'
+# -----------------------------
+# merge counts and TR_v_FW stats
+# -----------------------------
+res_Fdiaphanus_TR_v_FW <- as.data.frame(res_Fdiaphanus_TR_v_FW)
+rownames(res_Fdiaphanus_TR_v_FW) <- res_Fdiaphanus_TR_v_FW$row
+Fdia_counts_table_stats <- merge(as.data.frame(res_Fdiaphanus_TR_v_FW),Fdia_counts_table,by=0)
+Fdia_counts_table_stats <- merge(as.data.frame(res_Fdiaphanus_BW_v_FW),Fdia_counts_table_stats,by='row')
+head(Fdia_counts_table_stats)
+dim(Fdia_counts_table_stats)
+# [1] 18356    15
+# -----------------------------
+# merge annotations with stats
+# -----------------------------
+Fdia_counts_table_ann <- merge(query,Fdia_counts_table_stats,by.x = "ensembl_peptide_id", by.y = "row", all = TRUE)
+rownames(Fdia_counts_table_ann) <- Fdia_counts_table_ann$ensembl_peptide_id
+dim(Fdia_counts_table_ann)
+# [1] 18356    20
+Fdia_counts_table_ann <- Fdia_counts_table_ann[ , -which(names(Fdia_counts_table_ann) %in% c("Row.names"))]
+
+# ==============================
+# F. grandis
+# ==============================
+# -----------------------------
+# counts for F. grandis
+# -----------------------------
+
+Fgran_cols <- c("F_grandis_BW_1.quant", "F_grandis_BW_2.quant", "F_grandis_BW_3.quant",
+               "F_grandis_FW_1.quant", "F_grandis_FW_2.quant", "F_grandis_FW_3.quant",
+               "F_grandis_transfer_1.quant", "F_grandis_transfer_2.quant", "F_grandis_transfer_3.quant")
+Fgran_counts_table <- as.data.frame(counts_table[,Fgran_cols])
+dim(Fgran_counts_table)
+
+# -----------------------------
+# column names for stats from TR_v_FW specific contrast
+# -----------------------------
+names(res_Fgrandis_TR_v_FW)[names(res_Fgrandis_TR_v_FW) == 'padj'] <- 'padj-TR-v-0.2ppt'
+names(res_Fgrandis_TR_v_FW)[names(res_Fgrandis_TR_v_FW) == 'baseMean'] <- 'baseMean-ALL'
+names(res_Fgrandis_TR_v_FW)[names(res_Fgrandis_TR_v_FW) == 'log2FoldChange'] <- 'log2FoldChange-TR-v-0.2ppt'
+names(res_Fgrandis_TR_v_FW)[names(res_Fgrandis_TR_v_FW) == 'lfcSE'] <- 'lfcSE-TR-v-0.2ppt'
+names(res_Fgrandis_TR_v_FW)[names(res_Fgrandis_TR_v_FW) == 'stat'] <- 'stat-TR-v-0.2ppt'
+names(res_Fgrandis_TR_v_FW)[names(res_Fgrandis_TR_v_FW) == 'pvalue'] <- 'pvalue-TR-v-0.2ppt'
+# -----------------------------
+# column names for stats from BW_v_FW specific contrast
+# -----------------------------
+names(res_Fgrandis_BW_v_FW)[names(res_Fgrandis_BW_v_FW) == 'padj'] <- 'padj-15ppt-v-0.2ppt'
+names(res_Fgrandis_BW_v_FW)[names(res_Fgrandis_BW_v_FW) == 'baseMean'] <- 'baseMean-ALL'
+names(res_Fgrandis_BW_v_FW)[names(res_Fgrandis_BW_v_FW) == 'log2FoldChange'] <- 'log2FoldChange-15ppt-v-0.2ppt'
+names(res_Fgrandis_BW_v_FW)[names(res_Fgrandis_BW_v_FW) == 'lfcSE'] <- 'lfcSE-15ppt-v-0.2ppt'
+names(res_Fgrandis_BW_v_FW)[names(res_Fgrandis_BW_v_FW) == 'stat'] <- 'stat-15ppt-v-0.2ppt'
+names(res_Fgrandis_BW_v_FW)[names(res_Fgrandis_BW_v_FW) == 'pvalue'] <- 'pvalue-15ppt-v-0.2ppt'
+# -----------------------------
+# merge counts and TR_v_FW stats
+# -----------------------------
+res_Fgrandis_TR_v_FW <- as.data.frame(res_Fgrandis_TR_v_FW)
+rownames(res_Fgrandis_TR_v_FW) <- res_Fgrandis_TR_v_FW$row
+Fgran_counts_table_stats <- merge(as.data.frame(res_Fgrandis_TR_v_FW),Fgran_counts_table,by=0)
+Fgran_counts_table_stats <- merge(as.data.frame(res_Fgrandis_BW_v_FW),Fgran_counts_table_stats,by='row')
+head(Fgran_counts_table_stats)
+dim(Fgran_counts_table_stats)
+# [1] 18356    15
+# -----------------------------
+# merge annotations with stats
+# -----------------------------
+Fgran_counts_table_ann <- merge(query,Fgran_counts_table_stats,by.x = "ensembl_peptide_id", by.y = "row", all = TRUE)
+rownames(Fgran_counts_table_ann) <- Fgran_counts_table_ann$ensembl_peptide_id
+dim(Fgran_counts_table_ann)
+# [1] 18356    20
+Fgran_counts_table_ann <- Fgran_counts_table_ann[ , -which(names(Fgran_counts_table_ann) %in% c("Row.names"))]
+
+# ==============================
+# F. heteroclitus (MDPL)
+# ==============================
+# -----------------------------
+# counts for F. heteroclitus (MDPL)
+# -----------------------------
+
+FhetMDPL_cols <- c("F_heteroclitusMDPL_BW_1.quant" , "F_heteroclitusMDPL_BW_2.quant" , "F_heteroclitusMDPL_BW_3.quant" ,
+                "F_heteroclitusMDPL_FW_1.quant", "F_heteroclitusMDPL_FW_2.quant", "F_heteroclitusMDPL_FW_3.quant" ,
+                "F_heteroclitusMDPL_transfer_1.quant", "F_heteroclitusMDPL_transfer_2.quant", "F_heteroclitusMDPL_transfer_3.quant")
+FhetMDPL_counts_table <- as.data.frame(counts_table[,FhetMDPL_cols])
+dim(FhetMDPL_counts_table)
+
+# -----------------------------
+# column names for stats from TR_v_FW specific contrast
+# -----------------------------
+names(res_FheteroclitusMDPL_TR_v_FW)[names(res_FheteroclitusMDPL_TR_v_FW) == 'padj'] <- 'padj-TR-v-0.2ppt'
+names(res_FheteroclitusMDPL_TR_v_FW)[names(res_FheteroclitusMDPL_TR_v_FW) == 'baseMean'] <- 'baseMean-ALL'
+names(res_FheteroclitusMDPL_TR_v_FW)[names(res_FheteroclitusMDPL_TR_v_FW) == 'log2FoldChange'] <- 'log2FoldChange-TR-v-0.2ppt'
+names(res_FheteroclitusMDPL_TR_v_FW)[names(res_FheteroclitusMDPL_TR_v_FW) == 'lfcSE'] <- 'lfcSE-TR-v-0.2ppt'
+names(res_FheteroclitusMDPL_TR_v_FW)[names(res_FheteroclitusMDPL_TR_v_FW) == 'stat'] <- 'stat-TR-v-0.2ppt'
+names(res_FheteroclitusMDPL_TR_v_FW)[names(res_FheteroclitusMDPL_TR_v_FW) == 'pvalue'] <- 'pvalue-TR-v-0.2ppt'
+# -----------------------------
+# column names for stats from BW_v_FW specific contrast
+# -----------------------------
+names(res_FheteroclitusMDPL_BW_v_FW)[names(res_FheteroclitusMDPL_BW_v_FW) == 'padj'] <- 'padj-15ppt-v-0.2ppt'
+names(res_FheteroclitusMDPL_BW_v_FW)[names(res_FheteroclitusMDPL_BW_v_FW) == 'baseMean'] <- 'baseMean-ALL'
+names(res_FheteroclitusMDPL_BW_v_FW)[names(res_FheteroclitusMDPL_BW_v_FW) == 'log2FoldChange'] <- 'log2FoldChange-15ppt-v-0.2ppt'
+names(res_FheteroclitusMDPL_BW_v_FW)[names(res_FheteroclitusMDPL_BW_v_FW) == 'lfcSE'] <- 'lfcSE-15ppt-v-0.2ppt'
+names(res_FheteroclitusMDPL_BW_v_FW)[names(res_FheteroclitusMDPL_BW_v_FW) == 'stat'] <- 'stat-15ppt-v-0.2ppt'
+names(res_FheteroclitusMDPL_BW_v_FW)[names(res_FheteroclitusMDPL_BW_v_FW) == 'pvalue'] <- 'pvalue-15ppt-v-0.2ppt'
+# -----------------------------
+# merge counts and TR_v_FW stats
+# -----------------------------
+res_FheteroclitusMDPL_TR_v_FW <- as.data.frame(res_FheteroclitusMDPL_TR_v_FW)
+rownames(res_FheteroclitusMDPL_TR_v_FW) <- res_FheteroclitusMDPL_TR_v_FW$row
+FhetMDPL_counts_table_stats <- merge(as.data.frame(res_FheteroclitusMDPL_TR_v_FW),FhetMDPL_counts_table,by=0)
+FhetMDPL_counts_table_stats <- merge(as.data.frame(res_FheteroclitusMDPL_BW_v_FW),FhetMDPL_counts_table_stats,by='row')
+head(FhetMDPL_counts_table_stats)
+dim(FhetMDPL_counts_table_stats)
+# [1] 18356    15
+# -----------------------------
+# merge annotations with stats
+# -----------------------------
+FhetMDPL_counts_table_ann <- merge(query,FhetMDPL_counts_table_stats,by.x = "ensembl_peptide_id", by.y = "row", all = TRUE)
+rownames(FhetMDPL_counts_table_ann) <- FhetMDPL_counts_table_ann$ensembl_peptide_id
+dim(FhetMDPL_counts_table_ann)
+# [1] 18356    20
+FhetMDPL_counts_table_ann <- FhetMDPL_counts_table_ann[ , -which(names(FhetMDPL_counts_table_ann) %in% c("Row.names"))]
+
+# ==============================
+# F. heteroclitus (MDPP)
+# ==============================
+# -----------------------------
+# counts for F. heteroclitus (MDPP)
+# -----------------------------
+
+FhetMDPP_cols <- c("F_heteroclitusMDPP_BW_1.quant" , "F_heteroclitusMDPP_BW_2.quant" , "F_heteroclitusMDPP_BW_3.quant" ,
+                   "F_heteroclitusMDPP_FW_1.quant", "F_heteroclitusMDPP_FW_2.quant", "F_heteroclitusMDPP_FW_3.quant" ,
+                   "F_heteroclitusMDPP_transfer_1.quant", "F_heteroclitusMDPP_transfer_2.quant", "F_heteroclitusMDPP_transfer_3.quant")
+FhetMDPP_counts_table <- as.data.frame(counts_table[,FhetMDPP_cols])
+dim(FhetMDPP_counts_table)
+
+# -----------------------------
+# column names for stats from TR_v_FW specific contrast
+# -----------------------------
+names(res_FheteroclitusMDPP_TR_v_FW)[names(res_FheteroclitusMDPP_TR_v_FW) == 'padj'] <- 'padj-TR-v-0.2ppt'
+names(res_FheteroclitusMDPP_TR_v_FW)[names(res_FheteroclitusMDPP_TR_v_FW) == 'baseMean'] <- 'baseMean-ALL'
+names(res_FheteroclitusMDPP_TR_v_FW)[names(res_FheteroclitusMDPP_TR_v_FW) == 'log2FoldChange'] <- 'log2FoldChange-TR-v-0.2ppt'
+names(res_FheteroclitusMDPP_TR_v_FW)[names(res_FheteroclitusMDPP_TR_v_FW) == 'lfcSE'] <- 'lfcSE-TR-v-0.2ppt'
+names(res_FheteroclitusMDPP_TR_v_FW)[names(res_FheteroclitusMDPP_TR_v_FW) == 'stat'] <- 'stat-TR-v-0.2ppt'
+names(res_FheteroclitusMDPP_TR_v_FW)[names(res_FheteroclitusMDPP_TR_v_FW) == 'pvalue'] <- 'pvalue-TR-v-0.2ppt'
+# -----------------------------
+# column names for stats from BW_v_FW specific contrast
+# -----------------------------
+names(res_FheteroclitusMDPP_BW_v_FW)[names(res_FheteroclitusMDPP_BW_v_FW) == 'padj'] <- 'padj-15ppt-v-0.2ppt'
+names(res_FheteroclitusMDPP_BW_v_FW)[names(res_FheteroclitusMDPP_BW_v_FW) == 'baseMean'] <- 'baseMean-ALL'
+names(res_FheteroclitusMDPP_BW_v_FW)[names(res_FheteroclitusMDPP_BW_v_FW) == 'log2FoldChange'] <- 'log2FoldChange-15ppt-v-0.2ppt'
+names(res_FheteroclitusMDPP_BW_v_FW)[names(res_FheteroclitusMDPP_BW_v_FW) == 'lfcSE'] <- 'lfcSE-15ppt-v-0.2ppt'
+names(res_FheteroclitusMDPP_BW_v_FW)[names(res_FheteroclitusMDPP_BW_v_FW) == 'stat'] <- 'stat-15ppt-v-0.2ppt'
+names(res_FheteroclitusMDPP_BW_v_FW)[names(res_FheteroclitusMDPP_BW_v_FW) == 'pvalue'] <- 'pvalue-15ppt-v-0.2ppt'
+# -----------------------------
+# merge counts and TR_v_FW stats
+# -----------------------------
+res_FheteroclitusMDPP_TR_v_FW <- as.data.frame(res_FheteroclitusMDPP_TR_v_FW)
+rownames(res_FheteroclitusMDPP_TR_v_FW) <- res_FheteroclitusMDPP_TR_v_FW$row
+FhetMDPP_counts_table_stats <- merge(as.data.frame(res_FheteroclitusMDPP_TR_v_FW),FhetMDPP_counts_table,by=0)
+FhetMDPP_counts_table_stats <- merge(as.data.frame(res_FheteroclitusMDPP_BW_v_FW),FhetMDPP_counts_table_stats,by='row')
+head(FhetMDPP_counts_table_stats)
+dim(FhetMDPP_counts_table_stats)
+# [1] 18356    15
+# -----------------------------
+# merge annotations with stats
+# -----------------------------
+FhetMDPP_counts_table_ann <- merge(query,FhetMDPP_counts_table_stats,by.x = "ensembl_peptide_id", by.y = "row", all = TRUE)
+rownames(FhetMDPP_counts_table_ann) <- FhetMDPP_counts_table_ann$ensembl_peptide_id
+dim(FhetMDPP_counts_table_ann)
+# [1] 18356    20
+FhetMDPP_counts_table_ann <- FhetMDPP_counts_table_ann[ , -which(names(FhetMDPP_counts_table_ann) %in% c("Row.names"))]
+
+
+# ==============================
+# F. rathbuni
+# ==============================
+# -----------------------------
+# counts for F. heteroclitus (MDPP)
+# -----------------------------
+
+Frath_cols <- c("F_rathbuni_BW_1.quant","F_rathbuni_BW_2.quant","F_rathbuni_BW_3.quant",
+                   "F_rathbuni_FW_1.quant","F_rathbuni_BW_2.quant","F_rathbuni_FW_3.quant",
+                   "F_rathbuni_transfer_1.quant","F_rathbuni_transfer_2.quant","F_rathbuni_transfer_3.quant")
+Frath_counts_table <- as.data.frame(counts_table[,Frath_cols])
+dim(Frath_counts_table)
+
+# -----------------------------
+# column names for stats from TR_v_FW specific contrast
+# -----------------------------
+names(res_Frathbuni_TR_v_FW)[names(res_Frathbuni_TR_v_FW) == 'padj'] <- 'padj-TR-v-0.2ppt'
+names(res_Frathbuni_TR_v_FW)[names(res_Frathbuni_TR_v_FW) == 'baseMean'] <- 'baseMean-ALL'
+names(res_Frathbuni_TR_v_FW)[names(res_Frathbuni_TR_v_FW) == 'log2FoldChange'] <- 'log2FoldChange-TR-v-0.2ppt'
+names(res_Frathbuni_TR_v_FW)[names(res_Frathbuni_TR_v_FW) == 'lfcSE'] <- 'lfcSE-TR-v-0.2ppt'
+names(res_Frathbuni_TR_v_FW)[names(res_Frathbuni_TR_v_FW) == 'stat'] <- 'stat-TR-v-0.2ppt'
+names(res_Frathbuni_TR_v_FW)[names(res_Frathbuni_TR_v_FW) == 'pvalue'] <- 'pvalue-TR-v-0.2ppt'
+# -----------------------------
+# column names for stats from BW_v_FW specific contrast
+# -----------------------------
+names(res_Frathbuni_BW_v_FW)[names(res_Frathbuni_BW_v_FW) == 'padj'] <- 'padj-15ppt-v-0.2ppt'
+names(res_Frathbuni_BW_v_FW)[names(res_Frathbuni_BW_v_FW) == 'baseMean'] <- 'baseMean-ALL'
+names(res_Frathbuni_BW_v_FW)[names(res_Frathbuni_BW_v_FW) == 'log2FoldChange'] <- 'log2FoldChange-15ppt-v-0.2ppt'
+names(res_Frathbuni_BW_v_FW)[names(res_Frathbuni_BW_v_FW) == 'lfcSE'] <- 'lfcSE-15ppt-v-0.2ppt'
+names(res_Frathbuni_BW_v_FW)[names(res_Frathbuni_BW_v_FW) == 'stat'] <- 'stat-15ppt-v-0.2ppt'
+names(res_Frathbuni_BW_v_FW)[names(res_Frathbuni_BW_v_FW) == 'pvalue'] <- 'pvalue-15ppt-v-0.2ppt'
+# -----------------------------
+# merge counts and TR_v_FW stats
+# -----------------------------
+res_Frathbuni_TR_v_FW <- as.data.frame(res_Frathbuni_TR_v_FW)
+rownames(res_Frathbuni_TR_v_FW) <- res_Frathbuni_TR_v_FW$row
+Frath_counts_table_stats <- merge(as.data.frame(res_Frathbuni_TR_v_FW),Frath_counts_table,by=0)
+Frath_counts_table_stats <- merge(as.data.frame(res_Frathbuni_BW_v_FW),Frath_counts_table_stats,by='row')
+head(Frath_counts_table_stats)
+dim(Frath_counts_table_stats)
+# [1] 18356    15
+# -----------------------------
+# merge annotations with stats
+# -----------------------------
+Frath_counts_table_ann <- merge(query,Frath_counts_table_stats,by.x = "ensembl_peptide_id", by.y = "row", all = TRUE)
+rownames(Frath_counts_table_ann) <- Frath_counts_table_ann$ensembl_peptide_id
+dim(FhetMDPP_counts_table_ann)
+# [1] 18356    20
+Frath_counts_table_ann <- Frath_counts_table_ann[ , -which(names(Frath_counts_table_ann) %in% c("Row.names"))]
+
+# ==============================
+# F. similis
+# ==============================
+# -----------------------------
+# counts for F. simils
+# -----------------------------
+
+Fsim_cols <- c("F_similis_BW_1.quant","F_similis_BW_2.quant","F_similis_BW_3.quant",
+                "F_similis_FW_1.quant","F_similis_FW_2.quant","F_similis_FW_3.quant",
+                "F_similis_transfer_1.quant","F_similis_transfer_2.quant","F_similis_transfer_3.quant")
+Fsim_counts_table <- as.data.frame(counts_table[,Fsim_cols])
+dim(Fsim_counts_table)
+
+# -----------------------------
+# column names for stats from TR_v_FW specific contrast
+# -----------------------------
+names(res_Fsimilis_TR_v_FW)[names(res_Fsimilis_TR_v_FW) == 'padj'] <- 'padj-TR-v-0.2ppt'
+names(res_Fsimilis_TR_v_FW)[names(res_Fsimilis_TR_v_FW) == 'baseMean'] <- 'baseMean-ALL'
+names(res_Fsimilis_TR_v_FW)[names(res_Fsimilis_TR_v_FW) == 'log2FoldChange'] <- 'log2FoldChange-TR-v-0.2ppt'
+names(res_Fsimilis_TR_v_FW)[names(res_Fsimilis_TR_v_FW) == 'lfcSE'] <- 'lfcSE-TR-v-0.2ppt'
+names(res_Fsimilis_TR_v_FW)[names(res_Fsimilis_TR_v_FW) == 'stat'] <- 'stat-TR-v-0.2ppt'
+names(res_Fsimilis_TR_v_FW)[names(res_Fsimilis_TR_v_FW) == 'pvalue'] <- 'pvalue-TR-v-0.2ppt'
+# -----------------------------
+# column names for stats from BW_v_FW specific contrast
+# -----------------------------
+names(res_Fsimilis_BW_v_FW)[names(res_Fsimilis_BW_v_FW) == 'padj'] <- 'padj-15ppt-v-0.2ppt'
+names(res_Fsimilis_BW_v_FW)[names(res_Fsimilis_BW_v_FW) == 'baseMean'] <- 'baseMean-ALL'
+names(res_Fsimilis_BW_v_FW)[names(res_Fsimilis_BW_v_FW) == 'log2FoldChange'] <- 'log2FoldChange-15ppt-v-0.2ppt'
+names(res_Fsimilis_BW_v_FW)[names(res_Fsimilis_BW_v_FW) == 'lfcSE'] <- 'lfcSE-15ppt-v-0.2ppt'
+names(res_Fsimilis_BW_v_FW)[names(res_Fsimilis_BW_v_FW) == 'stat'] <- 'stat-15ppt-v-0.2ppt'
+names(res_Fsimilis_BW_v_FW)[names(res_Fsimilis_BW_v_FW) == 'pvalue'] <- 'pvalue-15ppt-v-0.2ppt'
+# -----------------------------
+# merge counts and TR_v_FW stats
+# -----------------------------
+res_Fsimilis_TR_v_FW <- as.data.frame(res_Fsimilis_TR_v_FW)
+rownames(res_Fsimilis_TR_v_FW) <- res_Fsimilis_TR_v_FW$row
+Fsim_counts_table_stats <- merge(as.data.frame(res_Fsimilis_TR_v_FW),Fsim_counts_table,by=0)
+Fsim_counts_table_stats <- merge(as.data.frame(res_Fsimilis_BW_v_FW),Fsim_counts_table_stats,by='row')
+head(Fsim_counts_table_stats)
+dim(Fsim_counts_table_stats)
+# [1] 18356    15
+# -----------------------------
+# merge annotations with stats
+# -----------------------------
+Fsim_counts_table_ann <- merge(query,Fsim_counts_table_stats,by.x = "ensembl_peptide_id", by.y = "row", all = TRUE)
+rownames(Fsim_counts_table_ann) <- Fsim_counts_table_ann$ensembl_peptide_id
+dim(Fsim_counts_table_ann)
+# [1] 18356    20
+Fsim_counts_table_ann <- Fsim_counts_table_ann[ , -which(names(Fsim_counts_table_ann) %in% c("Row.names"))]
+
+# ==============================
+# F. parvapinis
+# ==============================
+# -----------------------------
+# counts for F. parvapinis
+# -----------------------------
+
+Fparv_cols <- c("F_parvapinis_BW_1.quant","F_parvapinis_BW_2.quant","F_parvapinis_BW_3.quant",
+               "F_parvapinis_FW_1.quant","F_parvapinis_FW_2.quant","F_parvapinis_FW_3.quant",
+               "F_parvapinis_transfer_1.quant","F_parvapinis_transfer_2.quant")
+Fparv_counts_table <- as.data.frame(counts_table[,Fparv_cols])
+dim(Fparv_counts_table)
+
+# -----------------------------
+# column names for stats from TR_v_FW specific contrast
+# -----------------------------
+names(res_Fparvapinis_TR_v_FW)[names(res_Fparvapinis_TR_v_FW) == 'padj'] <- 'padj-TR-v-0.2ppt'
+names(res_Fparvapinis_TR_v_FW)[names(res_Fparvapinis_TR_v_FW) == 'baseMean'] <- 'baseMean-ALL'
+names(res_Fparvapinis_TR_v_FW)[names(res_Fparvapinis_TR_v_FW) == 'log2FoldChange'] <- 'log2FoldChange-TR-v-0.2ppt'
+names(res_Fparvapinis_TR_v_FW)[names(res_Fparvapinis_TR_v_FW) == 'lfcSE'] <- 'lfcSE-TR-v-0.2ppt'
+names(res_Fparvapinis_TR_v_FW)[names(res_Fparvapinis_TR_v_FW) == 'stat'] <- 'stat-TR-v-0.2ppt'
+names(res_Fparvapinis_TR_v_FW)[names(res_Fparvapinis_TR_v_FW) == 'pvalue'] <- 'pvalue-TR-v-0.2ppt'
+# -----------------------------
+# column names for stats from BW_v_FW specific contrast
+# -----------------------------
+names(res_Fparvapinis_BW_v_FW)[names(res_Fparvapinis_BW_v_FW) == 'padj'] <- 'padj-15ppt-v-0.2ppt'
+names(res_Fparvapinis_BW_v_FW)[names(res_Fparvapinis_BW_v_FW) == 'baseMean'] <- 'baseMean-ALL'
+names(res_Fparvapinis_BW_v_FW)[names(res_Fparvapinis_BW_v_FW) == 'log2FoldChange'] <- 'log2FoldChange-15ppt-v-0.2ppt'
+names(res_Fparvapinis_BW_v_FW)[names(res_Fparvapinis_BW_v_FW) == 'lfcSE'] <- 'lfcSE-15ppt-v-0.2ppt'
+names(res_Fparvapinis_BW_v_FW)[names(res_Fparvapinis_BW_v_FW) == 'stat'] <- 'stat-15ppt-v-0.2ppt'
+names(res_Fparvapinis_BW_v_FW)[names(res_Fparvapinis_BW_v_FW) == 'pvalue'] <- 'pvalue-15ppt-v-0.2ppt'
+# -----------------------------
+# merge counts and TR_v_FW stats
+# -----------------------------
+res_Fparvapinis_TR_v_FW <- as.data.frame(res_Fparvapinis_TR_v_FW)
+rownames(res_Fparvapinis_TR_v_FW) <- res_Fparvapinis_TR_v_FW$row
+Fparv_counts_table_stats <- merge(as.data.frame(res_Fparvapinis_TR_v_FW),Fparv_counts_table,by=0)
+Fparv_counts_table_stats <- merge(as.data.frame(res_Fparvapinis_BW_v_FW),Fparv_counts_table_stats,by='row')
+head(Fparv_counts_table_stats)
+dim(Fparv_counts_table_stats)
+# [1] 18356    15
+# -----------------------------
+# merge annotations with stats
+# -----------------------------
+Fparv_counts_table_ann <- merge(query,Fparv_counts_table_stats,by.x = "ensembl_peptide_id", by.y = "row", all = TRUE)
+rownames(Fparv_counts_table_ann) <- Fparv_counts_table_ann$ensembl_peptide_id
+dim(Fparv_counts_table_ann)
+# [1] 18356    20
+Fparv_counts_table_ann <- Fparv_counts_table_ann[ , -which(names(Fparv_counts_table_ann) %in% c("Row.names"))]
+
+# ==============================
+# L. goodei
+# ==============================
+# -----------------------------
+# counts for L. goodei
+# -----------------------------
+
+Lgod_cols <- c("L_goodei_BW_1.quant","L_goodei_BW_2.quant","L_goodei_BW_3.quant",
+                "L_goodei_FW_1.quant","L_goodei_FW_2.quant","L_goodei_FW_3.quant",
+                "L_goodei_transfer_1.quant","L_goodei_transfer_2.quant","L_goodei_transfer_3.quant")
+Lgod_counts_table <- as.data.frame(counts_table[,Lgod_cols])
+dim(Lgod_counts_table)
+
+# -----------------------------
+# column names for stats from TR_v_FW specific contrast
+# -----------------------------
+names(res_Lgoodei_TR_v_FW)[names(res_Lgoodei_TR_v_FW) == 'padj'] <- 'padj-TR-v-0.2ppt'
+names(res_Lgoodei_TR_v_FW)[names(res_Lgoodei_TR_v_FW) == 'baseMean'] <- 'baseMean-ALL'
+names(res_Lgoodei_TR_v_FW)[names(res_Lgoodei_TR_v_FW) == 'log2FoldChange'] <- 'log2FoldChange-TR-v-0.2ppt'
+names(res_Lgoodei_TR_v_FW)[names(res_Lgoodei_TR_v_FW) == 'lfcSE'] <- 'lfcSE-TR-v-0.2ppt'
+names(res_Lgoodei_TR_v_FW)[names(res_Lgoodei_TR_v_FW) == 'stat'] <- 'stat-TR-v-0.2ppt'
+names(res_Lgoodei_TR_v_FW)[names(res_Lgoodei_TR_v_FW) == 'pvalue'] <- 'pvalue-TR-v-0.2ppt'
+# -----------------------------
+# column names for stats from BW_v_FW specific contrast
+# -----------------------------
+names(res_Lgoodei_BW_v_FW)[names(res_Lgoodei_BW_v_FW) == 'padj'] <- 'padj-15ppt-v-0.2ppt'
+names(res_Lgoodei_BW_v_FW)[names(res_Lgoodei_BW_v_FW) == 'baseMean'] <- 'baseMean-ALL'
+names(res_Lgoodei_BW_v_FW)[names(res_Lgoodei_BW_v_FW) == 'log2FoldChange'] <- 'log2FoldChange-15ppt-v-0.2ppt'
+names(res_Lgoodei_BW_v_FW)[names(res_Lgoodei_BW_v_FW) == 'lfcSE'] <- 'lfcSE-15ppt-v-0.2ppt'
+names(res_Lgoodei_BW_v_FW)[names(res_Lgoodei_BW_v_FW) == 'stat'] <- 'stat-15ppt-v-0.2ppt'
+names(res_Lgoodei_BW_v_FW)[names(res_Lgoodei_BW_v_FW) == 'pvalue'] <- 'pvalue-15ppt-v-0.2ppt'
+# -----------------------------
+# merge counts and TR_v_FW stats
+# -----------------------------
+res_Lgoodei_TR_v_FW <- as.data.frame(res_Lgoodei_TR_v_FW)
+rownames(res_Lgoodei_TR_v_FW) <- res_Lgoodei_TR_v_FW$row
+Lgod_counts_table_stats <- merge(as.data.frame(res_Lgoodei_TR_v_FW),Lgod_counts_table,by=0)
+Lgod_counts_table_stats <- merge(as.data.frame(res_Lgoodei_BW_v_FW),Lgod_counts_table_stats,by='row')
+head(Lgod_counts_table_stats)
+dim(Lgod_counts_table_stats)
+# [1] 18356    15
+# -----------------------------
+# merge annotations with stats
+# -----------------------------
+Lgod_counts_table_ann <- merge(query,Lgod_counts_table_stats,by.x = "ensembl_peptide_id", by.y = "row", all = TRUE)
+rownames(Lgod_counts_table_ann) <- Lgod_counts_table_ann$ensembl_peptide_id
+dim(Lgod_counts_table_ann)
+# [1] 18356    20
+Lgod_counts_table_ann <- Lgod_counts_table_ann[ , -which(names(Lgod_counts_table_ann) %in% c("Row.names"))]
+
+# ==============================
+# L. parva
+# ==============================
+# -----------------------------
+# counts for L. parva
+# -----------------------------
+
+Lpar_cols <- c("L_parva_BW_1.quant","L_parva_BW_2.quant","L_parva_BW_3.quant",
+               "L_parva_FW_1.quant","L_parva_FW_2.quant","L_parva_FW_3.quant",
+               "L_parva_transfer_1.quant","L_parva_transfer_2.quant","L_parva_transfer_3.quant")
+Lpar_counts_table <- as.data.frame(counts_table[,Lpar_cols])
+dim(Lpar_counts_table)
+
+# -----------------------------
+# column names for stats from TR_v_FW specific contrast
+# -----------------------------
+names(res_Lparva_TR_v_FW)[names(res_Lparva_TR_v_FW) == 'padj'] <- 'padj-TR-v-0.2ppt'
+names(res_Lparva_TR_v_FW)[names(res_Lparva_TR_v_FW) == 'baseMean'] <- 'baseMean-ALL'
+names(res_Lparva_TR_v_FW)[names(res_Lparva_TR_v_FW) == 'log2FoldChange'] <- 'log2FoldChange-TR-v-0.2ppt'
+names(res_Lparva_TR_v_FW)[names(res_Lparva_TR_v_FW) == 'lfcSE'] <- 'lfcSE-TR-v-0.2ppt'
+names(res_Lparva_TR_v_FW)[names(res_Lparva_TR_v_FW) == 'stat'] <- 'stat-TR-v-0.2ppt'
+names(res_Lparva_TR_v_FW)[names(res_Lparva_TR_v_FW) == 'pvalue'] <- 'pvalue-TR-v-0.2ppt'
+# -----------------------------
+# column names for stats from BW_v_FW specific contrast
+# -----------------------------
+names(res_Lparva_BW_v_FW)[names(res_Lparva_BW_v_FW) == 'padj'] <- 'padj-15ppt-v-0.2ppt'
+names(res_Lparva_BW_v_FW)[names(res_Lparva_BW_v_FW) == 'baseMean'] <- 'baseMean-ALL'
+names(res_Lparva_BW_v_FW)[names(res_Lparva_BW_v_FW) == 'log2FoldChange'] <- 'log2FoldChange-15ppt-v-0.2ppt'
+names(res_Lparva_BW_v_FW)[names(res_Lparva_BW_v_FW) == 'lfcSE'] <- 'lfcSE-15ppt-v-0.2ppt'
+names(res_Lparva_BW_v_FW)[names(res_Lparva_BW_v_FW) == 'stat'] <- 'stat-15ppt-v-0.2ppt'
+names(res_Lparva_BW_v_FW)[names(res_Lparva_BW_v_FW) == 'pvalue'] <- 'pvalue-15ppt-v-0.2ppt'
+# -----------------------------
+# merge counts and stats
+# -----------------------------
+res_Lparva_TR_v_FW <- as.data.frame(res_Lparva_TR_v_FW)
+rownames(res_Lparva_TR_v_FW) <- res_Lparva_TR_v_FW$row
+Lpar_counts_table_stats <- merge(as.data.frame(res_Lparva_TR_v_FW),Lpar_counts_table,by=0)
+Lpar_counts_table_stats <- merge(as.data.frame(res_Lparva_BW_v_FW),Lpar_counts_table_stats,by='row')
+head(Lpar_counts_table_stats)
+dim(Lpar_counts_table_stats)
+# [1] 18356    15
+# -----------------------------
+# merge annotations with stats
+# -----------------------------
+Lpar_counts_table_ann <- merge(query,Lpar_counts_table_stats,by.x = "ensembl_peptide_id", by.y = "row", all = TRUE)
+rownames(Lpar_counts_table_ann) <- Lpar_counts_table_ann$ensembl_peptide_id
+dim(Lpar_counts_table_ann)
+# [1] 18356    20
+Lpar_counts_table_ann <- Lpar_counts_table_ann[ , -which(names(Lpar_counts_table_ann) %in% c("Row.names"))]
+
+
+
+# -----------------------------
+# write csv files
+# -----------------------------
+write.csv(Fcat_counts_table_ann,"../../counts_stats_byspecies/Fcat_stats_annotations_counts.csv")
+write.csv(Fdia_counts_table_ann,"../../counts_stats_byspecies/Fdiaphanus_stats_annotations_counts.csv")
+write.csv(Fgran_counts_table_ann,"../../counts_stats_byspecies/Fgrandis_stats_annotations_counts.csv")
+write.csv(FhetMDPL_counts_table_ann,"../../counts_stats_byspecies/FheteroclitusMDPL_stats_annotations_counts.csv")
+write.csv(FhetMDPP_counts_table_ann,"../../counts_stats_byspecies/FheteroclitusMDPP_stats_annotations_counts.csv")
+write.csv(Frath_counts_table_ann,"../../counts_stats_byspecies/Frathbuni_stats_annotations_counts.csv")
+write.csv(Fsim_counts_table_ann,"../../counts_stats_byspecies/Fsimils_stats_annotations_counts.csv")
+write.csv(Fparv_counts_table_ann,"../../counts_stats_byspecies/Fparvapinis_stats_annotations_counts.csv")
+write.csv(Lgod_counts_table_ann,"../../counts_stats_byspecies/Lgoodei_stats_annotations_counts.csv")
+write.csv(Lpar_counts_table_ann,"../../counts_stats_byspecies/Lparva_stats_annotations_counts.csv")
+
+# -----------------------------
+# find missing annotations
+# -----------------------------
+
+counts_table <- cbind(counts_table,ensembl_proteinID)
+dim(counts_table)
+length(unique(rownames(counts_table)))
+colnames(counts_table)[129] <- "ensembl_peptide_id"
+counts_table_ann <- merge(counts_table,query,by="ensembl_peptide_id")
+counts_id <- counts_table[,129]
+ann_id <- query$ensembl_peptide_id
+counts_minus_ann<- counts_table[!(counts_table[,129] %in% ann_id),]
+dim(counts_minus_ann)
+head(counts_minus_ann)
+missing_ensembl_ID <- rownames(counts_minus_ann)
 
 # ============================================
 #
@@ -306,74 +927,95 @@ head(query)
 # 
 # ============================================
 
-# aquaporin-3 KEEP THIS
-#goi <- res$row[res$row == "XP_012716807.1"]
-goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000006725"]
-goi
+# ---------------------------
+# Andrew Whitehead's genes of interest:
+# ---------------------------
 
-# Andrew's genes of interest DG/NCBI
-# Funhe2EKm029929 XM_012870449.1
 # zymogen granule membrane protein 16
-#goi <- res$row[res$row == "XP_012725903.1"]
+# Funhe2EKm029929
 goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000007220.1"]
 goi
-# Funhe2EKm029931 XM_012870466.1
 # zymogen granule membrane protein 16
-#goi <- res$row[res$row == "XP_012725920.1"]
+# Funhe2EKm029931
 goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000025841"]
 goi
 # solute carrier family 12 member 3-like (removed) 
-# Funhe2EKm006896 XM_012852549.1
-#goi <- res$row[res$row == "XP_012708003.1"]
+# Funhe2EKm006896
 goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000009214"]
 goi
 # chloride channel, voltage-sensitive 2 (clcn2), transcript variant X2 (removed)
-# Funhe2EKm024148 XM_012863211.1
-#goi <- res$row[res$row == "XP_012718665.1"]
+# Funhe2EKm024148
 goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000019510"]
 goi
 # ATP-sensitive inward rectifier potassium channel 1 
-# Funhe2EKm001965 XM_012866790.1
-#goi <- res$row[res$row == "XP_012722244.1"]
+# Funhe2EKm001965
 goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000015383"]
 goi
 # inward rectifier potassium channel 2
-#Funhe2EKm023780 XM_012862821.1
-#goi <- res$row[res$row == "XP_012718275.1"]
+#Funhe2EKm023780
 goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000009753"]
 
 # --------------------------------
 # other salinity genes of interest
 # --------------------------------
 # ============================================
+# aquaporin-3
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000006725"]
+goi
 # cftr
-goi <- res$row[res$row == "XP_012719100.1"]
+# Funhe2EKm024501
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000008393"]
+goi
 # polyamine-modulated factor 1-like
-goi <- res$row[res$row == "XP_012727384.1"]
-# sodium/potassium/calcium exchanger 1 isoform X2
-goi <- res$row[res$row == "XP_012706756.1"]
+# Funhe2EKm031049
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000013324"]
+goi
+# sodium/potassium/calcium exchanger 2
+# ENSFHEP00000034177
+# Funhe2EKm025497
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000034177"]
+goi
 # septin-2B isoform X2
-goi <- res$row[res$row == "XP_012716423.1"]
+# ENSFHEP00000015765
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000015765"]
+goi
 # CLOCK-interacting pacemaker-like
-goi <- res$row[res$row == "XP_012722124.1"]
+# ENSFHEP00000017303
+# Funhe2EKm026846
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000017303"]
+goi
 # vasopressin V2 receptor-like
-goi <- res$row[res$row == "XP_012721985.1"]
-# aquaporin-3 KEEP THIS
-goi <- res$row[res$row == "XP_012716807.1"]
+# Funhe2EKm026721
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000000036"]
+goi
 # sodium/potassium-transporting ATPase subunit beta-1-interacting protein 1
-goi <- res$row[res$row == "XP_012716889.1"]
-# septin-2B isoform X2
-goi <- res$row[res$row == "XP_012716423.1"]
-# otopetrin-1
-goi <- res$row[res$row == "XP_012717582.1"]
-# claudin-15-like
-goi <- res$row[res$row == "XP_012715395.1"]
-# claudin-1-like
-goi <- res$row[res$row == "XP_012716345.1"]
-# claudin 34
-goi <- res$row[res$row == "XP_012716562.1"]
-# claudin-3-like
-goi <- res$row[res$row == "XP_012727928.1"]
+# ENSFHEP00000031108
+# Funhe2EKm001174
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000031108"]
+goi
+# septin-2
+# Funhe2EKm012182
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000016853"]
+goi
+# otopetrin-2
+# Funhe2EKm035427
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000026411"]
+goi
+# claudin 8
+# Funhe2EKm037718
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000006282"]
+goi
+# claudin 4
+# ENSFHEP00000003908
+# Funhe2EKm007149
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000003908"]
+goi
+all_goi<-c("ENSFHEP00000007220.1","ENSFHEP00000025841","ENSFHEP00000019510",
+           "ENSFHEP00000015383","ENSFHEP00000009753","ENSFHEP00000006725","ENSFHEP00000008393",
+           "ENSFHEP00000013324","ENSFHEP00000001609","ENSFHEP00000013324","ENSFHEP00000034177",
+           "ENSFHEP00000015765","ENSFHEP00000017303","ENSFHEP00000000036","ENSFHEP00000031108",
+           "ENSFHEP00000016853","ENSFHEP00000003908")
+
 # ============================================
 #
 # Make plots with goi
@@ -382,55 +1024,87 @@ goi <- res$row[res$row == "XP_012727928.1"]
 # 
 # ============================================
 
-tcounts <- t(log2((counts(dds[goi, ], normalized=TRUE, replaced=FALSE)+.5))) %>% 
-  merge(colData(dds), ., by="row.names") %>% 
-  gather(gene, expression, (ncol(.)-length(goi)+1):ncol(.))
-tcounts %>% select(Row.names, species, clade, condition, gene, expression) %>% head %>% knitr::kable()
+pdf("../../multi-ggplot2-catalog_salinity_14Feb2018.pdf",paper="USr",width=13.5, height=8)
+for (i in all_goi){
+  tcounts <- t(log2((counts(dds[i, ], normalized=TRUE, replaced=FALSE)+.5))) %>% 
+    merge(colData(dds), ., by="row.names") %>% 
+    gather(gene, expression, (ncol(.)-length(i)+1):ncol(.))
+  #tcounts %>% select(Row.names, species, clade, condition, gene, expression) %>% head %>% knitr::kable()
+  
+  C1<-ggplot(tcounts %>%
+               filter(clade=='Clade1'),
+             aes(factor(condition,levels = c("0.2_ppt","transfer","15_ppt")), expression)) +
+    geom_point(aes(color=physiology)) +
+    stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
+    facet_grid(~gene~species,scales='fixed') +
+    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+                 geom="errorbar", aes(color=physiology),width=0.2) +
+    theme_bw() +
+    theme(legend.position="none",panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          axis.text.x = element_text(angle = 90, hjust = 1),
+          strip.text.y = element_blank(),
+          axis.title.x = element_blank()) +
+    labs(y="Expression (log2 normalized counts)")+
+    ggtitle("Clade 1")
+  
+  #plot(C1)
+  C2<-ggplot(tcounts %>%
+               filter(clade=='Clade2'),
+             aes(factor(condition,levels = c("0.2_ppt","transfer","15_ppt")), expression)) + 
+    geom_point(aes(color=physiology)) +
+    stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
+    facet_grid(~gene~species,scales='fixed') +
+    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+                 geom="errorbar", aes(color=physiology),width=0.2) +
+    theme_bw() +
+    theme(legend.position="bottom",panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          axis.text.x = element_text(angle = 90, hjust = 1),
+          axis.title.y = element_blank(),
+          strip.text.y = element_blank()) +
+    labs(x="salinity treatment")+
+    ggtitle("Clade 2")
+  #plot(C2)
+  C3<-ggplot(tcounts %>%
+               filter(clade=='Clade3'),
+             aes(factor(condition,levels = c("0.2_ppt","transfer","15_ppt")), expression)) + 
+    geom_point(aes(color=physiology)) +
+    stat_summary(fun.y="mean", geom="line", aes(group=physiology,color=physiology)) +
+    facet_grid(~gene~species,scales='fixed',labeller=) +
+    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+                 geom="errorbar", aes(color=physiology), width=0.2) +
+    theme_bw() +
+    theme(legend.position="none",panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          axis.text.x = element_text(angle = 90, hjust = 1),
+          axis.title.y = element_blank(),
+          axis.title.x = element_blank()) +
+    ggtitle("Clade 3")
+  #plot(C3)
+  grid.arrange(C1,C2,C3,ncol=3)
+}
+dev.off()
 
-library(gridExtra)
+# ============================================
+#
+# Find sig genes across species
+# BW_v_FW
+# ============================================
 
-C1<-ggplot(tcounts %>%
-             filter(clade=='Clade1'),
-           aes(condition, expression)) +
-  geom_point(aes(color=physiology)) +
-  stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
-  facet_grid(~gene~species,scales='free_y') +
-  stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-               geom="errorbar", aes(color=physiology),width=0.2) +
-  theme_bw() +
-  theme(legend.position="bottom",panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.text.x = element_text(angle = 90, hjust = 1)) +
-  labs(x="salinity treatment", 
-       y="Expression (log normalized counts)")+
-  ggtitle("Clade 1")
 
-plot(C1)
-C2<-ggplot(tcounts %>%
-             filter(clade=='Clade2'),
-           aes(condition, expression)) + 
-  geom_point(aes(color=physiology)) +
-  stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
-  facet_grid(~gene~species,scales='free_y') +
-  stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-               geom="errorbar", aes(color=physiology),width=0.2) +
-  theme_bw() +
-  theme(legend.position="bottom",panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.text.x = element_text(angle = 90, hjust = 1)) +
-  labs(x="salinity treatment")+
-  ggtitle("Clade 2")
-plot(C2)
-C3<-ggplot(tcounts %>%
-             filter(clade=='Clade3'),
-           aes(condition, expression)) + 
-  geom_point(aes(color=physiology)) +
-  stat_summary(fun.y="mean", geom="line", aes(group=physiology,color=physiology)) +
-  facet_grid(~gene~species,scales='free_y',labeller=) +
-  stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-               geom="errorbar", aes(color=physiology), width=0.2) +
-  theme_bw() +
-  theme(legend.position="bottom",panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.text.x = element_text(angle = 90, hjust = 1)) +
-  labs(x="salinity treatment")+
-  ggtitle("Clade 3")
-plot(C3)
 
-grid.arrange(C1,C2,C3,ncol=3)
+
+
+# ============================================
+#
+# Find sig genes across species
+# TR_v_FW
+# ============================================
+
+
+
+
+
 
                                   
