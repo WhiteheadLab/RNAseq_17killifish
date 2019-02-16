@@ -1,0 +1,347 @@
+---
+title: "RNAseq, multispecies killifish osmotic challenge"
+author: "Lisa K. Johnson"
+date: '`r Sys.Date()`'
+output:
+  html_document:
+    code_folding: hide
+    collapsed: no
+    df_print: paged
+    number_sections: yes
+    theme: cerulean
+    toc: yes
+    toc_depth: 5
+    toc_float: yes
+---
+
+```{r LoadPackages, results='hide', include=FALSE}
+# Install function for packages    
+packages<-function(x){
+  x<-as.character(match.call()[[2]])
+  if (!require(x,character.only=TRUE)){
+    install.packages(pkgs=x,repos="http://cran.r-project.org")
+    require(x,character.only=TRUE)
+  }
+}
+bioconductors <- function(x){
+    x<- as.character(match.call()[[2]])
+    if (!require(x, character.only = TRUE)){
+      source("https://bioconductor.org/biocLite.R")
+      biocLite(pkgs=x)
+      require(x, character.only = TRUE)
+    }
+}
+# for QC
+packages("RColorBrewer")
+packages("pheatmap")
+packages("vsn")
+packages(pheatmap)
+packages(cowplot)
+# for DESeq
+packages(lattice)
+packages(RColorBrewer)
+packages(dplyr)
+packages(tidyr)
+packages(gplots)
+packages(ggplot2)
+bioconductors(DESeq2)
+bioconductors(tximport)
+bioconductors(biomaRt)
+```
+
+
+```{r load custom scripts and data, results='hide', include=FALSE}
+if(!file.exists('plotPCAWithSampleNames.R')){
+  download.file('https://gist.githubusercontent.com/ljcohen/d6cf3367efae60d7fa1ea383fd7a1296/raw/f11030ced8c7953be6fada0325b92c20d369e0a7/plotPCAWithSampleNames.R', 'plotPCAWithSampleNames.R')
+  }
+source('plotPCAWithSampleNames.R')
+if(!file.exists('overLapper_original.R')){
+  download.file("https://gist.githubusercontent.com/ljcohen/b7e5fa93b8b77c33d26e4c44cadb5bb7/raw/3a2f84be2e937ef721cafaf308ff6456168f30d9/overLapper_original.R",'overLapper_original.R')
+}
+source('overLapper_original.R')
+# This is just the counts with Experimental Design Info in the last 5 rows
+if(!file.exists('../../Ensembl_species_counts_designfactors.csv')){
+  download.file("https://osf.io/7vp38/download",'../../Ensembl_species_counts_designfactors.csv')
+}
+counts_design <- read.csv("../../Ensembl_species_counts_designfactors.csv",stringsAsFactors = FALSE)
+```
+
+
+```{r format counts and ExpDesign, include=FALSE, results='hide'}
+design <- counts_design[counts_design$Ensembl == 'Empty',]
+#design$type <- c("species","native_salinity","clade","group","condition")
+drops <- c("X","Ensembl")
+counts<-counts_design[!counts_design$Ensembl == 'Empty',]
+rownames(counts)<-counts$Ensembl
+design <- design[ , !(names(design) %in% drops)]
+counts <- counts[ , !(names(counts) %in% drops)]
+dim(design)
+dim(counts)
+```
+
+```{r design for DESeq, results='hide', include=FALSE}
+# design cateogories (full)
+species<-as.character(unlist(design[1,]))
+nativephysiology<-as.character(unlist(design[2,]))
+clade<-as.character(unlist(design[3,]))
+np_cl<-as.character(unlist(design[4,]))
+condition<-as.character(unlist(design[5,]))
+species_physiology<-as.vector(paste(np_cl, species, sep="_"))
+species_condition<-as.vector(paste(species,condition,sep="_"))
+species_group<-as.vector(paste(np_cl,species,sep="_"))
+species_clade<-as.vector(paste(clade,species,sep="_"))
+```
+# PCA, all counts
+
+This is the PCA with all counts, not filtered. The dimensions of the counts table are listed below. Row=genes, Columns=samples
+```{r PCA of counts,}
+# normal full counts
+x <- data.matrix(counts)
+dim(x)
+x <- x+1
+log_x<-log(x)
+names<-colnames(log_x)
+pca = prcomp(t(log_x))
+#summary(pca)
+fac = factor(nativephysiology)
+colours = function(vec){
+  cols=rainbow(length(unique(vec)))
+  return(cols[as.numeric(as.factor(vec))])}
+mar.default <- c(5,4,4,2) + 0.1
+par(mar = mar.default + c(0, 4, 0, 0)) 
+plot(pca$x[,1:2], 
+     col=colours(clade), 
+     pch = c(16, 2, 9)[as.numeric(as.factor(nativephysiology))],
+     cex=2,
+     xlab="PC1",
+     ylab="PC2",
+     cex.lab=2,
+     cex.axis = 2)
+legend(140,100,legend=c("Clade 1","Clade 2","Clade 3"),col=rainbow(length(unique(clade))),cex=0.75, pch=19)
+legend(140,-67,legend=c("Brackish","Freshwater","Marine"),cex=0.75,pch=c(16, 2, 9))
+```
+
+# Filtering counts
+
+The following shows the dimensions of the dataframe when we filter out genes with low counts.
+
+All 128 samples must have a count of at least 10:
+
+```{r filtering5,}
+filter <- rownames(counts[rowSums(counts >= 10) >= 128,])
+filtered_counts <- counts[filter,]
+dim(filtered_counts)
+```
+
+All 128 samples must have a count of at least 1:
+
+```{r filtering6,}
+# filtering counts
+filter <- rownames(counts[rowSums(counts >= 1) >= 128,])
+filtered_counts <- counts[filter,]
+dim(filtered_counts)
+```
+
+All 128 samples have a count of at least 0.1:
+
+```{r filtering7,}
+filter <- rownames(counts[rowSums(counts >= 0.1) >= 128,])
+filtered_counts <- counts[filter,]
+dim(filtered_counts)
+```
+
+All 128 samples have a count of at least 0.01:
+
+```{r filtering8,}
+filter <- rownames(counts[rowSums(counts >= 0.01) >= 128,])
+filtered_counts <- counts[filter,]
+dim(filtered_counts)
+filtered_counts_128_0.01 <- filtered_counts
+```
+
+At least 100 samples have a count of at least 10:
+
+```{r filtering1,}
+filter <- rownames(counts[rowSums(counts >= 10) >= 100,])
+filtered_counts <- counts[filter,]
+dim(filtered_counts)
+```
+
+At least 100 samples have a count of at least 1:
+
+```{r filtering2,}
+filter <- rownames(counts[rowSums(counts >= 1) >= 100,])
+filtered_counts <- counts[filter,]
+dim(filtered_counts)
+```
+
+At least 100 samples have a count of at least 0.1:
+
+```{r filtering3,}
+filter <- rownames(counts[rowSums(counts >= 0.1) >= 100,])
+filtered_counts <- counts[filter,]
+dim(filtered_counts)
+```
+
+At least 100 samples have a count of at least 0.01:
+
+```{r filtering4,}
+filter <- rownames(counts[rowSums(counts >= 0.01) >= 100,])
+filtered_counts <- counts[filter,]
+dim(filtered_counts)
+filtered_counts_100_0.01 <- filtered_counts
+```
+
+At least 64 samples have a count of at least 10:
+
+```{r filtering9,}
+filter <- rownames(counts[rowSums(counts >= 10) >= 64,])
+filtered_counts <- counts[filter,]
+dim(filtered_counts)
+```
+
+At least 64 samples have a count of at least 1:
+
+```{r filtering10,}
+filter <- rownames(counts[rowSums(counts >= 1) >= 64,])
+filtered_counts <- counts[filter,]
+dim(filtered_counts)
+```
+
+At least 64 samples have a count of at least 0.1:
+
+```{r filterin11,}
+filter <- rownames(counts[rowSums(counts >= 0.1) >= 64,])
+filtered_counts <- counts[filter,]
+dim(filtered_counts)
+```
+
+At least 64 samples have a count of at least 0.01:
+
+```{r filtering12,}
+filter <- rownames(counts[rowSums(counts >= 0.01) >= 64,])
+filtered_counts <- counts[filter,]
+dim(filtered_counts)
+filtered_counts_64_0.01 <- filtered_counts
+```
+
+## PCA
+
+At least 128 samples with a count of at least 0.01:
+
+```{r PCA1,}
+#filtered_counts_64_0.01
+#filtered_counts_100_0.01
+#filtered_counts_128_0.01
+# PCA 1
+x <- data.matrix(filtered_counts_128_0.01)
+x <- x+1
+log_x<-log(x)
+names<-colnames(log_x)
+pca = prcomp(t(log_x))
+fac = factor(nativephysiology)
+colours = function(vec){
+  cols=rainbow(length(unique(vec)))
+  return(cols[as.numeric(as.factor(vec))])}
+mar.default <- c(5,4,4,2) + 0.1
+par(mar = mar.default + c(0, 4, 0, 0)) 
+plot(pca$x[,1:2], 
+     col=colours(clade), 
+     pch = c(16, 2, 9)[as.numeric(as.factor(nativephysiology))],
+     cex=2,
+     xlab="PC1",
+     ylab="PC2",
+     cex.lab=2,
+     cex.axis = 2)
+legend(-180,100,legend=c("Clade 1","Clade 2","Clade 3"),col=rainbow(length(unique(clade))),cex=0.75, pch=19)
+legend(-180,-30,legend=c("Brackish","Freshwater","Marine"),cex=0.75,pch=c(16, 2, 9))
+```
+
+At least 100 samples with a count of at least 0.01:
+
+```{r PCA2,}
+# PCA 2
+x <- data.matrix(filtered_counts_100_0.01)
+x <- x+1
+log_x<-log(x)
+names<-colnames(log_x)
+pca = prcomp(t(log_x))
+fac = factor(nativephysiology)
+colours = function(vec){
+  cols=rainbow(length(unique(vec)))
+  return(cols[as.numeric(as.factor(vec))])}
+mar.default <- c(5,4,4,2) + 0.1
+par(mar = mar.default + c(0, 4, 0, 0)) 
+plot(pca$x[,1:2], 
+     col=colours(clade), 
+     pch = c(16, 2, 9)[as.numeric(as.factor(nativephysiology))],
+     cex=2,
+     xlab="PC1",
+     ylab="PC2",
+     cex.lab=2,
+     cex.axis = 2)
+legend(-180,100,legend=c("Clade 1","Clade 2","Clade 3"),col=rainbow(length(unique(clade))),cex=0.75, pch=19)
+legend(-180,-30,legend=c("Brackish","Freshwater","Marine"),cex=0.75,pch=c(16, 2, 9))
+```
+
+At least 64 samples with a count of at least 0.01:
+
+```{r PCA3,}
+# PCA 3
+x <- data.matrix(filtered_counts_64_0.01)
+x <- x+1
+log_x<-log(x)
+names<-colnames(log_x)
+pca = prcomp(t(log_x))
+fac = factor(nativephysiology)
+colours = function(vec){
+  cols=rainbow(length(unique(vec)))
+  return(cols[as.numeric(as.factor(vec))])}
+mar.default <- c(5,4,4,2) + 0.1
+par(mar = mar.default + c(0, 4, 0, 0)) 
+plot(pca$x[,1:2], 
+     col=colours(clade), 
+     pch = c(16, 2, 9)[as.numeric(as.factor(nativephysiology))],
+     cex=2,
+     xlab="PC1",
+     ylab="PC2",
+     cex.lab=2,
+     cex.axis = 2)
+legend(-180,100,legend=c("Clade 1","Clade 2","Clade 3"),col=rainbow(length(unique(clade))),cex=0.75, pch=19)
+legend(-180,-30,legend=c("Brackish","Freshwater","Marine"),cex=0.75,pch=c(16, 2, 9))
+```
+
+# DESeq2 analysis
+
+## Design
+
+```{r DESeq2 design,}
+cols<-colnames(filtered_counts)
+ExpDesign <- data.frame(row.names=cols, condition=condition, species = species, clade=clade,species_condition=species_condition,species_clade = species_clade)
+ExpDesign
+```
+
+Clade1_F_catanatus and 0.2 ppt are reference levels for comparison.
+
+```
+m1 <- model.matrix(~condition + species_clade + species_clade:condition,ExpDesign)
+```
+
+```{r run DESeq, results='hide', include=FALSE}
+m1 <- model.matrix(~condition + species_clade + species_clade:condition,ExpDesign)
+colnames(m1)
+all.zero <- apply(m1, 2, function(x) all(x==0))
+idx <- which(all.zero)
+m1 <- m1[,-idx]
+all(rownames(ExpDesign) == colnames(filtered_counts))
+counts_round<- round(data.matrix(filtered_counts),digits=0)
+dds <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,design = m1)
+#dds <- DESeq(dds, full = m1, betaPrior=FALSE)
+#ddsClean <- dds[which(mcols(dds)$betaConv),]
+#dds<-ddsClean
+```
+
+
+```{r Display versions,}
+sessionInfo()
+```

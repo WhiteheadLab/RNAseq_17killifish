@@ -254,7 +254,7 @@ dds <- DESeq(dds, full = m1, betaPrior=FALSE)
 
 ddsClean <- dds[which(mcols(dds)$betaConv),]
 dds<-ddsClean
-
+save(dds,file="../../dds_interactionConditionSpecies.RData")
 #==========================================
 
 # QA of DESeq
@@ -1495,6 +1495,296 @@ length(as.vector(Lpar_counts_table_ann_up$ensembl_peptide_id))
 clade2_common_genes <- union(clade2_common_genes,as.vector(Lpar_counts_table_ann_up$ensembl_peptide_id))
 length(clade2_common_genes)
 # Clade 3
+
+# ============================================
+#
+# Heatmap of sig genes for each species
+# separate between up and down
+# ============================================
+
+#Fcat_counts_table_ann_down
+
+counts_table = counts(dds, normalized=TRUE)
+Fcat_cols <- c(Fcat_FW_cols,Fcat_BW_cols)
+Fcat_counts <- counts_table[rownames(counts_table) %in% rownames(Fcat_counts_table_ann_up),]
+Fcat_counts <- Fcat_counts[,Fcat_cols]
+id <-rownames(Fcat_counts)
+d<-as.matrix(Fcat_counts)
+hr <- hclust(as.dist(1-cor(t(d), method="pearson")), method="complete")
+
+mycl <- cutree(hr, h=max(hr$height/1.5))
+clusterCols <- rainbow(length(unique(mycl)))
+myClusterSideBar <- clusterCols[mycl]
+myheatcol <- greenred(75)
+heatmap.2(d, main="F. catanatus, FC > 0.5, common sig genes (padj<0.05)",
+          Rowv=as.dendrogram(hr),
+          cexRow=0.75,cexCol=0.8,srtCol= 90,
+          adjCol = c(NA,0),offsetCol=2.5, 
+          Colv=NA, dendrogram="row", 
+          scale="row", col=myheatcol, 
+          density.info="none", 
+          trace="none", RowSideColors= myClusterSideBar)
+Fcat_counts <- counts_table[rownames(counts_table) %in% rownames(Fcat_counts_table_ann_down),]
+Fcat_counts <- Fcat_counts[,Fcat_cols]
+id <-rownames(Fcat_counts)
+d<-as.matrix(Fcat_counts)
+hr <- hclust(as.dist(1-cor(t(d), method="pearson")), method="complete")
+mycl <- cutree(hr, h=max(hr$height/1.5))
+clusterCols <- rainbow(length(unique(mycl)))
+myClusterSideBar <- clusterCols[mycl]
+myheatcol <- greenred(75)
+heatmap.2(d, main="F. catanatus, FC < 0.5, common sig genes (padj<0.05)",
+          Rowv=as.dendrogram(hr),
+          cexRow=0.75,cexCol=0.8,srtCol= 90,
+          adjCol = c(NA,0),offsetCol=2.5, 
+          Colv=NA, dendrogram="row", 
+          scale="row", col=myheatcol, 
+          density.info="none", 
+          trace="none", RowSideColors= myClusterSideBar)
+
+# F. diaphanus
+
+Fdia_cols <- c(Fdia_FW_cols,Fdia_BW_cols)
+Fdia_counts <- counts_table[rownames(counts_table) %in% rownames(Fdia_counts_table_ann_up),]
+Fdia_counts <- Fdia_counts[,Fdia_cols]
+id <-rownames(Fdia_counts)
+d<-as.matrix(Fdia_counts)
+hr <- hclust(as.dist(1-cor(t(d), method="pearson")), method="complete")
+mycl <- cutree(hr, h=max(hr$height/1.5))
+clusterCols <- rainbow(length(unique(mycl)))
+myClusterSideBar <- clusterCols[mycl]
+myheatcol <- greenred(75)
+heatmap.2(d, main="F. diaphanus, FC > 0.5, common sig genes (padj<0.05)",
+          Rowv=as.dendrogram(hr),
+          cexRow=0.75,cexCol=0.8,srtCol= 90,
+          adjCol = c(NA,0),offsetCol=2.5, 
+          Colv=NA, dendrogram="row", 
+          scale="row", col=myheatcol, 
+          density.info="none", 
+          trace="none", RowSideColors= myClusterSideBar)
+Fdia_counts <- counts_table[rownames(counts_table) %in% rownames(Fdia_counts_table_ann_down),]
+Fdia_counts <- Fdia_counts[,Fdia_cols]
+id <-rownames(Fdia_counts)
+d<-as.matrix(Fdia_counts)
+hr <- hclust(as.dist(1-cor(t(d), method="pearson")), method="complete")
+mycl <- cutree(hr, h=max(hr$height/1.5))
+clusterCols <- rainbow(length(unique(mycl)))
+myClusterSideBar <- clusterCols[mycl]
+myheatcol <- greenred(75)
+heatmap.2(d, main="F. diaphanus, FC < 0.5, common sig genes (padj<0.05)",
+          Rowv=as.dendrogram(hr),
+          cexRow=0.75,cexCol=0.8,srtCol= 90,
+          adjCol = c(NA,0),offsetCol=2.5, 
+          Colv=NA, dendrogram="row", 
+          scale="row", col=myheatcol, 
+          density.info="none", 
+          trace="none", RowSideColors= myClusterSideBar)
+
+# F. grandis
+
+Fgran_cols <- c(Fgran_FW_cols,Fgran_BW_cols)
+Fgran_counts <- counts_table[rownames(counts_table) %in% rownames(Fgran_counts_table_ann_up ),]
+Fgran_counts <- Fgran_counts[,Fgran_cols]
+id <-rownames(Fgran_counts)
+d<-as.matrix(Fgran_counts)
+hr <- hclust(as.dist(1-cor(t(d), method="pearson")), method="complete")
+mycl <- cutree(hr, h=max(hr$height/1.5))
+clusterCols <- rainbow(length(unique(mycl)))
+myClusterSideBar <- clusterCols[mycl]
+myheatcol <- greenred(75)
+heatmap.2(d, main="F. grandis, FC > 0.5, common sig genes (padj<0.05)",
+          Rowv=as.dendrogram(hr),
+          cexRow=0.75,cexCol=0.8,srtCol= 90,
+          adjCol = c(NA,0),offsetCol=2.5, 
+          Colv=NA, dendrogram="row", 
+          scale="row", col=myheatcol, 
+          density.info="none", 
+          trace="none", RowSideColors= myClusterSideBar)
+Fgran_counts <- counts_table[rownames(counts_table) %in% rownames(Fgran_counts_table_ann_down),]
+Fgran_counts <- Fgran_counts[,Fgran_cols]
+id <-rownames(Fgran_counts)
+d<-as.matrix(Fgran_counts)
+hr <- hclust(as.dist(1-cor(t(d), method="pearson")), method="complete")
+mycl <- cutree(hr, h=max(hr$height/1.5))
+clusterCols <- rainbow(length(unique(mycl)))
+myClusterSideBar <- clusterCols[mycl]
+myheatcol <- greenred(75)
+heatmap.2(d, main="F. diaphanus, FC < 0.5, common sig genes (padj<0.05)",
+          Rowv=as.dendrogram(hr),
+          cexRow=0.75,cexCol=0.8,srtCol= 90,
+          adjCol = c(NA,0),offsetCol=2.5, 
+          Colv=NA, dendrogram="row", 
+          scale="row", col=myheatcol, 
+          density.info="none", 
+          trace="none", RowSideColors= myClusterSideBar)
+
+# F. heteroclitus MDPL population
+
+FhetMDPL_cols <- c(FhetMDPL_FW_cols,FhetMDPL_BW_cols)
+FhetMDPL_counts <- counts_table[rownames(counts_table) %in% rownames(FhetMDPL_counts_table_ann_up),]
+FhetMDPL_counts <- FhetMDPL_counts[,FhetMDPL_cols]
+id <-rownames(FhetMDPL_counts)
+d<-as.matrix(FhetMDPL_counts)
+hr <- hclust(as.dist(1-cor(t(d), method="pearson")), method="complete")
+mycl <- cutree(hr, h=max(hr$height/1.5))
+clusterCols <- rainbow(length(unique(mycl)))
+myClusterSideBar <- clusterCols[mycl]
+myheatcol <- greenred(75)
+heatmap.2(d, main="F. heteroclitus, FC > 0.5, common sig genes (padj<0.05)",
+          Rowv=as.dendrogram(hr),
+          cexRow=0.75,cexCol=0.8,srtCol= 90,
+          adjCol = c(NA,0),offsetCol=2.5, 
+          Colv=NA, dendrogram="row", 
+          scale="row", col=myheatcol, 
+          density.info="none", 
+          trace="none", RowSideColors= myClusterSideBar)
+FhetMDPL_counts <- counts_table[rownames(counts_table) %in% rownames(FhetMDPL_counts_table_ann_down),]
+FhetMDPL_counts <- FhetMDPL_counts[,FhetMDPL_cols]
+id <-rownames(FhetMDPL_counts)
+d<-as.matrix(FhetMDPL_counts)
+hr <- hclust(as.dist(1-cor(t(d), method="pearson")), method="complete")
+mycl <- cutree(hr, h=max(hr$height/1.5))
+clusterCols <- rainbow(length(unique(mycl)))
+myClusterSideBar <- clusterCols[mycl]
+myheatcol <- greenred(75)
+heatmap.2(d, main="F. heteroclitus (MDPL population), FC < 0.5, common sig genes (padj<0.05)",
+          Rowv=as.dendrogram(hr),
+          cexRow=0.75,cexCol=0.8,srtCol= 90,
+          adjCol = c(NA,0),offsetCol=2.5, 
+          Colv=NA, dendrogram="row", 
+          scale="row", col=myheatcol, 
+          density.info="none", 
+          trace="none", RowSideColors= myClusterSideBar)
+
+# F. heteroclitus MDPP population
+FhetMDPP_cols <- c(FhetMDPP_FW_cols,FhetMDPP_BW_cols)
+FhetMDPP_counts <- counts_table[rownames(counts_table) %in% rownames(FhetMDPP_counts_table_ann_up),]
+FhetMDPP_counts <- FhetMDPL_counts[,FhetMDPL_cols]
+id <-rownames(FhetMDPP_counts)
+d<-as.matrix(FhetMDPP_counts)
+hr <- hclust(as.dist(1-cor(t(d), method="pearson")), method="complete")
+mycl <- cutree(hr, h=max(hr$height/1.5))
+clusterCols <- rainbow(length(unique(mycl)))
+myClusterSideBar <- clusterCols[mycl]
+myheatcol <- greenred(75)
+heatmap.2(d, main="F. heteroclitus, FC > 0.5, common sig genes (padj<0.05)",
+          Rowv=as.dendrogram(hr),
+          cexRow=0.75,cexCol=0.8,srtCol= 90,
+          adjCol = c(NA,0),offsetCol=2.5, 
+          Colv=NA, dendrogram="row", 
+          scale="row", col=myheatcol, 
+          density.info="none", 
+          trace="none", RowSideColors= myClusterSideBar)
+FhetMDPP_counts <- counts_table[rownames(counts_table) %in% rownames(FhetMDPP_counts_table_ann_down),]
+FhetMDPP_counts <- FhetMDPP_counts[,FhetMDPP_cols]
+id <-rownames(FhetMDPP_counts)
+d<-as.matrix(FhetMDPP_counts)
+hr <- hclust(as.dist(1-cor(t(d), method="pearson")), method="complete")
+mycl <- cutree(hr, h=max(hr$height/1.5))
+clusterCols <- rainbow(length(unique(mycl)))
+myClusterSideBar <- clusterCols[mycl]
+myheatcol <- greenred(75)
+heatmap.2(d, main="F. heteroclitus (MDPL population), FC < 0.5, common sig genes (padj<0.05)",
+          Rowv=as.dendrogram(hr),
+          cexRow=0.75,cexCol=0.8,srtCol= 90,
+          adjCol = c(NA,0),offsetCol=2.5, 
+          Colv=NA, dendrogram="row", 
+          scale="row", col=myheatcol, 
+          density.info="none", 
+          trace="none", RowSideColors= myClusterSideBar)
+
+# F. rathbuni
+Frath_counts_table_ann_up <- subset(Frath_counts_table_ann_sig,Frath_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
+Frath_counts_table_ann_down <- subset(Frath_counts_table_ann_sig,Frath_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
+
+
+
+FhetMDPP_cols <- c(FhetMDPP_FW_cols,FhetMDPP_BW_cols)
+FhetMDPP_counts <- counts_table[rownames(counts_table) %in% rownames(FhetMDPP_counts_table_ann_up),]
+FhetMDPP_counts <- FhetMDPL_counts[,FhetMDPL_cols]
+id <-rownames(FhetMDPP_counts)
+d<-as.matrix(FhetMDPP_counts)
+hr <- hclust(as.dist(1-cor(t(d), method="pearson")), method="complete")
+mycl <- cutree(hr, h=max(hr$height/1.5))
+clusterCols <- rainbow(length(unique(mycl)))
+myClusterSideBar <- clusterCols[mycl]
+myheatcol <- greenred(75)
+heatmap.2(d, main="F. heteroclitus, FC > 0.5, common sig genes (padj<0.05)",
+          Rowv=as.dendrogram(hr),
+          cexRow=0.75,cexCol=0.8,srtCol= 90,
+          adjCol = c(NA,0),offsetCol=2.5, 
+          Colv=NA, dendrogram="row", 
+          scale="row", col=myheatcol, 
+          density.info="none", 
+          trace="none", RowSideColors= myClusterSideBar)
+FhetMDPP_counts <- counts_table[rownames(counts_table) %in% rownames(FhetMDPP_counts_table_ann_down),]
+FhetMDPP_counts <- FhetMDPP_counts[,FhetMDPP_cols]
+id <-rownames(FhetMDPP_counts)
+d<-as.matrix(FhetMDPP_counts)
+hr <- hclust(as.dist(1-cor(t(d), method="pearson")), method="complete")
+mycl <- cutree(hr, h=max(hr$height/1.5))
+clusterCols <- rainbow(length(unique(mycl)))
+myClusterSideBar <- clusterCols[mycl]
+myheatcol <- greenred(75)
+heatmap.2(d, main="F. heteroclitus (MDPL population), FC < 0.5, common sig genes (padj<0.05)",
+          Rowv=as.dendrogram(hr),
+          cexRow=0.75,cexCol=0.8,srtCol= 90,
+          adjCol = c(NA,0),offsetCol=2.5, 
+          Colv=NA, dendrogram="row", 
+          scale="row", col=myheatcol, 
+          density.info="none", 
+          trace="none", RowSideColors= myClusterSideBar)
+
+# F. similis
+Fsim_counts_table_ann_up <- subset(Fsim_counts_table_ann_sig,Fsim_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
+Fsim_counts_table_ann_down <- subset(Fsim_counts_table_ann_sig,Fsim_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
+
+
+
+# Clade 2
+Fparv_counts_table_ann_sig <- subset(Fparv_counts_table_ann,Fparv_counts_table_ann$`padj-15ppt-v-0.2ppt`<0.05)
+Fparv_counts_table_ann_up <- subset(Fparv_counts_table_ann_sig,Fparv_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
+Fparv_counts_table_ann_down <- subset(Fparv_counts_table_ann_sig,Fparv_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
+dim(Fparv_counts_table_ann_sig)
+Lgod_counts_table_ann_sig <- subset(Lgod_counts_table_ann,Lgod_counts_table_ann$`padj-15ppt-v-0.2ppt`<0.05)
+Lgod_counts_table_ann_up <- subset(Lgod_counts_table_ann_sig,Lgod_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
+Lgod_counts_table_ann_down <- subset(Lgod_counts_table_ann_sig,Lgod_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
+dim(Lgod_counts_table_ann_sig)
+Lpar_counts_table_ann_sig <- subset(Lpar_counts_table_ann,Lpar_counts_table_ann$`padj-15ppt-v-0.2ppt`<0.05)
+Lpar_counts_table_ann_up <- subset(Lpar_counts_table_ann_sig,Lpar_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
+Lpar_counts_table_ann_down <- subset(Lpar_counts_table_ann_sig,Lpar_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
+dim(Lpar_counts_table_ann_sig)
+
+
+
+# Clade 3
+Axen_counts_table_ann_sig <- subset(Axen_counts_table_ann,Axen_counts_table_ann$`padj-15ppt-v-0.2ppt`<0.05)
+Axen_counts_table_ann_up <- subset(Axen_counts_table_ann_sig,Axen_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
+Axen_counts_table_ann_down <- subset(Axen_counts_table_ann_sig,Axen_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
+dim(Axen_counts_table_ann_sig)
+Fchry_counts_table_ann_sig <- subset(Fchry_counts_table_ann,Fchry_counts_table_ann$`padj-15ppt-v-0.2ppt`<0.05)
+Fchry_counts_table_ann_up <- subset(Fchry_counts_table_ann_sig,Fchry_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
+Fchry_counts_table_ann_down <- subset(Fchry_counts_table_ann_sig,Fchry_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
+dim(Fchry_counts_table_ann_sig)
+
+Fnota_counts_table_ann_up <- subset(Fnota_counts_table_ann_sig,Fnota_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
+Fnota_counts_table_ann_down <- subset(Fnota_counts_table_ann_sig,Fnota_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
+
+
+Foli_counts_table_ann_up <- subset(Foli_counts_table_ann_sig,Foli_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
+Foli_counts_table_ann_down <- subset(Foli_counts_table_ann_sig,Foli_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
+
+
+Fsci_counts_table_ann_up <- subset(Fsci_counts_table_ann_sig,Fsci_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
+Fsci_counts_table_ann_down <- subset(Fsci_counts_table_ann_sig,Fsci_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
+
+
+Fzeb_counts_table_ann_up <- subset(Fzeb_counts_table_ann_sig,Fzeb_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
+Fzeb_counts_table_ann_down <- subset(Fzeb_counts_table_ann_sig,Fzeb_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
+
+
+
+
 
 
 

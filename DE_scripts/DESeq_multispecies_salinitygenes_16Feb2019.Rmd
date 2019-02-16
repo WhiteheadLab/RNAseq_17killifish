@@ -1,0 +1,275 @@
+---
+title: "RNAseq, multispecies killifish osmotic challenge"
+author: "Lisa K. Johnson"
+date: '`r Sys.Date()`'
+output:
+  html_document:
+    code_folding: hide
+    collapsed: no
+    df_print: paged
+    number_sections: yes
+    theme: cerulean
+    toc: yes
+    toc_depth: 5
+    toc_float: yes
+---
+
+```{r LoadPackages, results='hide', include=FALSE}
+# Install function for packages    
+packages<-function(x){
+  x<-as.character(match.call()[[2]])
+  if (!require(x,character.only=TRUE)){
+    install.packages(pkgs=x,repos="http://cran.r-project.org")
+    require(x,character.only=TRUE)
+  }
+}
+bioconductors <- function(x){
+    x<- as.character(match.call()[[2]])
+    if (!require(x, character.only = TRUE)){
+      source("https://bioconductor.org/biocLite.R")
+      biocLite(pkgs=x)
+      require(x, character.only = TRUE)
+    }
+}
+# for QC
+packages("RColorBrewer")
+packages("pheatmap")
+packages("vsn")
+packages(pheatmap)
+packages(cowplot)
+# for DESeq
+packages(lattice)
+packages(RColorBrewer)
+packages(dplyr)
+packages(tidyr)
+packages(gplots)
+packages(ggplot2)
+packages(gridExtra)
+bioconductors(DESeq2)
+bioconductors(tximport)
+bioconductors(biomaRt)
+```
+
+
+```{r load custom scripts and data, results='hide', include=FALSE}
+if(!file.exists('plotPCAWithSampleNames.R')){
+  download.file('https://gist.githubusercontent.com/ljcohen/d6cf3367efae60d7fa1ea383fd7a1296/raw/f11030ced8c7953be6fada0325b92c20d369e0a7/plotPCAWithSampleNames.R', 'plotPCAWithSampleNames.R')
+  }
+source('plotPCAWithSampleNames.R')
+if(!file.exists('overLapper_original.R')){
+  download.file("https://gist.githubusercontent.com/ljcohen/b7e5fa93b8b77c33d26e4c44cadb5bb7/raw/3a2f84be2e937ef721cafaf308ff6456168f30d9/overLapper_original.R",'overLapper_original.R')
+}
+source('overLapper_original.R')
+# This is just the counts with Experimental Design Info in the last 5 rows
+if(!file.exists('../../Ensembl_species_counts_designfactors.csv')){
+  download.file("https://osf.io/7vp38/download",'../../Ensembl_species_counts_designfactors.csv')
+}
+counts_design <- read.csv("../../Ensembl_species_counts_designfactors.csv",stringsAsFactors = FALSE)
+```
+
+
+```{r format counts and ExpDesign, include=FALSE, results='hide'}
+design <- counts_design[counts_design$Ensembl == 'Empty',]
+#design$type <- c("species","native_salinity","clade","group","condition")
+drops <- c("X","Ensembl")
+counts<-counts_design[!counts_design$Ensembl == 'Empty',]
+rownames(counts)<-counts$Ensembl
+design <- design[ , !(names(design) %in% drops)]
+counts <- counts[ , !(names(counts) %in% drops)]
+dim(design)
+dim(counts)
+```
+
+```{r design for DESeq, results='hide', include=FALSE}
+# design cateogories (full)
+species<-as.character(unlist(design[1,]))
+physiology<-as.character(unlist(design[2,]))
+clade<-as.character(unlist(design[3,]))
+np_cl<-as.character(unlist(design[4,]))
+condition<-as.character(unlist(design[5,]))
+species_physiology<-as.vector(paste(np_cl, species, sep="_"))
+species_condition<-as.vector(paste(species,condition,sep="_"))
+species_group<-as.vector(paste(np_cl,species,sep="_"))
+species_clade<-as.vector(paste(clade,species,sep="_"))
+```
+
+At least 64 samples have a count of at least 0.01:
+
+```{r filtering12,}
+filter <- rownames(counts[rowSums(counts >= 0.01) >= 64,])
+filtered_counts <- counts[filter,]
+dim(filtered_counts)
+```
+
+# DESeq analysis
+
+Design
+
+```{r DESeq2 design,}
+cols<-colnames(counts)
+ExpDesign <- data.frame(row.names=cols, physiology=physiology,condition=condition, species = species, clade=clade,species_condition=species_condition,species_clade = species_clade)
+ExpDesign
+```
+
+Clade1_F_catanatus and 0.2 ppt are reference levels for comparison.
+
+```
+m1 <- model.matrix(~condition + species_clade + species_clade:condition,ExpDesign)
+```
+
+```{r DESeq2 filter design for missing samples, results='hide', include=FALSE}
+m1 <- model.matrix(~condition + species_clade + species_clade:condition,ExpDesign)
+#colnames(m1)
+all.zero <- apply(m1, 2, function(x) all(x==0))
+idx <- which(all.zero)
+m1 <- m1[,-idx]
+```
+
+```{r run DESeq2,results='hide', include=FALSE}
+counts_round<- round(data.matrix(filtered_counts),digits=0)
+#dds <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,design = m1)
+#dds <- DESeq(dds, full = m1, betaPrior=FALSE)
+#ddsClean <- dds[which(mcols(dds)$betaConv),]
+#dds<-ddsClean
+counts_table <- read.csv("../../killifish_counts_filtered_64samples0.01.csv")
+load("../../dds_interactionConditionSpecies.RData")
+```
+
+# Salinity genes of interest
+
+
+```{r get results,message=FALSE,warning=FALSE}
+# Clade1_F_catanatus (reference level)
+res_Fdiaphanus_BW_v_FW <- read.csv("../../res_Fdiaphanus_BW_v_FW.csv")
+# ---------------------------
+# Andrew Whitehead's genes of interest:
+# ---------------------------
+# zymogen granule membrane protein 16
+# Funhe2EKm029929
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000007220.1"]
+# zymogen granule membrane protein 16
+# Funhe2EKm029931
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000025841"]
+# solute carrier family 12 member 3-like (removed) 
+# Funhe2EKm006896
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000009214"]
+# chloride channel, voltage-sensitive 2 (clcn2), transcript variant X2 (removed)
+# Funhe2EKm024148
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000019510"]
+# ATP-sensitive inward rectifier potassium channel 1 
+# Funhe2EKm001965
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000015383"]
+# inward rectifier potassium channel 2
+#Funhe2EKm023780
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000009753"]
+# --------------------------------
+# other salinity genes of interest
+# --------------------------------
+# ============================================
+# aquaporin-3
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000006725"]
+# cftr
+# Funhe2EKm024501
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000008393"]
+# polyamine-modulated factor 1-like
+# Funhe2EKm031049
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000013324"]
+# sodium/potassium/calcium exchanger 2
+# ENSFHEP00000034177
+# Funhe2EKm025497
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000034177"]
+# septin-2B isoform X2
+# ENSFHEP00000015765
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000015765"]
+# CLOCK-interacting pacemaker-like
+# ENSFHEP00000017303
+# Funhe2EKm026846
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000017303"]
+# vasopressin V2 receptor-like
+# Funhe2EKm026721
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000000036"]
+# sodium/potassium-transporting ATPase subunit beta-1-interacting protein 1
+# ENSFHEP00000031108
+# Funhe2EKm001174
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000031108"]
+# septin-2
+# Funhe2EKm012182
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000016853"]
+# otopetrin-2
+# Funhe2EKm035427
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000026411"]
+# claudin 8
+# Funhe2EKm037718
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000006282"]
+# claudin 4
+# ENSFHEP00000003908
+# Funhe2EKm007149
+goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000003908"]
+all_goi<-c("ENSFHEP00000007220.1","ENSFHEP00000025841","ENSFHEP00000019510",
+           "ENSFHEP00000015383","ENSFHEP00000009753","ENSFHEP00000006725","ENSFHEP00000008393",
+           "ENSFHEP00000013324","ENSFHEP00000001609","ENSFHEP00000013324","ENSFHEP00000034177",
+           "ENSFHEP00000015765","ENSFHEP00000017303","ENSFHEP00000000036","ENSFHEP00000031108",
+           "ENSFHEP00000016853","ENSFHEP00000003908")
+for (i in all_goi){
+  tcounts <- t(log2((counts(dds[i, ], normalized=TRUE, replaced=FALSE)+.5))) %>% 
+    merge(colData(dds), ., by="row.names") %>% 
+    gather(gene, expression, (ncol(.)-length(i)+1):ncol(.))
+  
+  C1<-ggplot(tcounts %>%
+               filter(clade=='Clade1'),
+             aes(factor(condition,levels = c("0.2_ppt","transfer","15_ppt")), expression)) +
+    geom_point(aes(color=physiology)) +
+    stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
+    facet_grid(~gene~species,scales='fixed') +
+    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+                 geom="errorbar", aes(color=physiology),width=0.2) +
+    theme_bw() +
+    theme(legend.position="none",panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          axis.text.x = element_text(angle = 90, hjust = 1),
+          strip.text.y = element_blank(),
+          axis.title.x = element_blank()) +
+    labs(y="Expression (log2 normalized counts)")+
+    ggtitle("Clade 1")
+  
+  #plot(C1)
+  C2<-ggplot(tcounts %>%
+               filter(clade=='Clade2'),
+             aes(factor(condition,levels = c("0.2_ppt","transfer","15_ppt")), expression)) + 
+    geom_point(aes(color=physiology)) +
+    stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
+    facet_grid(~gene~species,scales='fixed') +
+    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+                 geom="errorbar", aes(color=physiology),width=0.2) +
+    theme_bw() +
+    theme(legend.position="bottom",panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          axis.text.x = element_text(angle = 90, hjust = 1),
+          axis.title.y = element_blank(),
+          strip.text.y = element_blank()) +
+    labs(x="salinity treatment")+
+    ggtitle("Clade 2")
+  #plot(C2)
+  C3<-ggplot(tcounts %>%
+               filter(clade=='Clade3'),
+             aes(factor(condition,levels = c("0.2_ppt","transfer","15_ppt")), expression)) + 
+    geom_point(aes(color=physiology)) +
+    stat_summary(fun.y="mean", geom="line", aes(group=physiology,color=physiology)) +
+    facet_grid(~gene~species,scales='fixed',labeller=) +
+    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+                 geom="errorbar", aes(color=physiology), width=0.2) +
+    theme_bw() +
+    theme(legend.position="none",panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          axis.text.x = element_text(angle = 90, hjust = 1),
+          axis.title.y = element_blank(),
+          axis.title.x = element_blank()) +
+    ggtitle("Clade 3")
+  #plot(C3)
+  grid.arrange(C1,C2,C3,ncol=3)
+}
+```
+
+```{r Display versions,}
+sessionInfo()
+```

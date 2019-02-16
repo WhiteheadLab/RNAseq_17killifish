@@ -254,7 +254,7 @@ dds <- DESeq(dds, full = m1, betaPrior=FALSE)
 
 ddsClean <- dds[which(mcols(dds)$betaConv),]
 dds<-ddsClean
-
+save(dds,file="../../dds_interactionConditionSpecies.RData")
 #==========================================
 
 # QA of DESeq
