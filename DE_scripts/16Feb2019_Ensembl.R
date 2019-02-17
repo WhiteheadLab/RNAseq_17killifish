@@ -1494,6 +1494,7 @@ length(clade2_common_genes)
 length(as.vector(Lpar_counts_table_ann_up$ensembl_peptide_id))
 clade2_common_genes <- union(clade2_common_genes,as.vector(Lpar_counts_table_ann_up$ensembl_peptide_id))
 length(clade2_common_genes)
+
 # Clade 3
 
 # ============================================
@@ -1659,7 +1660,7 @@ heatmap.2(d, main="F. heteroclitus (MDPL population), FC < 0.5, common sig genes
 # F. heteroclitus MDPP population
 FhetMDPP_cols <- c(FhetMDPP_FW_cols,FhetMDPP_BW_cols)
 FhetMDPP_counts <- counts_table[rownames(counts_table) %in% rownames(FhetMDPP_counts_table_ann_up),]
-FhetMDPP_counts <- FhetMDPL_counts[,FhetMDPL_cols]
+FhetMDPP_counts <- FhetMDPP_counts[,FhetMDPP_cols]
 id <-rownames(FhetMDPP_counts)
 d<-as.matrix(FhetMDPP_counts)
 hr <- hclust(as.dist(1-cor(t(d), method="pearson")), method="complete")
