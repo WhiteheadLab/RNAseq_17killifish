@@ -135,152 +135,95 @@ counts_table <- read.csv("../../killifish_counts_filtered_64samples0.01.csv")
 load("../../dds_interactionConditionSpecies.RData")
 ```
 
-# Salinity genes of interest
-
-
-```{r get results,message=FALSE,warning=FALSE}
-# Clade1_F_catanatus (reference level)
-res_Fdiaphanus_BW_v_FW <- read.csv("../../res_Fdiaphanus_BW_v_FW.csv")
-# ---------------------------
-# Andrew Whitehead's genes of interest:
-# ---------------------------
-# zymogen granule membrane protein 16
-# Funhe2EKm029929
-goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000007220.1"]
-# zymogen granule membrane protein 16
-# Funhe2EKm029931
-goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000025841"]
-# solute carrier family 12 member 3-like (removed) 
-# Funhe2EKm006896
-goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000009214"]
-# chloride channel, voltage-sensitive 2 (clcn2), transcript variant X2 (removed)
-# Funhe2EKm024148
-goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000019510"]
-# ATP-sensitive inward rectifier potassium channel 1 
-# Funhe2EKm001965
-goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000015383"]
-# inward rectifier potassium channel 2
-#Funhe2EKm023780
-goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000009753"]
-# --------------------------------
-# other salinity genes of interest
-# --------------------------------
-# ============================================
-# aquaporin-3
-goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000006725"]
-# cftr
-# Funhe2EKm024501
-goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000008393"]
-# polyamine-modulated factor 1-like
-# Funhe2EKm031049
-goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000013324"]
-# sodium/potassium/calcium exchanger 2
-# ENSFHEP00000034177
-# Funhe2EKm025497
-goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000034177"]
-# septin-2B isoform X2
-# ENSFHEP00000015765
-goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000015765"]
-# CLOCK-interacting pacemaker-like
-# ENSFHEP00000017303
-# Funhe2EKm026846
-goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000017303"]
-# vasopressin V2 receptor-like
-# Funhe2EKm026721
-goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000000036"]
-# sodium/potassium-transporting ATPase subunit beta-1-interacting protein 1
-# ENSFHEP00000031108
-# Funhe2EKm001174
-goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000031108"]
-# septin-2
-# Funhe2EKm012182
-goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000016853"]
-# otopetrin-2
-# Funhe2EKm035427
-goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000026411"]
-# claudin 8
-# Funhe2EKm037718
-goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000006282"]
-# claudin 4
-# ENSFHEP00000003908
-# Funhe2EKm007149
-goi <- res_Fdiaphanus_BW_v_FW$row[res_Fdiaphanus_BW_v_FW$row == "ENSFHEP00000003908"]
-all_goi<-c("ENSFHEP00000007220.1","ENSFHEP00000025841","ENSFHEP00000019510",
-           "ENSFHEP00000015383","ENSFHEP00000009753","ENSFHEP00000006725","ENSFHEP00000008393",
-           "ENSFHEP00000013324","ENSFHEP00000001609","ENSFHEP00000013324","ENSFHEP00000034177",
-           "ENSFHEP00000015765","ENSFHEP00000017303","ENSFHEP00000000036","ENSFHEP00000031108",
-           "ENSFHEP00000016853","ENSFHEP00000003908")
-for (i in all_goi){
-  tcounts <- t(log2((counts(dds[i, ], normalized=TRUE, replaced=FALSE)+.5))) %>% 
-    merge(colData(dds), ., by="row.names") %>% 
-    gather(gene, expression, (ncol(.)-length(i)+1):ncol(.))
-  
-  C1<-ggplot(tcounts %>%
-               filter(clade=='Clade1'),
-             aes(factor(condition,levels = c("0.2_ppt","transfer","15_ppt")), expression)) +
-    geom_point(aes(color=physiology)) +
-    stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
-    facet_grid(~gene~species,scales='fixed') +
-    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-                 geom="errorbar", aes(color=physiology),width=0.2) +
-    theme_bw() +
-    theme(legend.position="none",panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.text.x = element_text(angle = 90, hjust = 1),
-          strip.text.y = element_blank(),
-          axis.title.x = element_blank()) +
-    labs(y="Expression (log2 normalized counts)")+
-    ggtitle("Clade 1")
-  
-  #plot(C1)
-  C2<-ggplot(tcounts %>%
-               filter(clade=='Clade2'),
-             aes(factor(condition,levels = c("0.2_ppt","transfer","15_ppt")), expression)) + 
-    geom_point(aes(color=physiology)) +
-    stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
-    facet_grid(~gene~species,scales='fixed') +
-    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-                 geom="errorbar", aes(color=physiology),width=0.2) +
-    theme_bw() +
-    theme(legend.position="bottom",panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.text.x = element_text(angle = 90, hjust = 1),
-          axis.title.y = element_blank(),
-          strip.text.y = element_blank()) +
-    labs(x="salinity treatment")+
-    ggtitle("Clade 2")
-  #plot(C2)
-  C3<-ggplot(tcounts %>%
-               filter(clade=='Clade3'),
-             aes(factor(condition,levels = c("0.2_ppt","transfer","15_ppt")), expression)) + 
-    geom_point(aes(color=physiology)) +
-    stat_summary(fun.y="mean", geom="line", aes(group=physiology,color=physiology)) +
-    facet_grid(~gene~species,scales='fixed',labeller=) +
-    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-                 geom="errorbar", aes(color=physiology), width=0.2) +
-    theme_bw() +
-    theme(legend.position="none",panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.text.x = element_text(angle = 90, hjust = 1),
-          axis.title.y = element_blank(),
-          axis.title.x = element_blank()) +
-    ggtitle("Clade 3")
-  #plot(C3)
-  grid.arrange(C1,C2,C3,ncol=3)
-}
+```{r get annotated counts tables,results='hide', include=FALSE}
+# load counts, stats, annotation tables
+Fcat_counts_table_ann <- read.csv("../../counts_stats_byspecies/Fcat_stats_annotations_counts.csv",row.names = 1)
+Fdia_counts_table_ann <- read.csv("../../counts_stats_byspecies/Fdiaphanus_stats_annotations_counts.csv",row.names = 1)
+Fgran_counts_table_ann <- read.csv("../../counts_stats_byspecies/Fgrandis_stats_annotations_counts.csv",row.names = 1)
+FhetMDPL_counts_table_ann <- read.csv("../../counts_stats_byspecies/FheteroclitusMDPL_stats_annotations_counts.csv",row.names = 1)
+FhetMDPP_counts_table_ann <- read.csv("../../counts_stats_byspecies/FheteroclitusMDPP_stats_annotations_counts.csv",row.names = 1)
+Frath_counts_table_ann <- read.csv("../../counts_stats_byspecies/Frathbuni_stats_annotations_counts.csv",row.names = 1)
+Fsim_counts_table_ann <- read.csv("../../counts_stats_byspecies/Fsimils_stats_annotations_counts.csv",row.names = 1)
+Fparv_counts_table_ann <- read.csv("../../counts_stats_byspecies/Fparvapinis_stats_annotations_counts.csv",row.names = 1)
+Lgod_counts_table_ann <- read.csv("../../counts_stats_byspecies/Lgoodei_stats_annotations_counts.csv",row.names = 1)
+Lpar_counts_table_ann <- read.csv("../../counts_stats_byspecies/Lparva_stats_annotations_counts.csv",row.names = 1)
+Axen_counts_table_ann <- read.csv("../../counts_stats_byspecies/Axenica_stats_annotations_counts.csv",row.names = 1)
+Fchry_counts_table_ann <- read.csv("../../counts_stats_byspecies/Fchrysotus_stats_annotations_counts.csv",row.names = 1)
+Fnota_counts_table_ann <- read.csv("../../counts_stats_byspecies/Fnotatus_stats_annotations_counts.csv",row.names = 1)
+Foli_counts_table_ann <- read.csv("../../counts_stats_byspecies/Folivaceus_stats_annotations_counts.csv",row.names = 1)
+Fsci_counts_table_ann <- read.csv("../../counts_stats_byspecies/Fsciadicus_stats_annotations_counts.csv",row.names = 1)
+Fzeb_counts_table_ann <- read.csv("../../counts_stats_byspecies/Fzebrinus_stats_annotations_counts.csv",row.names = 1)
+# Clade 1
+Fcat_counts_table_ann_sig <- subset(Fcat_counts_table_ann,Fcat_counts_table_ann$`padj-15ppt-v-0.2ppt`<0.05)
+Fcat_counts_table_ann_up <- subset(Fcat_counts_table_ann_sig,Fcat_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
+Fcat_counts_table_ann_down <- subset(Fcat_counts_table_ann_sig,Fcat_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
+#dim(Fcat_counts_table_ann_sig)
+Fdia_counts_table_ann_sig <- subset(Fdia_counts_table_ann,Fdia_counts_table_ann$`padj-15ppt-v-0.2ppt`<0.05)
+Fdia_counts_table_ann_up <- subset(Fdia_counts_table_ann_sig,Fdia_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
+Fdia_counts_table_ann_down <- subset(Fdia_counts_table_ann_sig,Fdia_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
+#dim(Fdia_counts_table_ann_sig)
+Fgran_counts_table_ann_sig <- subset(Fgran_counts_table_ann,Fgran_counts_table_ann$`padj-15ppt-v-0.2ppt`<0.05)
+Fgran_counts_table_ann_up <- subset(Fgran_counts_table_ann_sig,Fgran_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
+Fgran_counts_table_ann_down <- subset(Fgran_counts_table_ann_sig,Fgran_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
+#dim(Fgran_counts_table_ann_sig)
+FhetMDPL_counts_table_ann_sig <- subset(FhetMDPL_counts_table_ann,FhetMDPL_counts_table_ann$`padj-15ppt-v-0.2ppt`<0.05)
+FhetMDPL_counts_table_ann_up <- subset(FhetMDPL_counts_table_ann_sig,FhetMDPL_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
+FhetMDPL_counts_table_ann_down <- subset(FhetMDPL_counts_table_ann_sig,FhetMDPL_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
+#dim(FhetMDPL_counts_table_ann_sig)
+FhetMDPP_counts_table_ann_sig <- subset(FhetMDPP_counts_table_ann,FhetMDPP_counts_table_ann$`padj-15ppt-v-0.2ppt`<0.05)
+FhetMDPP_counts_table_ann_up <- subset(FhetMDPP_counts_table_ann_sig,FhetMDPP_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
+FhetMDPP_counts_table_ann_down <- subset(FhetMDPP_counts_table_ann_sig,FhetMDPP_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
+#dim(FhetMDPP_counts_table_ann_sig)
+Frath_counts_table_ann_sig <- subset(Frath_counts_table_ann,Frath_counts_table_ann$`padj-15ppt-v-0.2ppt`<0.05)
+Frath_counts_table_ann_up <- subset(Frath_counts_table_ann_sig,Frath_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
+Frath_counts_table_ann_down <- subset(Frath_counts_table_ann_sig,Frath_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
+#dim(Frath_counts_table_ann_sig)
+Fsim_counts_table_ann_sig <- subset(Fsim_counts_table_ann,Fsim_counts_table_ann$`padj-15ppt-v-0.2ppt`<0.05)
+Fsim_counts_table_ann_up <- subset(Fsim_counts_table_ann_sig,Fsim_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
+Fsim_counts_table_ann_down <- subset(Fsim_counts_table_ann_sig,Fsim_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
+#dim(Fsim_counts_table_ann_sig)
+# Clade 2
+Fparv_counts_table_ann_sig <- subset(Fparv_counts_table_ann,Fparv_counts_table_ann$`padj-15ppt-v-0.2ppt`<0.05)
+Fparv_counts_table_ann_up <- subset(Fparv_counts_table_ann_sig,Fparv_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
+Fparv_counts_table_ann_down <- subset(Fparv_counts_table_ann_sig,Fparv_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
+#dim(Fparv_counts_table_ann_sig)
+Lgod_counts_table_ann_sig <- subset(Lgod_counts_table_ann,Lgod_counts_table_ann$`padj-15ppt-v-0.2ppt`<0.05)
+Lgod_counts_table_ann_up <- subset(Lgod_counts_table_ann_sig,Lgod_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
+Lgod_counts_table_ann_down <- subset(Lgod_counts_table_ann_sig,Lgod_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
+#dim(Lgod_counts_table_ann_sig)
+Lpar_counts_table_ann_sig <- subset(Lpar_counts_table_ann,Lpar_counts_table_ann$`padj-15ppt-v-0.2ppt`<0.05)
+Lpar_counts_table_ann_up <- subset(Lpar_counts_table_ann_sig,Lpar_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
+Lpar_counts_table_ann_down <- subset(Lpar_counts_table_ann_sig,Lpar_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
+#dim(Lpar_counts_table_ann_sig)
+# Clade 3
+Axen_counts_table_ann_sig <- subset(Axen_counts_table_ann,Axen_counts_table_ann$`padj-15ppt-v-0.2ppt`<0.05)
+Axen_counts_table_ann_up <- subset(Axen_counts_table_ann_sig,Axen_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
+Axen_counts_table_ann_down <- subset(Axen_counts_table_ann_sig,Axen_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
+#dim(Axen_counts_table_ann_sig)
+Fchry_counts_table_ann_sig <- subset(Fchry_counts_table_ann,Fchry_counts_table_ann$`padj-15ppt-v-0.2ppt`<0.05)
+Fchry_counts_table_ann_up <- subset(Fchry_counts_table_ann_sig,Fchry_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
+Fchry_counts_table_ann_down <- subset(Fchry_counts_table_ann_sig,Fchry_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
+#dim(Fchry_counts_table_ann_sig)
+Fnota_counts_table_ann_sig <- subset(Fnota_counts_table_ann,Fnota_counts_table_ann$`padj-15ppt-v-0.2ppt`<0.05)
+Fnota_counts_table_ann_up <- subset(Fnota_counts_table_ann_sig,Fnota_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
+Fnota_counts_table_ann_down <- subset(Fnota_counts_table_ann_sig,Fnota_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
+#dim(Fnota_counts_table_ann_sig)
+Foli_counts_table_ann_sig <- subset(Foli_counts_table_ann,Foli_counts_table_ann$`padj-15ppt-v-0.2ppt`<0.05)
+Foli_counts_table_ann_up <- subset(Foli_counts_table_ann_sig,Foli_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
+Foli_counts_table_ann_down <- subset(Foli_counts_table_ann_sig,Foli_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
+#dim(Foli_counts_table_ann_sig)
+Fsci_counts_table_ann_sig <- subset(Fsci_counts_table_ann,Fsci_counts_table_ann$`padj-15ppt-v-0.2ppt`<0.05)
+Fsci_counts_table_ann_up <- subset(Fsci_counts_table_ann_sig,Fsci_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
+Fsci_counts_table_ann_down <- subset(Fsci_counts_table_ann_sig,Fsci_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
+#dim(Fsci_counts_table_ann_sig)
+Fzeb_counts_table_ann_sig <- subset(Fzeb_counts_table_ann,Fzeb_counts_table_ann$`padj-15ppt-v-0.2ppt`<0.05)
+Fzeb_counts_table_ann_up <- subset(Fzeb_counts_table_ann_sig,Fzeb_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
+Fzeb_counts_table_ann_down <- subset(Fzeb_counts_table_ann_sig,Fzeb_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
+#dim(Fzeb_counts_table_ann_sig)
 ```
 
-```{r heatmaps of species sig up and down genes, }
-
-
-
-
-
-# ============================================
-#
-# Heatmaps of sig genes for each species
-# separate between up and down
-# ============================================
+```{r set column names,results='hide', include=FALSE}
+# column names for each species
 # clade1
 Fcat_TR_cols <- c("F_catanatus_transfer_1.quant","F_catanatus_transfer_2.quant")
 Fcat_FW_cols <- c("F_catanatus_FW_1.quant","F_catanatus_FW_2.quant")
@@ -331,50 +274,52 @@ Fsci_FW_cols <- c("F_sciadicus_FW_1.quant","F_sciadicus_FW_2.quant")
 Fsci_TR_cols <- c("F_sciadicus_transfer_1.quant")
 Fzeb_BW_cols <- c("F_zebrinus_BW_1.quant","F_zebrinus_BW_2.quant")
 Fzeb_FW_cols <- c("F_zebrinus_FW_1.quant","F_zebrinus_FW_2.quant")
-
-
-
-
 counts_table = counts(dds, normalized=TRUE)
-Fcat_cols <- c(Fcat_FW_cols,Fcat_BW_cols)
-Fcat_counts <- counts_table[rownames(counts_table) %in% rownames(Fcat_counts_table_ann_up),]
-Fcat_counts <- Fcat_counts[,Fcat_cols]
-id <-rownames(Fcat_counts)
-d<-as.matrix(Fcat_counts)
-hr <- hclust(as.dist(1-cor(t(d), method="pearson")), method="complete")
+```
 
-mycl <- cutree(hr, h=max(hr$height/1.5))
-clusterCols <- rainbow(length(unique(mycl)))
-myClusterSideBar <- clusterCols[mycl]
-myheatcol <- greenred(75)
-heatmap.2(d, main="F. catanatus, FC > 0.5, common sig genes (padj<0.05)",
-          Rowv=as.dendrogram(hr),
-          cexRow=0.75,cexCol=0.8,srtCol= 90,
-          adjCol = c(NA,0),offsetCol=2.5, 
-          Colv=NA, dendrogram="row", 
-          scale="row", col=myheatcol, 
-          density.info="none", 
-          trace="none", RowSideColors= myClusterSideBar)
-Fcat_counts <- counts_table[rownames(counts_table) %in% rownames(Fcat_counts_table_ann_down),]
-Fcat_counts <- Fcat_counts[,Fcat_cols]
-id <-rownames(Fcat_counts)
-d<-as.matrix(Fcat_counts)
-hr <- hclust(as.dist(1-cor(t(d), method="pearson")), method="complete")
-mycl <- cutree(hr, h=max(hr$height/1.5))
-clusterCols <- rainbow(length(unique(mycl)))
-myClusterSideBar <- clusterCols[mycl]
-myheatcol <- greenred(75)
-heatmap.2(d, main="F. catanatus, FC < 0.5, common sig genes (padj<0.05)",
-          Rowv=as.dendrogram(hr),
-          cexRow=0.75,cexCol=0.8,srtCol= 90,
-          adjCol = c(NA,0),offsetCol=2.5, 
-          Colv=NA, dendrogram="row", 
-          scale="row", col=myheatcol, 
-          density.info="none", 
-          trace="none", RowSideColors= myClusterSideBar)
+# Clade 1 Heatmaps
 
+```{r F. catanatus heatmap,}
+#Fcat_cols <- c(Fcat_FW_cols,Fcat_BW_cols)
+#Fcat_counts <- counts_table[rownames(counts_table) %in% rownames(Fcat_counts_table_ann_up),]
+#Fcat_counts <- Fcat_counts[,Fcat_cols]
+#id <-rownames(Fcat_counts)
+#d<-as.matrix(Fcat_counts)
+#hr <- hclust(as.dist(1-cor(t(d), method="pearson")), method="complete")
+#mycl <- cutree(hr, h=max(hr$height/1.5))
+#clusterCols <- rainbow(length(unique(mycl)))
+#myClusterSideBar <- clusterCols[mycl]
+#myheatcol <- greenred(75)
+#heatmap.2(d, main="F. catanatus, FC > 0.5, common sig genes (padj<0.05)",
+#          Rowv=as.dendrogram(hr),
+#          cexRow=0.75,cexCol=0.8,srtCol= 90,
+#          adjCol = c(NA,0),offsetCol=2.5, 
+#          Colv=NA, dendrogram="row", 
+#          scale="row", col=myheatcol, 
+#          density.info="none", 
+#          trace="none", RowSideColors= myClusterSideBar)
+#Fcat_counts <- counts_table[rownames(counts_table) %in% rownames(Fcat_counts_table_ann_down),]
+#Fcat_counts <- Fcat_counts[,Fcat_cols]
+#id <-rownames(Fcat_counts)
+#d<-as.matrix(Fcat_counts)
+#hr <- hclust(as.dist(1-cor(t(d), method="pearson")), method="complete")
+#mycl <- cutree(hr, h=max(hr$height/1.5))
+#clusterCols <- rainbow(length(unique(mycl)))
+#myClusterSideBar <- clusterCols[mycl]
+#myheatcol <- greenred(75)
+#heatmap.2(d, main="F. catanatus, FC < 0.5, common sig genes (padj<0.05)",
+#          Rowv=as.dendrogram(hr),
+#          cexRow=0.75,cexCol=0.8,srtCol= 90,
+#          adjCol = c(NA,0),offsetCol=2.5, 
+#          Colv=NA, dendrogram="row", 
+#          scale="row", col=myheatcol, 
+#          density.info="none", 
+#          trace="none", RowSideColors= myClusterSideBar)
+```
+
+
+```{r F. diaphanus heatmap,}
 # F. diaphanus
-
 Fdia_cols <- c(Fdia_FW_cols,Fdia_BW_cols)
 Fdia_counts <- counts_table[rownames(counts_table) %in% rownames(Fdia_counts_table_ann_up),]
 Fdia_counts <- Fdia_counts[,Fdia_cols]
@@ -410,9 +355,10 @@ heatmap.2(d, main="F. diaphanus, FC < 0.5, common sig genes (padj<0.05)",
           scale="row", col=myheatcol, 
           density.info="none", 
           trace="none", RowSideColors= myClusterSideBar)
+```
 
+```{r F. grandis heatmap,}
 # F. grandis
-
 Fgran_cols <- c(Fgran_FW_cols,Fgran_BW_cols)
 Fgran_counts <- counts_table[rownames(counts_table) %in% rownames(Fgran_counts_table_ann_up ),]
 Fgran_counts <- Fgran_counts[,Fgran_cols]
@@ -448,9 +394,10 @@ heatmap.2(d, main="F. diaphanus, FC < 0.5, common sig genes (padj<0.05)",
           scale="row", col=myheatcol, 
           density.info="none", 
           trace="none", RowSideColors= myClusterSideBar)
+```
 
+```{r F. heteroclitus MDPL population heatmap,}
 # F. heteroclitus MDPL population
-
 FhetMDPL_cols <- c(FhetMDPL_FW_cols,FhetMDPL_BW_cols)
 FhetMDPL_counts <- counts_table[rownames(counts_table) %in% rownames(FhetMDPL_counts_table_ann_up),]
 FhetMDPL_counts <- FhetMDPL_counts[,FhetMDPL_cols]
@@ -486,7 +433,10 @@ heatmap.2(d, main="F. heteroclitus (MDPL population), FC < 0.5, common sig genes
           scale="row", col=myheatcol, 
           density.info="none", 
           trace="none", RowSideColors= myClusterSideBar)
+```
 
+
+```{r F. heteroclitus MDPP population heatmap,}
 # F. heteroclitus MDPP population
 FhetMDPP_cols <- c(FhetMDPP_FW_cols,FhetMDPP_BW_cols)
 FhetMDPP_counts <- counts_table[rownames(counts_table) %in% rownames(FhetMDPP_counts_table_ann_up),]
@@ -523,7 +473,10 @@ heatmap.2(d, main="F. heteroclitus (MDPP population), FC < 0.5, common sig genes
           scale="row", col=myheatcol, 
           density.info="none", 
           trace="none", RowSideColors= myClusterSideBar)
+```
 
+
+```{r F. rathbuni heatmap,}
 # F. rathbuni
 Frath_cols <- c(Frath_FW_cols,Frath_BW_cols)
 Frath_counts <- counts_table[rownames(counts_table) %in% rownames(Frath_counts_table_ann_up),]
@@ -560,7 +513,10 @@ heatmap.2(d, main="F. rathbuni, FC < 0.5, common sig genes (padj<0.05)",
           scale="row", col=myheatcol, 
           density.info="none", 
           trace="none", RowSideColors= myClusterSideBar)
+```
 
+
+```{r F. similis heatmap,}
 # F. similis
 Fsim_cols <- c(Fsim_FW_cols,Fsim_BW_cols)
 Fsim_counts <- counts_table[rownames(counts_table) %in% rownames(Fsim_counts_table_ann_up),]
@@ -597,8 +553,11 @@ heatmap.2(d, main="F. similis, FC < 0.5, common sig genes (padj<0.05)",
           scale="row", col=myheatcol, 
           density.info="none", 
           trace="none", RowSideColors= myClusterSideBar)
+```
 
+# Clade 2 Heatmaps
 
+```
 # Clade 2
 # F. parvapinis
 Fparv_cols <- c(Fparv_FW_cols,Fparv_BW_cols)
@@ -636,7 +595,9 @@ heatmap.2(d, main="F. parvapinis, FC < 0.5, common sig genes (padj<0.05)",
           scale="row", col=myheatcol, 
           density.info="none", 
           trace="none", RowSideColors= myClusterSideBar)
+```
 
+```{r L. goodei heatmap,}
 # L. goodei
 Lgod_cols <- c(Lgod_FW_cols,Lgod_BW_cols)
 Lgod_counts <- counts_table[rownames(counts_table) %in% rownames(Lgod_counts_table_ann_up),]
@@ -673,9 +634,11 @@ heatmap.2(d, main="L. goodei, FC < 0.5, common sig genes (padj<0.05)",
           scale="row", col=myheatcol, 
           density.info="none", 
           trace="none", RowSideColors= myClusterSideBar)
+```
 
 
-#L. parva
+```{r L. parva heatmaps,}
+# L. parva
 Lpar_cols <- c(Lpar_FW_cols,Lpar_BW_cols)
 Lpar_counts <- counts_table[rownames(counts_table) %in% rownames(Lpar_counts_table_ann_up),]
 Lpar_counts <- Lpar_counts[,Lpar_cols]
@@ -711,8 +674,12 @@ heatmap.2(d, main="L. parva, FC < 0.5, common sig genes (padj<0.05)",
           scale="row", col=myheatcol, 
           density.info="none", 
           trace="none", RowSideColors= myClusterSideBar)
+```
 
-# Clade 3
+
+# Clade 3 heatmaps
+
+```{r A. xenica heatmaps,}
 Axen_cols <- c(Axen_FW_cols,Axen_BW_cols)
 Axen_counts <- counts_table[rownames(counts_table) %in% rownames(Axen_counts_table_ann_up),]
 Axen_counts <- Axen_counts[,Axen_cols]
@@ -748,7 +715,9 @@ heatmap.2(d, main="A. xenica, FC > 0.5, common sig genes (padj<0.05)",
 #          scale="row", col=myheatcol, 
 #          density.info="none", 
 #          trace="none", RowSideColors= myClusterSideBar)
+```
 
+```{r F. chrysotus heatmaps,}
 # F. chrysotus
 Fchry_cols <- c(Fchry_FW_cols,Fchry_BW_cols)
 Fchry_counts <- counts_table[rownames(counts_table) %in% rownames(Fchry_counts_table_ann_up),]
@@ -785,7 +754,10 @@ heatmap.2(d, main="F. chrysotus, FC < 0.5, common sig genes (padj<0.05)",
           scale="row", col=myheatcol, 
           density.info="none", 
           trace="none", RowSideColors= myClusterSideBar)
+```
 
+
+```{r F. notatus heatmaps,}
 # F. notatus
 Fnota_cols <- c(Fnota_FW_cols,Fnota_BW_cols)
 Fnota_counts <- counts_table[rownames(counts_table) %in% rownames(Fnota_counts_table_ann_up),]
@@ -822,8 +794,10 @@ heatmap.2(d, main="F. notatus, FC < 0.5, common sig genes (padj<0.05)",
           scale="row", col=myheatcol, 
           density.info="none", 
           trace="none", RowSideColors= myClusterSideBar)
+```
 
 
+```{r F. olivaceus heatmaps,}
 # F. olivaceus
 Foli_cols <- c(Foli_FW_cols,Foli_BW_cols)
 Foli_counts <- counts_table[rownames(counts_table) %in% rownames(Foli_counts_table_ann_up),]
@@ -860,7 +834,10 @@ heatmap.2(d, main="F. olivaceus, FC > 0.5, common sig genes (padj<0.05)",
 #          scale="row", col=myheatcol, 
 #          density.info="none", 
 #          trace="none", RowSideColors= myClusterSideBar)
+```
 
+
+```{r F. sciadicus heatmaps,}
 # F. sciadicus
 Fsci_cols <- c(Fsci_FW_cols,Fsci_BW_cols)
 Fsci_counts <- counts_table[rownames(counts_table) %in% rownames(Fsci_counts_table_ann_up),]
@@ -897,8 +874,10 @@ heatmap.2(d, main="F. sciadicus, FC < 0.5, common sig genes (padj<0.05)",
           scale="row", col=myheatcol, 
           density.info="none", 
           trace="none", RowSideColors= myClusterSideBar)
+```
 
 
+```{r F. zebrinus heatmaps,}
 # F. zebrinus
 Fzeb_cols <- c(Fzeb_FW_cols,Fzeb_BW_cols)
 Fzeb_counts <- counts_table[rownames(counts_table) %in% rownames(Fzeb_counts_table_ann_up),]

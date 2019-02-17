@@ -1,0 +1,178 @@
+---
+title: "RNAseq, multispecies killifish osmotic challenge"
+author: "Lisa K. Johnson"
+date: '`r Sys.Date()`'
+output:
+  html_document:
+    code_folding: hide
+    collapsed: no
+    df_print: paged
+    number_sections: yes
+    theme: cerulean
+    toc: yes
+    toc_depth: 5
+    toc_float: yes
+---
+
+```{r LoadPackages, results='hide', include=FALSE}
+# Install function for packages    
+packages<-function(x){
+  x<-as.character(match.call()[[2]])
+  if (!require(x,character.only=TRUE)){
+    install.packages(pkgs=x,repos="http://cran.r-project.org")
+    require(x,character.only=TRUE)
+  }
+}
+bioconductors <- function(x){
+    x<- as.character(match.call()[[2]])
+    if (!require(x, character.only = TRUE)){
+      source("https://bioconductor.org/biocLite.R")
+      biocLite(pkgs=x)
+      require(x, character.only = TRUE)
+    }
+}
+# for QC
+packages("RColorBrewer")
+packages("pheatmap")
+packages("vsn")
+packages(pheatmap)
+packages(cowplot)
+# for DESeq
+packages(lattice)
+packages(RColorBrewer)
+packages(dplyr)
+packages(tidyr)
+packages(gplots)
+packages(ggplot2)
+packages(gridExtra)
+bioconductors(DESeq2)
+bioconductors(tximport)
+bioconductors(biomaRt)
+```
+
+```{r load custom scripts and data, results='hide', include=FALSE}
+if(!file.exists('plotPCAWithSampleNames.R')){
+  download.file('https://gist.githubusercontent.com/ljcohen/d6cf3367efae60d7fa1ea383fd7a1296/raw/f11030ced8c7953be6fada0325b92c20d369e0a7/plotPCAWithSampleNames.R', 'plotPCAWithSampleNames.R')
+  }
+source('plotPCAWithSampleNames.R')
+if(!file.exists('overLapper_original.R')){
+  download.file("https://gist.githubusercontent.com/ljcohen/b7e5fa93b8b77c33d26e4c44cadb5bb7/raw/3a2f84be2e937ef721cafaf308ff6456168f30d9/overLapper_original.R",'overLapper_original.R')
+}
+source('overLapper_original.R')
+# This is just the counts with Experimental Design Info in the last 5 rows
+if(!file.exists('../../Ensembl_species_counts_designfactors.csv')){
+  download.file("https://osf.io/7vp38/download",'../../Ensembl_species_counts_designfactors.csv')
+}
+counts_design <- read.csv("../../Ensembl_species_counts_designfactors.csv",stringsAsFactors = FALSE)
+```
+
+```{r format counts and ExpDesign, include=FALSE, results='hide'}
+design <- counts_design[counts_design$Ensembl == 'Empty',]
+#design$type <- c("species","native_salinity","clade","group","condition")
+drops <- c("X","Ensembl")
+counts<-counts_design[!counts_design$Ensembl == 'Empty',]
+rownames(counts)<-counts$Ensembl
+design <- design[ , !(names(design) %in% drops)]
+counts <- counts[ , !(names(counts) %in% drops)]
+dim(design)
+dim(counts)
+```
+
+```{r design for DESeq, results='hide', include=FALSE}
+# design cateogories (full)
+species<-as.character(unlist(design[1,]))
+physiology<-as.character(unlist(design[2,]))
+clade<-as.character(unlist(design[3,]))
+np_cl<-as.character(unlist(design[4,]))
+condition<-as.character(unlist(design[5,]))
+species_physiology<-as.vector(paste(np_cl, species, sep="_"))
+species_condition<-as.vector(paste(species,condition,sep="_"))
+species_group<-as.vector(paste(np_cl,species,sep="_"))
+species_clade<-as.vector(paste(clade,species,sep="_"))
+```
+
+At least 64 samples have a count of at least 0.01:
+
+```{r filtering12,}
+filter <- rownames(counts[rowSums(counts >= 0.01) >= 64,])
+filtered_counts <- counts[filter,]
+dim(filtered_counts)
+```
+
+# DESeq analysis
+
+Design
+
+```{r DESeq2 design,}
+cols<-colnames(counts)
+ExpDesign <- data.frame(row.names=cols, physiology=physiology,condition=condition, species = species, clade=clade,species_condition=species_condition,species_clade = species_clade)
+ExpDesign
+```
+
+Clade1_F_catanatus and 0.2 ppt are reference levels for comparison.
+
+```
+m1 <- model.matrix(~condition + species_clade + species_clade:condition,ExpDesign)
+```
+
+```{r DESeq2 filter design for missing samples, results='hide', include=FALSE}
+m1 <- model.matrix(~condition + species_clade + species_clade:condition,ExpDesign)
+#colnames(m1)
+all.zero <- apply(m1, 2, function(x) all(x==0))
+idx <- which(all.zero)
+m1 <- m1[,-idx]
+```
+
+```{r run DESeq2,results='hide', include=FALSE}
+counts_round<- round(data.matrix(filtered_counts),digits=0)
+counts_table <- read.csv("../../killifish_counts_filtered_64samples0.01.csv")
+#load("../../dds_interactionConditionSpecies.RData")
+FhetMDPP_counts_table_ann <- read.csv("../../counts_stats_byspecies/FheteroclitusMDPP_stats_annotations_counts.csv",row.names = 1)
+FhetMDPP_counts_table_ann_sig <- subset(FhetMDPP_counts_table_ann,FhetMDPP_counts_table_ann$`padj-15ppt-v-0.2ppt`<0.05)
+FhetMDPP_counts_table_ann_up <- subset(FhetMDPP_counts_table_ann_sig,FhetMDPP_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
+FhetMDPP_counts_table_ann_down <- subset(FhetMDPP_counts_table_ann_sig,FhetMDPP_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
+FhetMDPP_BW_cols <- c("F_heteroclitusMDPP_BW_1.quant" , "F_heteroclitusMDPP_BW_2.quant" , "F_heteroclitusMDPP_BW_3.quant")
+FhetMDPP_FW_cols <- c("F_heteroclitusMDPP_FW_1.quant", "F_heteroclitusMDPP_FW_2.quant", "F_heteroclitusMDPP_FW_3.quant")
+FhetMDPP_TR_cols <- c("F_heteroclitusMDPP_transfer_1.quant", "F_heteroclitusMDPP_transfer_2.quant", "F_heteroclitusMDPP_transfer_3.quant")
+# F. heteroclitus MDPP population
+FhetMDPP_cols <- c(FhetMDPP_FW_cols,FhetMDPP_BW_cols)
+FhetMDPP_counts <- counts_table[rownames(counts_table) %in% rownames(FhetMDPP_counts_table_ann_up),]
+FhetMDPP_counts <- FhetMDPP_counts[,FhetMDPP_cols]
+id <-rownames(FhetMDPP_counts)
+d<-as.matrix(FhetMDPP_counts)
+hr <- hclust(as.dist(1-cor(t(d), method="pearson")), method="complete")
+mycl <- cutree(hr, h=max(hr$height/1.5))
+clusterCols <- rainbow(length(unique(mycl)))
+myClusterSideBar <- clusterCols[mycl]
+myheatcol <- greenred(75)
+heatmap.2(d, main="F. heteroclitus (MDPP population), FC > 0.5, common sig genes (padj<0.05)",
+          Rowv=as.dendrogram(hr),
+          cexRow=0.75,cexCol=0.8,srtCol= 90,
+          adjCol = c(NA,0),offsetCol=2.5, 
+          Colv=NA, dendrogram="row", 
+          scale="row", col=myheatcol, 
+          density.info="none", 
+          trace="none", RowSideColors= myClusterSideBar)
+FhetMDPP_counts <- counts_table[rownames(counts_table) %in% rownames(FhetMDPP_counts_table_ann_down),]
+FhetMDPP_counts <- FhetMDPP_counts[,FhetMDPP_cols]
+id <-rownames(FhetMDPP_counts)
+d<-as.matrix(FhetMDPP_counts)
+hr <- hclust(as.dist(1-cor(t(d), method="pearson")), method="complete")
+mycl <- cutree(hr, h=max(hr$height/1.5))
+clusterCols <- rainbow(length(unique(mycl)))
+myClusterSideBar <- clusterCols[mycl]
+myheatcol <- greenred(75)
+heatmap.2(d, main="F. heteroclitus (MDPP population), FC < 0.5, common sig genes (padj<0.05)",
+          Rowv=as.dendrogram(hr),
+          cexRow=0.75,cexCol=0.8,srtCol= 90,
+          adjCol = c(NA,0),offsetCol=2.5, 
+          Colv=NA, dendrogram="row", 
+          scale="row", col=myheatcol, 
+          density.info="none", 
+          trace="none", RowSideColors= myClusterSideBar)
+```
+
+
+```{r Display versions,}
+sessionInfo()
+```
