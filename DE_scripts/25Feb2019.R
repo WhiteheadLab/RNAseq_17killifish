@@ -103,11 +103,11 @@ dim(counts)
 # Filter, all 128 samples have a count of at least 0.01
 
 #------------------------
-#filter <- rownames(counts[rowSums(counts >= 0.01) >= 64,])
+filter <- rownames(counts[rowSums(counts >= 0.01) >= 64,])
 #filter <- rownames(counts[rowSums(counts >= 0.01) >= 100,])
 #filter <- rownames(counts[rowSums(counts >= 0.01) >= 128,])
-#filtered_counts <- counts[filter,]
-#dim(filtered_counts)
+filtered_counts <- counts[filter,]
+dim(filtered_counts)
 #------------------------
 
 #------------------------
@@ -132,7 +132,7 @@ species_group<-as.vector(paste(np_cl,species,sep="_"))
 
 #------------------------
 
-cols<-colnames(counts)
+cols<-colnames(filtered_counts)
 ExpDesign <- data.frame(row.names=cols,
                         condition=condition, 
                         species = species,
@@ -146,20 +146,37 @@ ExpDesign
 # ~  clade + species_condition
 # ~ species + clade + condition + species:condition
 
-# This works:
-#m1 <- model.matrix(~condition + species + species:condition,ExpDesign)
+# This works, but has problems converging (data need filtering?):
+m1 <- model.matrix(~species + species:condition,ExpDesign)
 # This breaks:
 #m1 <- model.matrix(~ species + condition + species:condition,ExpDesign)
-m1 <- model.matrix(~ physiology + clade + condition,ExpDesign)
+# this could possibly work (rank = 27, dim(m1) = 34)
+#m1 <- model.matrix(~ physiology + clade + condition + physiology:clade:condition,ExpDesign)
 colnames(m1)
 # run these to remove columns with all 0s
 #all.zero <- apply(m1, 2, function(x) all(x==0))
 #idx <- which(all.zero)
 #m1 <- m1[,-idx]
 
-all(rownames(ExpDesign) == colnames(counts))
-counts_round<- round(data.matrix(counts),digits=0)
+#use this to check:
+Matrix::rankMatrix( m1 )
+
+
+all(rownames(ExpDesign) == colnames(filtered_counts))
+counts_round<- round(data.matrix(filtered_counts),digits=0)
 dds <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,design = m1)
+
+# try this, suggested from this:
+# https://support.bioconductor.org/p/65091/
+dds <- estimateSizeFactors(dds)
+nc <- counts(dds, normalized=TRUE)
+filtered <- rowSums(nc >= 10) >= 2
+dds <- dds[filter,]
+
+# or try this:
+dds <- estimateSizeFactors(dds)
+dds <- estimateDispersions(dds)
+dds <- nbinomWaldTest(dds, maxit=500)
 
 # Error in checkFullRank(modelMatrix) : 
 #the model matrix is not full rank, so the model cannot be fit as specified.
@@ -176,8 +193,8 @@ dds <- DESeq(dds, full = m1, betaPrior=FALSE)
 ddsClean <- dds[which(mcols(dds)$betaConv),]
 
 dds<-ddsClean
-counts_table <- counts(dds, normalized=TRUE)
-write.csv(counts_table,"../../Ensembl_counts_normalized_25Feb2019.csv")
+counts_table_filtered9k <- counts(dds, normalized=TRUE)
+write.csv(counts_table,"../../Ensembl_counts_normalized_filtered9k_25Feb2019.csv")
 #==========================================
 
 # QA of DESeq
