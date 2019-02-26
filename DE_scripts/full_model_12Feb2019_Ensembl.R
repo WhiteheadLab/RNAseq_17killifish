@@ -1326,63 +1326,65 @@ all_goi<-c("ENSFHEP00000007220.1","ENSFHEP00000025841","ENSFHEP00000019510",
 
 pdf("../../multi-ggplot2-catalog_salinity_14Feb2018.pdf",paper="USr",width=13.5, height=8)
 for (i in all_goi){
-  tcounts <- t(log2((counts(dds[i, ], normalized=TRUE, replaced=FALSE)+.5))) %>% 
-    merge(colData(dds), ., by="row.names") %>% 
-    gather(gene, expression, (ncol(.)-length(i)+1):ncol(.))
-  #tcounts %>% select(Row.names, species, clade, condition, gene, expression) %>% head %>% knitr::kable()
-  
-  C1<-ggplot(tcounts %>%
-               filter(clade=='Clade1'),
-             aes(factor(condition,levels = c("0.2_ppt","transfer","15_ppt")), expression)) +
-    geom_point(aes(color=physiology)) +
-    stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
-    facet_grid(~gene~species,scales='fixed') +
-    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-                 geom="errorbar", aes(color=physiology),width=0.2) +
-    theme_bw() +
-    theme(legend.position="none",panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.text.x = element_text(angle = 90, hjust = 1),
-          strip.text.y = element_blank(),
-          axis.title.x = element_blank()) +
-    labs(y="Expression (log2 normalized counts)")+
-    ggtitle("Clade 1")
-  
-  #plot(C1)
-  C2<-ggplot(tcounts %>%
-               filter(clade=='Clade2'),
-             aes(factor(condition,levels = c("0.2_ppt","transfer","15_ppt")), expression)) + 
-    geom_point(aes(color=physiology)) +
-    stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
-    facet_grid(~gene~species,scales='fixed') +
-    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-                 geom="errorbar", aes(color=physiology),width=0.2) +
-    theme_bw() +
-    theme(legend.position="bottom",panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.text.x = element_text(angle = 90, hjust = 1),
-          axis.title.y = element_blank(),
-          strip.text.y = element_blank()) +
-    labs(x="salinity treatment")+
-    ggtitle("Clade 2")
-  #plot(C2)
-  C3<-ggplot(tcounts %>%
-               filter(clade=='Clade3'),
-             aes(factor(condition,levels = c("0.2_ppt","transfer","15_ppt")), expression)) + 
-    geom_point(aes(color=physiology)) +
-    stat_summary(fun.y="mean", geom="line", aes(group=physiology,color=physiology)) +
-    facet_grid(~gene~species,scales='fixed',labeller=) +
-    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-                 geom="errorbar", aes(color=physiology), width=0.2) +
-    theme_bw() +
-    theme(legend.position="none",panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.text.x = element_text(angle = 90, hjust = 1),
-          axis.title.y = element_blank(),
-          axis.title.x = element_blank()) +
-    ggtitle("Clade 3")
-  #plot(C3)
-  grid.arrange(C1,C2,C3,ncol=3)
+  if (i %in% rownames(counts)) {
+    tcounts <- t(log2((counts(dds[i, ], normalized=TRUE, replaced=FALSE)+.5))) %>% 
+      merge(colData(dds), ., by="row.names") %>% 
+      gather(gene, expression, (ncol(.)-length(i)+1):ncol(.))
+    #tcounts %>% select(Row.names, species, clade, condition, gene, expression) %>% head %>% knitr::kable()
+    
+    C1<-ggplot(tcounts %>%
+                 filter(clade=='Clade1'),
+               aes(factor(condition,levels = c("0.2_ppt","transfer","15_ppt")), expression)) +
+      geom_point(aes(color=physiology)) +
+      stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
+      facet_grid(~gene~species,scales='fixed') +
+      stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+                   geom="errorbar", aes(color=physiology),width=0.2) +
+      theme_bw() +
+      theme(legend.position="none",panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            axis.text.x = element_text(angle = 90, hjust = 1),
+            strip.text.y = element_blank(),
+            axis.title.x = element_blank()) +
+      labs(y="Expression (log2 normalized counts)")+
+      ggtitle("Clade 1")
+    
+    #plot(C1)
+    C2<-ggplot(tcounts %>%
+                 filter(clade=='Clade2'),
+               aes(factor(condition,levels = c("0.2_ppt","transfer","15_ppt")), expression)) + 
+      geom_point(aes(color=physiology)) +
+      stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
+      facet_grid(~gene~species,scales='fixed') +
+      stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+                   geom="errorbar", aes(color=physiology),width=0.2) +
+      theme_bw() +
+      theme(legend.position="bottom",panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            axis.text.x = element_text(angle = 90, hjust = 1),
+            axis.title.y = element_blank(),
+            strip.text.y = element_blank()) +
+      labs(x="salinity treatment")+
+      ggtitle("Clade 2")
+    #plot(C2)
+    C3<-ggplot(tcounts %>%
+                 filter(clade=='Clade3'),
+               aes(factor(condition,levels = c("0.2_ppt","transfer","15_ppt")), expression)) + 
+      geom_point(aes(color=physiology)) +
+      stat_summary(fun.y="mean", geom="line", aes(group=physiology,color=physiology)) +
+      facet_grid(~gene~species,scales='fixed',labeller=) +
+      stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+                   geom="errorbar", aes(color=physiology), width=0.2) +
+      theme_bw() +
+      theme(legend.position="none",panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            axis.text.x = element_text(angle = 90, hjust = 1),
+            axis.title.y = element_blank(),
+            axis.title.x = element_blank()) +
+      ggtitle("Clade 3")
+    #plot(C3)
+    grid.arrange(C1,C2,C3,ncol=3)
+  }
 }
 dev.off()
 
