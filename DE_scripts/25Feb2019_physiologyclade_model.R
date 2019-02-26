@@ -24,6 +24,7 @@ packages("RColorBrewer")
 packages("pheatmap")
 packages("vsn")
 packages(pheatmap)
+
 # for DESeq
 
 packages(lattice)
@@ -78,7 +79,6 @@ if(!file.exists('../../Ensembl_species_counts_designfactors.csv')){
 }
 counts_design <- read.csv("../../Ensembl_species_counts_designfactors.csv",stringsAsFactors = FALSE)
 
-
 #------------------------
 
 # Format design and counts
@@ -103,11 +103,34 @@ dim(counts)
 # Filter, all 128 samples have a count of at least 0.01
 
 #------------------------
-filter <- rownames(counts[rowSums(counts >= 0.01) >= 64,])
-#filter <- rownames(counts[rowSums(counts >= 0.01) >= 100,])
-#filter <- rownames(counts[rowSums(counts >= 0.01) >= 128,])
+#filter <- rownames(counts[rowSums(counts >= 0.01) >= 64,])
+filter <- rownames(counts[rowSums(counts >= 0.01) >= 100,])
+#> dds <- DESeq(dds, full = m1, betaPrior=FALSE)
+#using supplied model matrix
+#estimating size factors
+#estimating dispersions
+#gene-wise dispersion estimates
+#mean-dispersion relationship
+#final dispersion estimates
+#fitting model and testing
+#528 rows did not converge in beta, labelled in mcols(object)$betaConv. Use larger maxit argument with nbinomWaldTest
+filter <- rownames(counts[rowSums(counts >= 0.01) >= 122,])
+#> dim(counts_table)
+#[1] 6500  122
+#> dds <- DESeq(dds, full = m1, betaPrior=FALSE)
+#using supplied model matrix
+#estimating size factors
+#estimating dispersions
+#gene-wise dispersion estimates
+#mean-dispersion relationship
+#final dispersion estimates
+#fitting model and testing
+#fitting model and testing
+#1 rows did not converge in beta, labelled in mcols(object)$betaConv. Use larger maxit argument with nbinomWaldTest
+#but this is missing all but 4 of our genes of interest
 filtered_counts <- counts[filter,]
 dim(filtered_counts)
+
 #------------------------
 
 #------------------------
@@ -146,8 +169,10 @@ ExpDesign
 # ~  clade + species_condition
 # ~ species + clade + condition + species:condition
 
-# This works, but has problems converging (data need filtering?):
-m1 <- model.matrix(~clade + physiology + clade:physiology ,ExpDesign)
+m1 <- model.matrix(~ species + condition + species:condition,ExpDesign)
+
+# This works:
+#m1 <- model.matrix(~clade + physiology + clade:physiology ,ExpDesign)
 # this happens:
 #> dds <- DESeq(dds, full = m1, betaPrior=FALSE)
 #using supplied model matrix
@@ -164,10 +189,6 @@ m1 <- model.matrix(~clade + physiology + clade:physiology ,ExpDesign)
 #estimating dispersions
 #fitting model and testing
 
-# This breaks:
-#m1 <- model.matrix(~ species + condition + species:condition,ExpDesign)
-# this could possibly work (rank = 27, dim(m1) = 34)
-#m1 <- model.matrix(~ physiology + clade + condition + physiology:clade:condition,ExpDesign)
 colnames(m1)
 # run these to remove columns with all 0s
 #all.zero <- apply(m1, 2, function(x) all(x==0))
@@ -178,21 +199,21 @@ colnames(m1)
 Matrix::rankMatrix( m1 )
 dim(m1)
 
-all(rownames(ExpDesign) == colnames(counts))
-counts_round<- round(data.matrix(counts),digits=0)
+all(rownames(ExpDesign) == colnames(filtered_counts))
+counts_round<- round(data.matrix(filtered_counts),digits=0)
 dds <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,design = m1)
 
 # try this, suggested from this:
 # https://support.bioconductor.org/p/65091/
-dds <- estimateSizeFactors(dds)
-nc <- counts(dds, normalized=TRUE)
-filtered <- rowSums(nc >= 10) >= 2
-dds <- dds[filter,]
+#dds <- estimateSizeFactors(dds)
+#nc <- counts(dds, normalized=TRUE)
+#filtered <- rowSums(nc >= 10) >= 2
+#dds <- dds[filter,]
 
 # or try this:
 dds <- estimateSizeFactors(dds)
 dds <- estimateDispersions(dds)
-dds <- nbinomWaldTest(dds, maxit=500)
+dds <- nbinomWaldTest(dds, maxit=1000)
 
 # Error in checkFullRank(modelMatrix) : 
 #the model matrix is not full rank, so the model cannot be fit as specified.
@@ -209,22 +230,103 @@ dds <- DESeq(dds, full = m1, betaPrior=FALSE)
 ddsClean <- dds[which(mcols(dds)$betaConv),]
 
 dds<-ddsClean
-counts_table_filtered9k <- counts(dds, normalized=TRUE)
-write.csv(counts_table,"../../Ensembl_counts_normalized_filtered9k_25Feb2019.csv")
+counts_table <- counts(dds, normalized=TRUE)
+write.csv(counts_table_filtered122_speciescondition,"../../Ensembl_counts_normalized_speciescondition_filtered122_25Feb2019.csv")
+
 #==========================================
 
 # QA of DESeq
 
 #==========================================
+
 resultsNames(dds)
 vsd <- vst(dds, blind=FALSE)
 head(assay(vsd), 3)
 #ntd <- normTransform(dds)
-
 #meanSdPlot(assay(ntd))
 meanSdPlot(assay(vsd))
 plotDispEsts(dds)
-
 plotPCA(vsd, intgroup=c("species"))
 plotPCAWithSampleNames(vsd,intgroup=c("species"))
 
+# ============================================
+#
+# Genes of Interest
+# This was very helpful:
+# https://rpubs.com/turnersd/plot-deseq-results-multipage-pdf
+# 
+# ============================================
+
+all_goi<-c("ENSFHEP00000007220.1","ENSFHEP00000025841","ENSFHEP00000019510",
+           "ENSFHEP00000015383","ENSFHEP00000009753","ENSFHEP00000006725","ENSFHEP00000008393",
+           "ENSFHEP00000013324","ENSFHEP00000001609","ENSFHEP00000013324","ENSFHEP00000034177",
+           "ENSFHEP00000015765","ENSFHEP00000017303","ENSFHEP00000000036","ENSFHEP00000031108",
+           "ENSFHEP00000016853","ENSFHEP00000003908")
+
+pdf("../../multi-ggplot2-catalog_salinity_25Feb2019.pdf",paper="USr",width=13.5, height=8)
+for (i in all_goi){
+  if (i %in% rownames(counts_table)) {
+    tcounts <- t(log2((counts(dds[i, ], normalized=TRUE, replaced=FALSE)+.5))) %>% 
+      merge(colData(dds), ., by="row.names") %>% 
+      gather(gene, expression, (ncol(.)-length(i)+1):ncol(.))
+    #tcounts %>% select(Row.names, species, clade, condition, gene, expression) %>% head %>% knitr::kable()
+    
+    C1<-ggplot(tcounts %>%
+                 filter(clade=='Clade1'),
+               aes(factor(condition,levels = c("0.2_ppt","transfer","15_ppt")), expression)) +
+      geom_point(aes(color=physiology)) +
+      stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
+      facet_grid(~gene~species,scales='fixed') +
+      stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+                   geom="errorbar", aes(color=physiology),width=0.2) +
+      theme_bw() +
+      theme(legend.position="none",panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            axis.text.x = element_text(angle = 90, hjust = 1),
+            strip.text.y = element_blank(),
+            axis.title.x = element_blank()) +
+      labs(y="Expression (log2 normalized counts)")+
+      ggtitle("Clade 1")
+    
+    #plot(C1)
+    C2<-ggplot(tcounts %>%
+                 filter(clade=='Clade2'),
+               aes(factor(condition,levels = c("0.2_ppt","transfer","15_ppt")), expression)) + 
+      geom_point(aes(color=physiology)) +
+      stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
+      facet_grid(~gene~species,scales='fixed') +
+      stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+                   geom="errorbar", aes(color=physiology),width=0.2) +
+      theme_bw() +
+      theme(legend.position="bottom",panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            axis.text.x = element_text(angle = 90, hjust = 1),
+            axis.title.y = element_blank(),
+            strip.text.y = element_blank()) +
+      labs(x="salinity treatment")+
+      ggtitle("Clade 2")
+    #plot(C2)
+    C3<-ggplot(tcounts %>%
+                 filter(clade=='Clade3'),
+               aes(factor(condition,levels = c("0.2_ppt","transfer","15_ppt")), expression)) + 
+      geom_point(aes(color=physiology)) +
+      stat_summary(fun.y="mean", geom="line", aes(group=physiology,color=physiology)) +
+      facet_grid(~gene~species,scales='fixed',labeller=) +
+      stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+                   geom="errorbar", aes(color=physiology), width=0.2) +
+      theme_bw() +
+      theme(legend.position="none",panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            axis.text.x = element_text(angle = 90, hjust = 1),
+            axis.title.y = element_blank(),
+            axis.title.x = element_blank()) +
+      ggtitle("Clade 3")
+    #plot(C3)
+    grid.arrange(C1,C2,C3,ncol=3)
+  }
+  else {
+    print("Not present in filtered data set:")
+    print(i)
+  }
+}
+dev.off()
