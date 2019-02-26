@@ -103,9 +103,9 @@ dim(counts)
 # Filter, all 128 samples have a count of at least 0.01
 
 #------------------------
-filter <- rownames(counts[rowSums(counts >= 0.01) >= 64,])
-#filter <- rownames(counts[rowSums(counts >= 0.01) >= 100,])
-#filter <- rownames(counts[rowSums(counts >= 0.01) >= 128,])
+filter <- rownames(counts[rowSums(counts >= 0.1) >= 18,])
+filter <- rownames(counts[rowSums(counts >= 0.1) >= 100,])
+filter <- rownames(counts[rowSums(counts >= 1) >= 122,])
 filtered_counts <- counts[filter,]
 dim(filtered_counts)
 #------------------------
