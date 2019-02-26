@@ -1,0 +1,150 @@
+Clade 1
+F. catanatus
+Fcat_cols <- c("F_catanatus_BW_1.quant", "F_catanatus_BW_2.quant", "F_catanatus_BW_3.quant", 
+               "F_catanatus_FW_1.quant", "F_catanatus_FW_2.quant",
+               "F_catanatus_transfer_1.quant","F_catanatus_transfer_2.quant")
+
+
+Fcat_TR_cols <- c("F_catanatus_transfer_1.quant","F_catanatus_transfer_2.quant")
+Fcat_FW_cols <- c("F_catanatus_FW_1.quant","F_catanatus_FW_2.quant")
+Fcat_BW_cols <- c("F_catanatus_BW_1.quant","F_catanatus_BW_2.quant","F_catanatus_BW_3.quant")
+
+
+F. diaphanus
+Fdia_cols <- c("F_diaphanus_BW_1.quant", "F_diaphanus_BW_2.quant", 
+               "F_diaphanus_FW_2.quant", "F_diaphanus_FW_3.quant",
+               "F_diaphanus_transfer_1.quant","F_diaphanus_transfer_2.quant")
+
+Fdia_FW_cols <- c("F_diaphanus_FW_2.quant", "F_diaphanus_FW_3.quant")
+Fdia_TR_cols <- c("F_diaphanus_transfer_1.quant","F_diaphanus_transfer_2.quant")
+Fdia_BW_cols <- c("F_diaphanus_BW_1.quant", "F_diaphanus_BW_2.quant")
+
+F. grandis
+Fgran_cols <- c("F_grandis_BW_1.quant", "F_grandis_BW_2.quant", "F_grandis_BW_3.quant",
+               "F_grandis_FW_1.quant", "F_grandis_FW_2.quant", "F_grandis_FW_3.quant",
+               "F_grandis_transfer_1.quant", "F_grandis_transfer_2.quant", "F_grandis_transfer_3.quant")
+
+Fgran_FW_cols <- c("F_grandis_FW_1.quant", "F_grandis_FW_2.quant", "F_grandis_FW_3.quant")
+Fgran_TR_cols <- c("F_grandis_transfer_1.quant", "F_grandis_transfer_2.quant", "F_grandis_transfer_3.quant")
+Fgran_BW_cols <- c("F_grandis_BW_1.quant", "F_grandis_BW_2.quant", "F_grandis_BW_3.quant")
+
+F. heteroclitus MDPP
+FhetMDPL_cols <- c("F_heteroclitusMDPL_BW_1.quant" , "F_heteroclitusMDPL_BW_2.quant" , "F_heteroclitusMDPL_BW_3.quant" ,
+                "F_heteroclitusMDPL_FW_1.quant", "F_heteroclitusMDPL_FW_2.quant", "F_heteroclitusMDPL_FW_3.quant" ,
+                "F_heteroclitusMDPL_transfer_1.quant", "F_heteroclitusMDPL_transfer_2.quant", "F_heteroclitusMDPL_transfer_3.quant")
+
+
+FhetMDPL_FW_cols <- c("F_heteroclitusMDPL_FW_1.quant", "F_heteroclitusMDPL_FW_2.quant", "F_heteroclitusMDPL_FW_3.quant")
+FhetMDPL_TR_cols <- c("F_heteroclitusMDPL_transfer_1.quant", "F_heteroclitusMDPL_transfer_2.quant", "F_heteroclitusMDPL_transfer_3.quant")
+FhetMDPL_BW_cols <- c("F_heteroclitusMDPL_BW_1.quant" , "F_heteroclitusMDPL_BW_2.quant" , "F_heteroclitusMDPL_BW_3.quant")
+
+
+F. heteroclitus MDPL
+FhetMDPP_cols <- c("F_heteroclitusMDPP_BW_1.quant" , "F_heteroclitusMDPP_BW_2.quant" , "F_heteroclitusMDPP_BW_3.quant" ,
+                   "F_heteroclitusMDPP_FW_1.quant", "F_heteroclitusMDPP_FW_2.quant", "F_heteroclitusMDPP_FW_3.quant" ,
+                   "F_heteroclitusMDPP_transfer_1.quant", "F_heteroclitusMDPP_transfer_2.quant", "F_heteroclitusMDPP_transfer_3.quant")
+
+FhetMDPP_BW_cols <- c("F_heteroclitusMDPP_BW_1.quant" , "F_heteroclitusMDPP_BW_2.quant" , "F_heteroclitusMDPP_BW_3.quant")
+FhetMDPP_FW_cols <- c("F_heteroclitusMDPP_FW_1.quant", "F_heteroclitusMDPP_FW_2.quant", "F_heteroclitusMDPP_FW_3.quant")
+FhetMDPP_TR_cols <- c("F_heteroclitusMDPP_transfer_1.quant", "F_heteroclitusMDPP_transfer_2.quant", "F_heteroclitusMDPP_transfer_3.quant")
+
+F. rathbuni
+Frath_cols <- c("F_rathbuni_BW_1.quant","F_rathbuni_BW_2.quant","F_rathbuni_BW_3.quant",
+                   "F_rathbuni_FW_1.quant","F_rathbuni_BW_2.quant","F_rathbuni_FW_3.quant",
+                   "F_rathbuni_transfer_1.quant","F_rathbuni_transfer_2.quant","F_rathbuni_transfer_3.quant")
+
+Frath_BW_cols <- c("F_rathbuni_BW_1.quant","F_rathbuni_BW_2.quant","F_rathbuni_BW_3.quant")
+Frath_FW_cols <- c("F_rathbuni_FW_1.quant","F_rathbuni_BW_2.quant","F_rathbuni_FW_3.quant")
+Frath_TR_cols <- c("F_rathbuni_transfer_1.quant","F_rathbuni_transfer_2.quant","F_rathbuni_transfer_3.quant")
+
+F. similis
+Fsim_cols <- c("F_similis_BW_1.quant","F_similis_BW_2.quant","F_similis_BW_3.quant",
+                "F_similis_FW_1.quant","F_similis_FW_2.quant","F_similis_FW_3.quant",
+                "F_similis_transfer_1.quant","F_similis_transfer_2.quant","F_similis_transfer_3.quant")
+
+
+Fsim_BW_cols <- c("F_similis_BW_1.quant","F_similis_BW_2.quant","F_similis_BW_3.quant")
+Fsim_FW_cols <- c("F_similis_FW_1.quant","F_similis_FW_2.quant","F_similis_FW_3.quant")
+Fsim_TR_cols <- c("F_similis_transfer_1.quant","F_similis_transfer_2.quant","F_similis_transfer_3.quant")
+
+clade1_cols <- c(Fcat_cols,Fdia_cols,Fgran_cols,FhetMDPL_cols,FhetMDPP_cols,Frath_cols,Fsim_cols)  
+
+clade1_BW <- c()
+clade1_FW <-
+
+
+
+
+
+
+
+Clade 2
+F. parvapinis
+L. goodei
+L. parva
+
+Clade 3
+A. xenica
+F. chrysotus
+F. notatus
+F. nottii
+F. olivacues
+F. sciadicus
+F. zebrinus
+
+
+
+
+
+write.csv(res_Fcatanatus_BW_v_FW,"../../res_Fcatanatus_BW_v_FW.csv")
+write.csv(res_Fdiaphanus_BW_v_FW,"../../res_Fdiaphanus_BW_v_FW.csv")
+write.csv(res_Fgrandis_BW_v_FW,"../../res_Fgrandis_BW_v_FW.csv")
+write.csv(res_FheteroclitusMDPL_BW_v_FW,"../../res_FheteroclitusMDPL_BW_v_FW.csv")
+write.csv(res_FheteroclitusMDPP_BW_v_FW,"../../res_FheteroclitusMDPP_BW_v_FW.csv")
+write.csv(res_Frathbuni_BW_v_FW,"../../res_Frathbuni_BW_v_FW.csv")
+write.csv(res_Fsimilis_BW_v_FW,"../../res_Fsimilis_BW_v_FW.csv")
+write.csv(res_Fparvapinis_BW_v_FW,"../../res_Fparvapinis_BW_v_FW.csv")
+write.csv(res_Lgoodei_BW_v_FW,"../../res_Lgoodei_BW_v_FW.csv")
+write.csv(res_Lparva_BW_v_FW,"../../res_Lparva_BW_v_FW.csv")
+write.csv(res_Axenica_BW_v_FW,"../../res_Axenica_BW_v_FW.csv")
+write.csv(res_Fchrysotus_BW_v_FW,"../../res_Fchrysotus_BW_v_FW.csv")
+write.csv(res_Fnotatus_BW_v_FW,"../../res_Fnotatus_BW_v_FW.csv")
+write.csv(res_Folivaceous_BW_v_FW,"../../res_Folivaceous_BW_v_FW.csv")
+write.csv(res_Fsciadicus_BW_v_FW,"../../res_Fsciadicus_BW_v_FW.csv")
+write.csv(res_Fzebrinus_BW_v_FW,"../../res_Fzebrinus_BW_v_FW.csv")
+
+
+
+write.csv(res_Fcatanatus_TR_v_FW,"../../res_Fcatanatus_TR_v_FW.csv")
+write.csv(res_Fdiaphanus_TR_v_FW,"../../res_Fdiaphanus_TR_v_FW.csv")
+write.csv(res_Fgrandis_TR_v_FW,"../../res_Fgrandis_TR_v_FW.csv")
+write.csv(res_FheteroclitusMDPL_TR_v_FW,"../../res_FheteroclitusMDPL_TR_v_FW.csv")
+write.csv(res_FheteroclitusMDPP_TR_v_FW,"../../res_FheteroclitusMDPP_TR_v_FW.csv")
+write.csv(res_Frathbuni_TR_v_FW,"../../res_Frathbuni_TR_v_FW.csv")
+write.csv(res_Fsimilis_TR_v_FW,"../../res_Fsimilis_TR_v_FW.csv")
+write.csv(res_Fparvapinis_TR_v_FW,"../../res_Fparvapinis_TR_v_FW.csv")
+write.csv(res_Lgoodei_TR_v_FW,"../../res_Lgoodei_TR_v_FW.csv")
+write.csv(res_Lparva_TR_v_FW,"../../res_Lparva_TR_v_FW.csv")
+write.csv(res_Axenica_TR_v_FW,"../../res_Axenica_TR_v_FW.csv")
+write.csv(res_Fchrysotus_TR_v_FW,"../../res_Fchrysotus_TR_v_FW.csv")
+write.csv(res_Fnotatus_TR_v_FW,"../../res_Fnotatus_TR_v_FW.csv")
+write.csv(res_Folivaceous_TR_v_FW,"../../res_Folivaceous_TR_v_FW.csv")
+write.csv(res_Fsciadicus_TR_v_FW,"../../res_Fsciadicus_TR_v_FW.csv")
+
+
+write.csv(Fcat_counts_table_ann,"../../counts_stats_byspecies/Fcat_stats_annotations_counts.csv")
+write.csv(Fdia_counts_table_ann,"../../counts_stats_byspecies/Fdiaphanus_stats_annotations_counts.csv")
+write.csv(Fgran_counts_table_ann,"../../counts_stats_byspecies/Fgrandis_stats_annotations_counts.csv")
+write.csv(FhetMDPL_counts_table_ann,"../../counts_stats_byspecies/FheteroclitusMDPL_stats_annotations_counts.csv")
+write.csv(FhetMDPP_counts_table_ann,"../../counts_stats_byspecies/FheteroclitusMDPP_stats_annotations_counts.csv")
+write.csv(Frath_counts_table_ann,"../../counts_stats_byspecies/Frathbuni_stats_annotations_counts.csv")
+write.csv(Fsim_counts_table_ann,"../../counts_stats_byspecies/Fsimils_stats_annotations_counts.csv")
+write.csv(Fparv_counts_table_ann,"../../counts_stats_byspecies/Fparvapinis_stats_annotations_counts.csv")
+write.csv(Lgod_counts_table_ann,"../../counts_stats_byspecies/Lgoodei_stats_annotations_counts.csv")
+write.csv(Lpar_counts_table_ann,"../../counts_stats_byspecies/Lparva_stats_annotations_counts.csv")
+write.csv(Axen_counts_table_ann,"../../counts_stats_byspecies/Axenica_stats_annotations_counts.csv")
+write.csv(Fchry_counts_table_ann,"../../counts_stats_byspecies/Fchrysotus_stats_annotations_counts.csv")
+write.csv(Fnota_counts_table_ann,"../../counts_stats_byspecies/Fnotatus_stats_annotations_counts.csv")
+write.csv(Foli_counts_table_ann,"../../counts_stats_byspecies/Folivaceus_stats_annotations_counts.csv")
+write.csv(Fsci_counts_table_ann,"../../counts_stats_byspecies/Fsciadicus_stats_annotations_counts.csv")
+write.csv(Fzeb_counts_table_ann,"../../counts_stats_byspecies/Fzebrinus_stats_annotations_counts.csv")

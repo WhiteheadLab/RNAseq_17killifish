@@ -1,0 +1,25 @@
+
+
+
+#No interaction, at all: 
+data ~ species + clade + condition
+#FakeInteraction: 
+data ~  clade + species_condition
+# model we want:
+data ~ species + clade + condition + species:condition
+
+
+
+filtering to 122 samples >= 1 and 
+
+m1 <- model.matrix(~ species + condition + species:condition,ExpDesign)
+
+> dds <- DESeq(dds, full = m1, betaPrior=FALSE)
+using supplied model matrix
+estimating size factors
+estimating dispersions
+gene-wise dispersion estimates
+mean-dispersion relationship
+final dispersion estimates
+fitting model and testing
+1 rows did not converge in beta, labelled in mcols(object)$betaConv. Use larger maxit argument with nbinomWaldTest
