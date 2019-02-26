@@ -105,6 +105,15 @@ dim(counts)
 #------------------------
 filter <- rownames(counts[rowSums(counts >= 0.1) >= 18,])
 filter <- rownames(counts[rowSums(counts >= 0.1) >= 100,])
+#> dds <- DESeq(dds, full = m1, betaPrior=FALSE)
+#using supplied model matrix
+#using pre-existing size factors
+#estimating dispersions
+#gene-wise dispersion estimates
+#mean-dispersion relationship
+#final dispersion estimates
+#fitting model and testing
+#391 rows did not converge in beta, labelled in mcols(object)$betaConv. Use larger maxit #argument with nbinomWaldTest
 filter <- rownames(counts[rowSums(counts >= 1) >= 122,])
 filtered_counts <- counts[filter,]
 dim(filtered_counts)
@@ -160,7 +169,7 @@ colnames(m1)
 
 #use this to check:
 Matrix::rankMatrix( m1 )
-
+dim(m1)
 
 all(rownames(ExpDesign) == colnames(filtered_counts))
 counts_round<- round(data.matrix(filtered_counts),digits=0)
@@ -168,15 +177,15 @@ dds <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,desig
 
 # try this, suggested from this:
 # https://support.bioconductor.org/p/65091/
-dds <- estimateSizeFactors(dds)
-nc <- counts(dds, normalized=TRUE)
-filtered <- rowSums(nc >= 10) >= 2
-dds <- dds[filter,]
+#dds <- estimateSizeFactors(dds)
+#nc <- counts(dds, normalized=TRUE)
+#filtered <- rowSums(nc >= 10) >= 2
+#dds <- dds[filter,]
 
 # or try this:
-dds <- estimateSizeFactors(dds)
-dds <- estimateDispersions(dds)
-dds <- nbinomWaldTest(dds, maxit=500)
+#dds <- estimateSizeFactors(dds)
+#dds <- estimateDispersions(dds)
+#dds <- nbinomWaldTest(dds, maxit=500)
 
 # Error in checkFullRank(modelMatrix) : 
 #the model matrix is not full rank, so the model cannot be fit as specified.
