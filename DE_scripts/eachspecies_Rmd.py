@@ -81,13 +81,9 @@ counts_design <- read.csv("../../Ensembl_species_counts_designfactors.csv",strin
 
 def design(species):
 	design_info='''
-```{{r format counts and ExpDesign, include=FALSE, results='hide'}}
+```{{r format counts and ExpDesign,}}
 design <- counts_design[counts_design$Ensembl == 'Empty',]
-#design$type <- c("species","native_salinity","clade","group","condition")
-drops <- c("X","Ensembl",
-           "F_zebrinus_BW_1.quant","F_zebrinus_BW_2.quant",
-           "F_zebrinus_FW_1.quant","F_zebrinus_FW_2.quant",
-           "F_notti_FW_1.quant","F_notti_FW_2.quant")
+drops <- c("X","Ensembl")
 counts<-counts_design[!counts_design$Ensembl == 'Empty',]
 rownames(counts)<-counts$Ensembl
 design <- design[ , !(names(design) %in% drops)]
@@ -110,39 +106,6 @@ ExpDesign
 	return design_info
 
 
-def PCA():
-	PCA_plot='''
-# PCA
-
-The dimensions of the counts table are listed below. Row=genes, Columns=samples
-```{{r PCA of counts,}}
-# normal full counts
-x <- data.matrix(counts)
-dim(x)
-x <- x+1
-log_x<-log(x)
-names<-colnames(log_x)
-pca = prcomp(t(log_x))
-#summary(pca)
-fac = factor(condition)
-colours = function(vec){{
-  cols=rainbow(length(unique(vec)))
-  return(cols[as.numeric(as.factor(vec))])}}
-mar.default <- c(5,4,4,2) + 0.1
-par(mar = mar.default + c(0, 4, 0, 0)) 
-plot(pca$x[,1:2], 
-     col=colours(clade), 
-     pch = c(16, 2, 9)[as.numeric(as.factor(condition))],
-     cex=2,
-     xlab="PC1",
-     ylab="PC2",
-     cex.lab=2,
-     cex.axis = 2)
-legend(140,100,legend=c("0.2_ppt","15_ppt","transfer"),col=rainbow(length(unique(condition))),cex=0.75, pch=19)
-```
-'''.format()
-	return PCA_plot
-
 def filtering_counts(n_samples,expn):
 	filtered_counts="""
 # Filtering counts
@@ -161,38 +124,283 @@ dim(filtered_counts)
 
 def run_DESeq():
 	DESeq_string="""
-```{{r run DESeq, }}
+```{{r run DESeq, results='hide', include=FALSE}}
 all(rownames(ExpDesign) == colnames(counts))
 counts_round<- round(data.matrix(counts),digits=0)
 dds <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,design = ~condition)
 dds<-DESeq(dds)
-matrix(resultsNames(dds))
+```
+""".format()
+	return DESeq_string
+
+def DESeq_QC():
+	qc="""
+# DESeq
+
+```{{r DESeq QC, }}
 plotDispEsts(dds)
 resultsNames(dds)
 vsd <- vst(dds, blind=FALSE)
 meanSdPlot(assay(vsd))
-plotDispEsts(dds)
+```
+""".format()
+	return qc
+
+def PCA():
+	PCA_plot='''
+
+# PCA
+
+```{{r PCA of counts,}}
 plotPCA(vsd, intgroup=c("condition"))
 plotPCAWithSampleNames(vsd,intgroup=c("condition"))
 ```
+'''.format()
+	return PCA_plot
+
+def norm_counts():
+	counts="""
+
+# Get normalized counts and filter out genes with low expression
+
+This is the number of genes in the expression counts table:
+```{{r dim counts, }}
+# get counts
+counts_table = counts(dds, normalized=TRUE)
+dim(counts_table)
+```
+
+After filtering for low expression (where rowSum is greater than or equal to 1):
+
+```{{r filtering again, }}
+filtered_norm_counts<-counts_table[!rowSums(counts_table==0)>=1, ]
+dim(filtered_norm_counts)
+filtered_norm_counts<-as.data.frame(filtered_norm_counts)
+GeneID<-rownames(filtered_norm_counts)
+filtered_norm_counts<-cbind(filtered_norm_counts,GeneID)
+```
 """.format()
-	return DESeq_string
+	return counts
+
+def MA_plot(contrast1,contrast2,species,n):
+	MA="""
+# MA plot, {} vs. {}
+```{{r MA plot {}, }}
+gene_id <- c("avpr2aa","slc24a5","CLDN4","aqp3","cftr","kcnj2a","polyamine-modulated factor 1-like","kcnj1a.6","sept2B","septin-2", "cipcb","clcn2c","zymogen granule membrane protein 16","atp1a1b","solute carrier family 24 member 2")
+protein_id <- c("ENSFHEP00000000036","ENSFHEP00000001609","ENSFHEP00000003908","ENSFHEP00000006725","ENSFHEP00000008393","ENSFHEP00000009753","ENSFHEP00000013324",
+                "ENSFHEP00000015383","ENSFHEP00000015765","ENSFHEP00000016853","ENSFHEP00000017303","ENSFHEP00000019510","ENSFHEP00000025841",
+                "ENSFHEP00000031108","ENSFHEP00000034177")
+res<-results(dds,contrast=c("condition","{}","{}"))
+res_ordered <-as.data.frame(res[order(res$padj),])
+res_filtered <-subset(res_ordered,res_ordered$padj<0.05)
+id<-rownames(res_filtered)
+res_filtered<-cbind(res_filtered,id)
+plot(log2(res$baseMean), res$log2FoldChange, 
+     col=ifelse(res$padj < 0.05, "red","gray67"),
+     main="{} ({} vs. {}) (padj<0.05)",xlim=c(1,15),pch=20,cex=1)
+abline(h=c(-1,1), col="blue")
+resSig = res_ordered[rownames(res_ordered) %in% protein_id, ]
+dim(resSig)
+genes<-rownames(resSig)
+mygenes <- resSig[,]
+baseMean_mygenes <- mygenes[,"baseMean"]
+log2FoldChange_mygenes <- mygenes[,"log2FoldChange"]
+text(log2(baseMean_mygenes),log2FoldChange_mygenes,labels=gene_id,pos=2,cex=0.60)
+```
+""".format(contrast1,contrast2,n,contrast1,contrast2,species,contrast1,contrast2)
+	return MA
+
+
+def biomaRt():
+	query="""
+```{{r biomaRt,}}
+all_goi<-c("ENSFHEP00000007220.1","ENSFHEP00000025841","ENSFHEP00000019510",
+           "ENSFHEP00000015383","ENSFHEP00000009753","ENSFHEP00000006725","ENSFHEP00000008393",
+           "ENSFHEP00000013324","ENSFHEP00000001609","ENSFHEP00000013324","ENSFHEP00000034177",
+           "ENSFHEP00000015765","ENSFHEP00000017303","ENSFHEP00000000036","ENSFHEP00000031108",
+           "ENSFHEP00000016853","ENSFHEP00000003908")
+
+ensembl=useMart("ENSEMBL_MART_ENSEMBL")
+ensembl = useDataset("fheteroclitus_gene_ensembl",mart=ensembl)
+ensembl_proteinID = rownames(counts_table)
+query<-getBM(attributes=c('ensembl_peptide_id','ensembl_transcript_id',
+'ensembl_gene_id','gene_biotype','external_gene_name',
+'description','entrezgene'), filters = 'ensembl_peptide_id', values = ensembl_proteinID, mart=ensembl)
+
+# link goi Ensembl ID to external_gene_name or description
+gene_id <- c("avpr2aa","slc24a5","CLDN4","aqp3","cftr","kcnj2a","polyamine-modulated factor 1-like","kcnj1a.6","sept2B","septin-2", "cipcb","clcn2c","zymogen granule membrane protein 16","atp1a1b","solute carrier family 24 member 2")
+protein_id <- c("ENSFHEP00000000036","ENSFHEP00000001609","ENSFHEP00000003908","ENSFHEP00000006725","ENSFHEP00000008393","ENSFHEP00000009753","ENSFHEP00000013324",
+                "ENSFHEP00000015383","ENSFHEP00000015765","ENSFHEP00000016853","ENSFHEP00000017303","ENSFHEP00000019510","ENSFHEP00000025841",
+                "ENSFHEP00000031108","ENSFHEP00000034177")
+```
+""".format()
+	return query
+
+def gene_plot(n,goi,geneID):
+	goi_plot="""
+## {}
+```{{r plot goi {},}}
+tcounts <- t(log2((counts(dds[c("{}"), ], normalized=TRUE, replaced=FALSE)+.5))) %>% 
+  merge(colData(dds), ., by="row.names") %>% 
+  gather(gene, expression, (ncol(.)-1+1):ncol(.))
+
+C1<-ggplot(tcounts, aes(condition, expression)) +
+  geom_point() + 
+  stat_summary(fun.y="mean", geom="line") +
+  stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+               geom="errorbar",width=0.2) +
+  theme_bw() +
+  theme(legend.position="none",panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(y="Expression (log2 normalized counts)")+
+  ggtitle("{}")
+plot(C1)
+```
+""".format(geneID,n,goi,geneID)
+
+	return goi_plot
+
+def sig_genes():
+	sig="""
+	counts_table_ann_sig <- subset(Axen_counts_table_ann,Axen_counts_table_ann$`padj-15ppt-v-0.2ppt`<0.05)
+	Axen_counts_table_ann_up <- subset(Axen_counts_table_ann_sig,Axen_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
+	Axen_counts_table_ann_down <- subset(Axen_counts_table_ann_sig,Axen_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
+dim(Axen_counts_table_ann_sig)
+""".format()
+	return
+
+def merge_counts_stats_annotations(species):
+	merged="""
+```{{r merge and write, }}
+# -----------------------------
+# stats results
+# -----------------------------
+
+res_BW_v_FW <- results(dds, tidy=TRUE, contrast=c("condition","15_ppt","0.2_ppt")) %>% arrange(padj) %>% tbl_df() 
+res_TR_v_FW <- results(dds, tidy=TRUE, contrast=c("condition","transfer","0.2_ppt")) %>% arrange(padj) %>% tbl_df() 
+res_TR_v_BW <- results(dds, tidy=TRUE, contrast=c("condition","transfer","15_ppt")) %>% arrange(padj) %>% tbl_df() 
+
+# -----------------------------
+# counts 
+# -----------------------------
+
+cols <- colnames(counts_table)
+counts_table <- as.data.frame(counts_table[,cols])
+dim(counts_table)
+
+# -----------------------------
+# column names for stats from BW_v_FW specific contrast
+# -----------------------------
+
+names(res_BW_v_FW)[names(res_BW_v_FW) == 'padj'] <- 'padj-15ppt-v-0.2ppt'
+names(res_BW_v_FW)[names(res_BW_v_FW) == 'baseMean'] <- 'baseMean-ALL'
+names(res_BW_v_FW)[names(res_BW_v_FW) == 'log2FoldChange'] <- 'log2FoldChange-15ppt-v-0.2ppt'
+names(res_BW_v_FW)[names(res_BW_v_FW) == 'lfcSE'] <- 'lfcSE-15ppt-v-0.2ppt'
+names(res_BW_v_FW)[names(res_BW_v_FW) == 'stat'] <- 'stat-15ppt-v-0.2ppt'
+names(res_BW_v_FW)[names(res_BW_v_FW) == 'pvalue'] <- 'pvalue-15ppt-v-0.2ppt'
+
+# -----------------------------
+# column names for stats from TR_v_FW specific contrast
+# -----------------------------
+
+names(res_TR_v_FW)[names(res_TR_v_FW) == 'padj'] <- 'padj-TR-v-0.2ppt'
+names(res_TR_v_FW)[names(res_TR_v_FW) == 'baseMean'] <- 'baseMean-ALL'
+names(res_TR_v_FW)[names(res_TR_v_FW) == 'log2FoldChange'] <- 'log2FoldChange-TR-v-0.2ppt'
+names(res_TR_v_FW)[names(res_TR_v_FW) == 'lfcSE'] <- 'lfcSE-TR-v-0.2ppt'
+names(res_TR_v_FW)[names(res_TR_v_FW) == 'stat'] <- 'stat-TR-v-0.2ppt'
+names(res_TR_v_FW)[names(res_TR_v_FW) == 'pvalue'] <- 'pvalue-TR-v-0.2ppt'
+
+# -----------------------------
+# column names for stats from TR_v_BW specific contrast
+# -----------------------------
+
+names(res_TR_v_BW)[names(res_TR_v_BW) == 'padj'] <- 'padj-TR-v-15ppt'
+names(res_TR_v_BW)[names(res_TR_v_BW) == 'baseMean'] <- 'baseMean-ALL'
+names(res_TR_v_BW)[names(res_TR_v_BW) == 'log2FoldChange'] <- 'log2FoldChange-TR-v-15ppt'
+names(res_TR_v_BW)[names(res_TR_v_BW) == 'lfcSE'] <- 'lfcSE-TR-v-15ppt'
+names(res_TR_v_BW)[names(res_TR_v_BW) == 'stat'] <- 'stat-TR-v-15ppt'
+names(res_TR_v_BW)[names(res_TR_v_BW) == 'pvalue'] <- 'pvalue-TR-v-15ppt'
+
+# -----------------------------
+# merge counts and stats
+# -----------------------------
+res_TR_v_FW <- as.data.frame(res_TR_v_FW)
+rownames(res_TR_v_FW) <- res_TR_v_FW$row
+counts_table_stats <- merge(as.data.frame(res_TR_v_FW),counts_table,by=0)
+counts_table_stats <- merge(as.data.frame(res_BW_v_FW),counts_table_stats,by='row')
+counts_table_stats <- merge(as.data.frame(res_TR_v_BW),counts_table_stats,by='row')
+dim(counts_table_stats)
+
+# -----------------------------
+# merge annotations with stats
+# -----------------------------
+counts_table_ann <- merge(query,counts_table_stats,by.x = "ensembl_peptide_id", by.y = "row", all = TRUE)
+counts_table_ann <- counts_table_ann[!duplicated(counts_table_ann$ensembl_peptide_id), ]
+rownames(counts_table_ann) <- counts_table_ann$ensembl_peptide_id
+dim(counts_table_ann)
+counts_table_ann <- counts_table_ann[ , -which(names(counts_table_ann) %in% c("Row.names"))]
+# -----------------------------
+# write csv files
+# -----------------------------
+counts_table_ann <- counts_table_ann[order(counts_table_ann[,19]), ]
+write.csv(counts_table_ann,"/Users/johnsolk/Documents/UCDavis/Whitehead/counts_stats_byspecies/{}_stats_annotations_counts.csv")
+```
+""".format(species)
+	return merged 
+
+def heatmap():
+
+	return
 
 def make_Rmd(outfile,species):
 	header=make_header(species)
 	packages=load_packages()
 	files=get_files()
 	design_info=design(species)
-	#PCA_plot=PCA()
-	n_samples="9"
+	n_samples="2"
 	expn="0.1"
 	filtered_counts=filtering_counts(n_samples,expn)
 	DESeq_string=run_DESeq()
-	chunks=[header,packages,files,design_info,filtered_counts,DESeq_string]
+	qc=DESeq_QC()
+	PCA_plot=PCA()
+	MA1=MA_plot("15_ppt","0.2_ppt",species,"1")
+	MA2=MA_plot("transfer","0.2_ppt",species,"2")
+	MA3=MA_plot("transfer","15_ppt",species,"3")
+	chunks1=[header,packages,files,design_info,filtered_counts,DESeq_string,qc,PCA_plot,MA1,MA2,MA3]
+	counts=norm_counts()
+	query=biomaRt()
+	merged=merge_counts_stats_annotations(species)
+	chunks2=[counts,query,merged]
+	genes_proteins = {"ENSFHEP00000000036":"avpr2aa",
+	"ENSFHEP00000001609":"slc24a5",
+	"ENSFHEP00000003908":"CLDN4",
+	"ENSFHEP00000006725":"aqp3",
+	"ENSFHEP00000008393":"cftr",
+	"ENSFHEP00000009753":"kcnj2a",
+	"ENSFHEP00000013324":"polyamine-modulated factor 1-like",
+	"ENSFHEP00000015383":"kcnj1a.6",
+	"ENSFHEP00000015765":"sept2B",
+	"ENSFHEP00000016853":"septin-2", 
+	"ENSFHEP00000017303":"cipcb",
+	"ENSFHEP00000019510":"clcn2c",
+	"ENSFHEP00000025841":"zymogen granule membrane protein 16",
+	"ENSFHEP00000031108":"atp1a1b",
+	"ENSFHEP00000034177":"solute carrier family 24 member 2"}
 	with open(outfile,"w") as Rmd:
-		for i in chunks:
+		for i in chunks1:
 			print(i)
 			Rmd.write(i + "\n")
+		n=0
+		Rmd.write("# Salinity-responsive genes of interest"+"\n")
+		for goi in genes_proteins.keys():
+			n+=1
+			geneID = genes_proteins[goi]
+			goi_plot=gene_plot(n,goi,geneID)
+			Rmd.write(goi_plot + "\n")
+		for j in chunks2:
+			print(j)
+			Rmd.write(j + "\n")
 	print("File written:",outfile)
 	return
 

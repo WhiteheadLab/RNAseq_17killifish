@@ -67,13 +67,9 @@ counts_design <- read.csv("../../Ensembl_species_counts_designfactors.csv",strin
 ```
 
 
-```{r format counts and ExpDesign, include=FALSE, results='hide'}
+```{r format counts and ExpDesign,}
 design <- counts_design[counts_design$Ensembl == 'Empty',]
-#design$type <- c("species","native_salinity","clade","group","condition")
-drops <- c("X","Ensembl",
-           "F_zebrinus_BW_1.quant","F_zebrinus_BW_2.quant",
-           "F_zebrinus_FW_1.quant","F_zebrinus_FW_2.quant",
-           "F_notti_FW_1.quant","F_notti_FW_2.quant")
+drops <- c("X","Ensembl")
 counts<-counts_design[!counts_design$Ensembl == 'Empty',]
 rownames(counts)<-counts$Ensembl
 design <- design[ , !(names(design) %in% drops)]
@@ -98,27 +94,548 @@ ExpDesign
 
 The following shows the dimensions of the dataframe when we filter out genes with low counts.
 
-9 samples must have a count of at least 0.1:
+2 samples must have a count of at least 0.1:
 
 ```{r filtering5,}
-filter <- rownames(counts[rowSums(counts >= 9) >= 0.1,])
+filter <- rownames(counts[rowSums(counts >= 2) >= 0.1,])
 filtered_counts <- counts[filter,]
 dim(filtered_counts)
 ```
 
 
-```{r run DESeq, }
+```{r run DESeq, results='hide', include=FALSE}
 all(rownames(ExpDesign) == colnames(counts))
 counts_round<- round(data.matrix(counts),digits=0)
 dds <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,design = ~condition)
 dds<-DESeq(dds)
-matrix(resultsNames(dds))
+```
+
+
+# DESeq
+
+```{r DESeq QC, }
 plotDispEsts(dds)
 resultsNames(dds)
 vsd <- vst(dds, blind=FALSE)
 meanSdPlot(assay(vsd))
-plotDispEsts(dds)
+```
+
+
+
+# PCA
+
+```{r PCA of counts,}
 plotPCA(vsd, intgroup=c("condition"))
 plotPCAWithSampleNames(vsd,intgroup=c("condition"))
+```
+
+
+# MA plot, 15_ppt vs. 0.2_ppt
+```{r MA plot 1, }
+gene_id <- c("avpr2aa","slc24a5","CLDN4","aqp3","cftr","kcnj2a","polyamine-modulated factor 1-like","kcnj1a.6","sept2B","septin-2", "cipcb","clcn2c","zymogen granule membrane protein 16","atp1a1b","solute carrier family 24 member 2")
+protein_id <- c("ENSFHEP00000000036","ENSFHEP00000001609","ENSFHEP00000003908","ENSFHEP00000006725","ENSFHEP00000008393","ENSFHEP00000009753","ENSFHEP00000013324",
+                "ENSFHEP00000015383","ENSFHEP00000015765","ENSFHEP00000016853","ENSFHEP00000017303","ENSFHEP00000019510","ENSFHEP00000025841",
+                "ENSFHEP00000031108","ENSFHEP00000034177")
+res<-results(dds,contrast=c("condition","15_ppt","0.2_ppt"))
+res_ordered <-as.data.frame(res[order(res$padj),])
+res_filtered <-subset(res_ordered,res_ordered$padj<0.05)
+id<-rownames(res_filtered)
+res_filtered<-cbind(res_filtered,id)
+plot(log2(res$baseMean), res$log2FoldChange, 
+     col=ifelse(res$padj < 0.05, "red","gray67"),
+     main="L_parva (15_ppt vs. 0.2_ppt) (padj<0.05)",xlim=c(1,15),pch=20,cex=1)
+abline(h=c(-1,1), col="blue")
+resSig = res_ordered[rownames(res_ordered) %in% protein_id, ]
+dim(resSig)
+genes<-rownames(resSig)
+mygenes <- resSig[,]
+baseMean_mygenes <- mygenes[,"baseMean"]
+log2FoldChange_mygenes <- mygenes[,"log2FoldChange"]
+text(log2(baseMean_mygenes),log2FoldChange_mygenes,labels=gene_id,pos=2,cex=0.60)
+```
+
+
+# MA plot, transfer vs. 0.2_ppt
+```{r MA plot 2, }
+gene_id <- c("avpr2aa","slc24a5","CLDN4","aqp3","cftr","kcnj2a","polyamine-modulated factor 1-like","kcnj1a.6","sept2B","septin-2", "cipcb","clcn2c","zymogen granule membrane protein 16","atp1a1b","solute carrier family 24 member 2")
+protein_id <- c("ENSFHEP00000000036","ENSFHEP00000001609","ENSFHEP00000003908","ENSFHEP00000006725","ENSFHEP00000008393","ENSFHEP00000009753","ENSFHEP00000013324",
+                "ENSFHEP00000015383","ENSFHEP00000015765","ENSFHEP00000016853","ENSFHEP00000017303","ENSFHEP00000019510","ENSFHEP00000025841",
+                "ENSFHEP00000031108","ENSFHEP00000034177")
+res<-results(dds,contrast=c("condition","transfer","0.2_ppt"))
+res_ordered <-as.data.frame(res[order(res$padj),])
+res_filtered <-subset(res_ordered,res_ordered$padj<0.05)
+id<-rownames(res_filtered)
+res_filtered<-cbind(res_filtered,id)
+plot(log2(res$baseMean), res$log2FoldChange, 
+     col=ifelse(res$padj < 0.05, "red","gray67"),
+     main="L_parva (transfer vs. 0.2_ppt) (padj<0.05)",xlim=c(1,15),pch=20,cex=1)
+abline(h=c(-1,1), col="blue")
+resSig = res_ordered[rownames(res_ordered) %in% protein_id, ]
+dim(resSig)
+genes<-rownames(resSig)
+mygenes <- resSig[,]
+baseMean_mygenes <- mygenes[,"baseMean"]
+log2FoldChange_mygenes <- mygenes[,"log2FoldChange"]
+text(log2(baseMean_mygenes),log2FoldChange_mygenes,labels=gene_id,pos=2,cex=0.60)
+```
+
+
+# MA plot, transfer vs. 15_ppt
+```{r MA plot 3, }
+gene_id <- c("avpr2aa","slc24a5","CLDN4","aqp3","cftr","kcnj2a","polyamine-modulated factor 1-like","kcnj1a.6","sept2B","septin-2", "cipcb","clcn2c","zymogen granule membrane protein 16","atp1a1b","solute carrier family 24 member 2")
+protein_id <- c("ENSFHEP00000000036","ENSFHEP00000001609","ENSFHEP00000003908","ENSFHEP00000006725","ENSFHEP00000008393","ENSFHEP00000009753","ENSFHEP00000013324",
+                "ENSFHEP00000015383","ENSFHEP00000015765","ENSFHEP00000016853","ENSFHEP00000017303","ENSFHEP00000019510","ENSFHEP00000025841",
+                "ENSFHEP00000031108","ENSFHEP00000034177")
+res<-results(dds,contrast=c("condition","transfer","15_ppt"))
+res_ordered <-as.data.frame(res[order(res$padj),])
+res_filtered <-subset(res_ordered,res_ordered$padj<0.05)
+id<-rownames(res_filtered)
+res_filtered<-cbind(res_filtered,id)
+plot(log2(res$baseMean), res$log2FoldChange, 
+     col=ifelse(res$padj < 0.05, "red","gray67"),
+     main="L_parva (transfer vs. 15_ppt) (padj<0.05)",xlim=c(1,15),pch=20,cex=1)
+abline(h=c(-1,1), col="blue")
+resSig = res_ordered[rownames(res_ordered) %in% protein_id, ]
+dim(resSig)
+genes<-rownames(resSig)
+mygenes <- resSig[,]
+baseMean_mygenes <- mygenes[,"baseMean"]
+log2FoldChange_mygenes <- mygenes[,"log2FoldChange"]
+text(log2(baseMean_mygenes),log2FoldChange_mygenes,labels=gene_id,pos=2,cex=0.60)
+```
+
+# Salinity-responsive genes of interest
+
+## avpr2aa
+```{r plot goi 1,}
+tcounts <- t(log2((counts(dds[c("ENSFHEP00000000036"), ], normalized=TRUE, replaced=FALSE)+.5))) %>% 
+  merge(colData(dds), ., by="row.names") %>% 
+  gather(gene, expression, (ncol(.)-1+1):ncol(.))
+
+C1<-ggplot(tcounts, aes(condition, expression)) +
+  geom_point() + 
+  stat_summary(fun.y="mean", geom="line") +
+  stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+               geom="errorbar",width=0.2) +
+  theme_bw() +
+  theme(legend.position="none",panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(y="Expression (log2 normalized counts)")+
+  ggtitle("avpr2aa")
+plot(C1)
+```
+
+
+## slc24a5
+```{r plot goi 2,}
+tcounts <- t(log2((counts(dds[c("ENSFHEP00000001609"), ], normalized=TRUE, replaced=FALSE)+.5))) %>% 
+  merge(colData(dds), ., by="row.names") %>% 
+  gather(gene, expression, (ncol(.)-1+1):ncol(.))
+
+C1<-ggplot(tcounts, aes(condition, expression)) +
+  geom_point() + 
+  stat_summary(fun.y="mean", geom="line") +
+  stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+               geom="errorbar",width=0.2) +
+  theme_bw() +
+  theme(legend.position="none",panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(y="Expression (log2 normalized counts)")+
+  ggtitle("slc24a5")
+plot(C1)
+```
+
+
+## CLDN4
+```{r plot goi 3,}
+tcounts <- t(log2((counts(dds[c("ENSFHEP00000003908"), ], normalized=TRUE, replaced=FALSE)+.5))) %>% 
+  merge(colData(dds), ., by="row.names") %>% 
+  gather(gene, expression, (ncol(.)-1+1):ncol(.))
+
+C1<-ggplot(tcounts, aes(condition, expression)) +
+  geom_point() + 
+  stat_summary(fun.y="mean", geom="line") +
+  stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+               geom="errorbar",width=0.2) +
+  theme_bw() +
+  theme(legend.position="none",panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(y="Expression (log2 normalized counts)")+
+  ggtitle("CLDN4")
+plot(C1)
+```
+
+
+## aqp3
+```{r plot goi 4,}
+tcounts <- t(log2((counts(dds[c("ENSFHEP00000006725"), ], normalized=TRUE, replaced=FALSE)+.5))) %>% 
+  merge(colData(dds), ., by="row.names") %>% 
+  gather(gene, expression, (ncol(.)-1+1):ncol(.))
+
+C1<-ggplot(tcounts, aes(condition, expression)) +
+  geom_point() + 
+  stat_summary(fun.y="mean", geom="line") +
+  stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+               geom="errorbar",width=0.2) +
+  theme_bw() +
+  theme(legend.position="none",panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(y="Expression (log2 normalized counts)")+
+  ggtitle("aqp3")
+plot(C1)
+```
+
+
+## cftr
+```{r plot goi 5,}
+tcounts <- t(log2((counts(dds[c("ENSFHEP00000008393"), ], normalized=TRUE, replaced=FALSE)+.5))) %>% 
+  merge(colData(dds), ., by="row.names") %>% 
+  gather(gene, expression, (ncol(.)-1+1):ncol(.))
+
+C1<-ggplot(tcounts, aes(condition, expression)) +
+  geom_point() + 
+  stat_summary(fun.y="mean", geom="line") +
+  stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+               geom="errorbar",width=0.2) +
+  theme_bw() +
+  theme(legend.position="none",panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(y="Expression (log2 normalized counts)")+
+  ggtitle("cftr")
+plot(C1)
+```
+
+
+## kcnj2a
+```{r plot goi 6,}
+tcounts <- t(log2((counts(dds[c("ENSFHEP00000009753"), ], normalized=TRUE, replaced=FALSE)+.5))) %>% 
+  merge(colData(dds), ., by="row.names") %>% 
+  gather(gene, expression, (ncol(.)-1+1):ncol(.))
+
+C1<-ggplot(tcounts, aes(condition, expression)) +
+  geom_point() + 
+  stat_summary(fun.y="mean", geom="line") +
+  stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+               geom="errorbar",width=0.2) +
+  theme_bw() +
+  theme(legend.position="none",panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(y="Expression (log2 normalized counts)")+
+  ggtitle("kcnj2a")
+plot(C1)
+```
+
+
+## polyamine-modulated factor 1-like
+```{r plot goi 7,}
+tcounts <- t(log2((counts(dds[c("ENSFHEP00000013324"), ], normalized=TRUE, replaced=FALSE)+.5))) %>% 
+  merge(colData(dds), ., by="row.names") %>% 
+  gather(gene, expression, (ncol(.)-1+1):ncol(.))
+
+C1<-ggplot(tcounts, aes(condition, expression)) +
+  geom_point() + 
+  stat_summary(fun.y="mean", geom="line") +
+  stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+               geom="errorbar",width=0.2) +
+  theme_bw() +
+  theme(legend.position="none",panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(y="Expression (log2 normalized counts)")+
+  ggtitle("polyamine-modulated factor 1-like")
+plot(C1)
+```
+
+
+## kcnj1a.6
+```{r plot goi 8,}
+tcounts <- t(log2((counts(dds[c("ENSFHEP00000015383"), ], normalized=TRUE, replaced=FALSE)+.5))) %>% 
+  merge(colData(dds), ., by="row.names") %>% 
+  gather(gene, expression, (ncol(.)-1+1):ncol(.))
+
+C1<-ggplot(tcounts, aes(condition, expression)) +
+  geom_point() + 
+  stat_summary(fun.y="mean", geom="line") +
+  stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+               geom="errorbar",width=0.2) +
+  theme_bw() +
+  theme(legend.position="none",panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(y="Expression (log2 normalized counts)")+
+  ggtitle("kcnj1a.6")
+plot(C1)
+```
+
+
+## sept2B
+```{r plot goi 9,}
+tcounts <- t(log2((counts(dds[c("ENSFHEP00000015765"), ], normalized=TRUE, replaced=FALSE)+.5))) %>% 
+  merge(colData(dds), ., by="row.names") %>% 
+  gather(gene, expression, (ncol(.)-1+1):ncol(.))
+
+C1<-ggplot(tcounts, aes(condition, expression)) +
+  geom_point() + 
+  stat_summary(fun.y="mean", geom="line") +
+  stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+               geom="errorbar",width=0.2) +
+  theme_bw() +
+  theme(legend.position="none",panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(y="Expression (log2 normalized counts)")+
+  ggtitle("sept2B")
+plot(C1)
+```
+
+
+## septin-2
+```{r plot goi 10,}
+tcounts <- t(log2((counts(dds[c("ENSFHEP00000016853"), ], normalized=TRUE, replaced=FALSE)+.5))) %>% 
+  merge(colData(dds), ., by="row.names") %>% 
+  gather(gene, expression, (ncol(.)-1+1):ncol(.))
+
+C1<-ggplot(tcounts, aes(condition, expression)) +
+  geom_point() + 
+  stat_summary(fun.y="mean", geom="line") +
+  stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+               geom="errorbar",width=0.2) +
+  theme_bw() +
+  theme(legend.position="none",panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(y="Expression (log2 normalized counts)")+
+  ggtitle("septin-2")
+plot(C1)
+```
+
+
+## cipcb
+```{r plot goi 11,}
+tcounts <- t(log2((counts(dds[c("ENSFHEP00000017303"), ], normalized=TRUE, replaced=FALSE)+.5))) %>% 
+  merge(colData(dds), ., by="row.names") %>% 
+  gather(gene, expression, (ncol(.)-1+1):ncol(.))
+
+C1<-ggplot(tcounts, aes(condition, expression)) +
+  geom_point() + 
+  stat_summary(fun.y="mean", geom="line") +
+  stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+               geom="errorbar",width=0.2) +
+  theme_bw() +
+  theme(legend.position="none",panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(y="Expression (log2 normalized counts)")+
+  ggtitle("cipcb")
+plot(C1)
+```
+
+
+## clcn2c
+```{r plot goi 12,}
+tcounts <- t(log2((counts(dds[c("ENSFHEP00000019510"), ], normalized=TRUE, replaced=FALSE)+.5))) %>% 
+  merge(colData(dds), ., by="row.names") %>% 
+  gather(gene, expression, (ncol(.)-1+1):ncol(.))
+
+C1<-ggplot(tcounts, aes(condition, expression)) +
+  geom_point() + 
+  stat_summary(fun.y="mean", geom="line") +
+  stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+               geom="errorbar",width=0.2) +
+  theme_bw() +
+  theme(legend.position="none",panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(y="Expression (log2 normalized counts)")+
+  ggtitle("clcn2c")
+plot(C1)
+```
+
+
+## zymogen granule membrane protein 16
+```{r plot goi 13,}
+tcounts <- t(log2((counts(dds[c("ENSFHEP00000025841"), ], normalized=TRUE, replaced=FALSE)+.5))) %>% 
+  merge(colData(dds), ., by="row.names") %>% 
+  gather(gene, expression, (ncol(.)-1+1):ncol(.))
+
+C1<-ggplot(tcounts, aes(condition, expression)) +
+  geom_point() + 
+  stat_summary(fun.y="mean", geom="line") +
+  stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+               geom="errorbar",width=0.2) +
+  theme_bw() +
+  theme(legend.position="none",panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(y="Expression (log2 normalized counts)")+
+  ggtitle("zymogen granule membrane protein 16")
+plot(C1)
+```
+
+
+## atp1a1b
+```{r plot goi 14,}
+tcounts <- t(log2((counts(dds[c("ENSFHEP00000031108"), ], normalized=TRUE, replaced=FALSE)+.5))) %>% 
+  merge(colData(dds), ., by="row.names") %>% 
+  gather(gene, expression, (ncol(.)-1+1):ncol(.))
+
+C1<-ggplot(tcounts, aes(condition, expression)) +
+  geom_point() + 
+  stat_summary(fun.y="mean", geom="line") +
+  stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+               geom="errorbar",width=0.2) +
+  theme_bw() +
+  theme(legend.position="none",panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(y="Expression (log2 normalized counts)")+
+  ggtitle("atp1a1b")
+plot(C1)
+```
+
+
+## solute carrier family 24 member 2
+```{r plot goi 15,}
+tcounts <- t(log2((counts(dds[c("ENSFHEP00000034177"), ], normalized=TRUE, replaced=FALSE)+.5))) %>% 
+  merge(colData(dds), ., by="row.names") %>% 
+  gather(gene, expression, (ncol(.)-1+1):ncol(.))
+
+C1<-ggplot(tcounts, aes(condition, expression)) +
+  geom_point() + 
+  stat_summary(fun.y="mean", geom="line") +
+  stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+               geom="errorbar",width=0.2) +
+  theme_bw() +
+  theme(legend.position="none",panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(y="Expression (log2 normalized counts)")+
+  ggtitle("solute carrier family 24 member 2")
+plot(C1)
+```
+
+
+
+# Get normalized counts and filter out genes with low expression
+
+This is the number of genes in the expression counts table:
+```{r dim counts, }
+# get counts
+counts_table = counts(dds, normalized=TRUE)
+dim(counts_table)
+```
+
+After filtering for low expression (where rowSum is greater than or equal to 1):
+
+```{r filtering again, }
+filtered_norm_counts<-counts_table[!rowSums(counts_table==0)>=1, ]
+dim(filtered_norm_counts)
+filtered_norm_counts<-as.data.frame(filtered_norm_counts)
+GeneID<-rownames(filtered_norm_counts)
+filtered_norm_counts<-cbind(filtered_norm_counts,GeneID)
+```
+
+
+```{r biomaRt,}
+all_goi<-c("ENSFHEP00000007220.1","ENSFHEP00000025841","ENSFHEP00000019510",
+           "ENSFHEP00000015383","ENSFHEP00000009753","ENSFHEP00000006725","ENSFHEP00000008393",
+           "ENSFHEP00000013324","ENSFHEP00000001609","ENSFHEP00000013324","ENSFHEP00000034177",
+           "ENSFHEP00000015765","ENSFHEP00000017303","ENSFHEP00000000036","ENSFHEP00000031108",
+           "ENSFHEP00000016853","ENSFHEP00000003908")
+
+ensembl=useMart("ENSEMBL_MART_ENSEMBL")
+ensembl = useDataset("fheteroclitus_gene_ensembl",mart=ensembl)
+ensembl_proteinID = rownames(counts_table)
+query<-getBM(attributes=c('ensembl_peptide_id','ensembl_transcript_id',
+'ensembl_gene_id','gene_biotype','external_gene_name',
+'description','entrezgene'), filters = 'ensembl_peptide_id', values = ensembl_proteinID, mart=ensembl)
+
+# link goi Ensembl ID to external_gene_name or description
+gene_id <- c("avpr2aa","slc24a5","CLDN4","aqp3","cftr","kcnj2a","polyamine-modulated factor 1-like","kcnj1a.6","sept2B","septin-2", "cipcb","clcn2c","zymogen granule membrane protein 16","atp1a1b","solute carrier family 24 member 2")
+protein_id <- c("ENSFHEP00000000036","ENSFHEP00000001609","ENSFHEP00000003908","ENSFHEP00000006725","ENSFHEP00000008393","ENSFHEP00000009753","ENSFHEP00000013324",
+                "ENSFHEP00000015383","ENSFHEP00000015765","ENSFHEP00000016853","ENSFHEP00000017303","ENSFHEP00000019510","ENSFHEP00000025841",
+                "ENSFHEP00000031108","ENSFHEP00000034177")
+```
+
+
+```{r merge and write, }
+# -----------------------------
+# stats results
+# -----------------------------
+
+res_BW_v_FW <- results(dds, tidy=TRUE, contrast=c("condition","15_ppt","0.2_ppt")) %>% arrange(padj) %>% tbl_df() 
+res_TR_v_FW <- results(dds, tidy=TRUE, contrast=c("condition","transfer","0.2_ppt")) %>% arrange(padj) %>% tbl_df() 
+res_TR_v_BW <- results(dds, tidy=TRUE, contrast=c("condition","transfer","15_ppt")) %>% arrange(padj) %>% tbl_df() 
+
+# -----------------------------
+# counts 
+# -----------------------------
+
+cols <- colnames(counts_table)
+counts_table <- as.data.frame(counts_table[,cols])
+dim(counts_table)
+
+# -----------------------------
+# column names for stats from BW_v_FW specific contrast
+# -----------------------------
+
+names(res_BW_v_FW)[names(res_BW_v_FW) == 'padj'] <- 'padj-15ppt-v-0.2ppt'
+names(res_BW_v_FW)[names(res_BW_v_FW) == 'baseMean'] <- 'baseMean-ALL'
+names(res_BW_v_FW)[names(res_BW_v_FW) == 'log2FoldChange'] <- 'log2FoldChange-15ppt-v-0.2ppt'
+names(res_BW_v_FW)[names(res_BW_v_FW) == 'lfcSE'] <- 'lfcSE-15ppt-v-0.2ppt'
+names(res_BW_v_FW)[names(res_BW_v_FW) == 'stat'] <- 'stat-15ppt-v-0.2ppt'
+names(res_BW_v_FW)[names(res_BW_v_FW) == 'pvalue'] <- 'pvalue-15ppt-v-0.2ppt'
+
+# -----------------------------
+# column names for stats from TR_v_FW specific contrast
+# -----------------------------
+
+names(res_TR_v_FW)[names(res_TR_v_FW) == 'padj'] <- 'padj-TR-v-0.2ppt'
+names(res_TR_v_FW)[names(res_TR_v_FW) == 'baseMean'] <- 'baseMean-ALL'
+names(res_TR_v_FW)[names(res_TR_v_FW) == 'log2FoldChange'] <- 'log2FoldChange-TR-v-0.2ppt'
+names(res_TR_v_FW)[names(res_TR_v_FW) == 'lfcSE'] <- 'lfcSE-TR-v-0.2ppt'
+names(res_TR_v_FW)[names(res_TR_v_FW) == 'stat'] <- 'stat-TR-v-0.2ppt'
+names(res_TR_v_FW)[names(res_TR_v_FW) == 'pvalue'] <- 'pvalue-TR-v-0.2ppt'
+
+# -----------------------------
+# column names for stats from TR_v_BW specific contrast
+# -----------------------------
+
+names(res_TR_v_BW)[names(res_TR_v_BW) == 'padj'] <- 'padj-TR-v-15ppt'
+names(res_TR_v_BW)[names(res_TR_v_BW) == 'baseMean'] <- 'baseMean-ALL'
+names(res_TR_v_BW)[names(res_TR_v_BW) == 'log2FoldChange'] <- 'log2FoldChange-TR-v-15ppt'
+names(res_TR_v_BW)[names(res_TR_v_BW) == 'lfcSE'] <- 'lfcSE-TR-v-15ppt'
+names(res_TR_v_BW)[names(res_TR_v_BW) == 'stat'] <- 'stat-TR-v-15ppt'
+names(res_TR_v_BW)[names(res_TR_v_BW) == 'pvalue'] <- 'pvalue-TR-v-15ppt'
+
+# -----------------------------
+# merge counts and stats
+# -----------------------------
+res_TR_v_FW <- as.data.frame(res_TR_v_FW)
+rownames(res_TR_v_FW) <- res_TR_v_FW$row
+counts_table_stats <- merge(as.data.frame(res_TR_v_FW),counts_table,by=0)
+counts_table_stats <- merge(as.data.frame(res_BW_v_FW),counts_table_stats,by='row')
+counts_table_stats <- merge(as.data.frame(res_TR_v_BW),counts_table_stats,by='row')
+dim(counts_table_stats)
+
+# -----------------------------
+# merge annotations with stats
+# -----------------------------
+counts_table_ann <- merge(query,counts_table_stats,by.x = "ensembl_peptide_id", by.y = "row", all = TRUE)
+counts_table_ann <- counts_table_ann[!duplicated(counts_table_ann$ensembl_peptide_id), ]
+rownames(counts_table_ann) <- counts_table_ann$ensembl_peptide_id
+dim(counts_table_ann)
+counts_table_ann <- counts_table_ann[ , -which(names(counts_table_ann) %in% c("Row.names"))]
+# -----------------------------
+# write csv files
+# -----------------------------
+counts_table_ann <- counts_table_ann[order(counts_table_ann[,19]), ]
+write.csv(counts_table_ann,"/Users/johnsolk/Documents/UCDavis/Whitehead/counts_stats_byspecies/L_parva_stats_annotations_counts.csv")
 ```
 

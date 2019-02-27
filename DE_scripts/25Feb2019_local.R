@@ -187,13 +187,9 @@ colnames(m1)
 Matrix::rankMatrix( m1 )
 dim(m1)
 
-<<<<<<< HEAD
-all(rownames(ExpDesign) == colnames(filtered_counts))
-counts_round<- round(data.matrix(filtered_counts),digits=0)
-=======
+
 all(rownames(ExpDesign) == colnames(counts))
 counts_round<- round(data.matrix(counts),digits=0)
->>>>>>> 843f715b03f3d227ef8d7053a803be78e80f7964
 dds <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,design = m1)
 
 # try this, suggested from this:
