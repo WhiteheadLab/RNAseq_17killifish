@@ -1,5 +1,7 @@
 import os
 import os.path
+import subprocess
+from subprocess import Popen, PIPE
 
 
 def make_header(species):
@@ -402,7 +404,10 @@ def make_Rmd(outfile,species):
 			print(j)
 			Rmd.write(j + "\n")
 	print("File written:",outfile)
-	return
+	exec_string='Rscript -e "library(rmarkdown); rmarkdown::render(\'' + outfile + '\')"' 
+	print(exec_string)
+	s = subprocess.Popen(exec_string, shell=True)
+	s.wait()
 
 species_list=["A_xenica","F_catanatus","F_chrysotus","F_diaphanus","F_grandis",
 "F_heteroclitusMDPL","F_heteroclitusMDPP","F_notatus","F_olivaceous",
