@@ -146,7 +146,7 @@ ExpDesign
 # ~  clade + species_condition
 # ~ species + clade + condition + species:condition
 
-# This works, but has problems converging (data need filtering?):
+# This works, but has problems converging (data need more filtering):
 m1 <- model.matrix(~clade + physiology + clade:physiology ,ExpDesign)
 # this happens:
 #> dds <- DESeq(dds, full = m1, betaPrior=FALSE)

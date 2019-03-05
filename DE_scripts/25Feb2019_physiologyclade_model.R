@@ -104,6 +104,7 @@ dim(counts)
 
 #------------------------
 #filter <- rownames(counts[rowSums(counts >= 0.01) >= 64,])
+# thousands of genes not converging
 filter <- rownames(counts[rowSums(counts >= 0.01) >= 100,])
 #> dds <- DESeq(dds, full = m1, betaPrior=FALSE)
 #using supplied model matrix
@@ -169,7 +170,7 @@ ExpDesign
 # ~  clade + species_condition
 # ~ species + clade + condition + species:condition
 
-m1 <- model.matrix(~ species + condition + species:condition,ExpDesign)
+m1 <- model.matrix(~ species + condition + clade + species:condition,ExpDesign)
 
 # This works:
 #m1 <- model.matrix(~clade + physiology + clade:physiology ,ExpDesign)
