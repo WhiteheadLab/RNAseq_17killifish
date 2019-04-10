@@ -83,6 +83,9 @@ counts_design <- read.csv("../../Ensembl_species_counts_designfactors.csv",strin
 
 def design(species):
 	design_info='''
+# Load counts and design:
+
+Dimensions of counts table, and design table:
 ```{{r format counts and ExpDesign,}}
 design <- counts_design[counts_design$Ensembl == 'Empty',]
 drops <- c("X","Ensembl")
@@ -92,7 +95,6 @@ design <- design[ , !(names(design) %in% drops)]
 counts <- counts[ , !(names(counts) %in% drops)]
 design <- design[ , startsWith(names(design),"{}")]
 counts <- counts[ , startsWith(names(counts),"{}")]
-dim(design)
 dim(counts)
 # design cateogories (full)
 species<-as.character(unlist(design[1,]))
@@ -139,9 +141,11 @@ def DESeq_QC():
 	qc="""
 # DESeq
 
+Model results, dispersion plot, and mean variance plot.
+
 ```{{r DESeq QC, }}
-plotDispEsts(dds)
 resultsNames(dds)
+plotDispEsts(dds)
 vsd <- vst(dds, blind=FALSE)
 meanSdPlot(assay(vsd))
 ```
@@ -162,11 +166,7 @@ plotPCAWithSampleNames(vsd,intgroup=c("condition"))
 
 def norm_counts():
 	counts="""
-
-# Get normalized counts and filter out genes with low expression
-
-This is the number of genes in the expression counts table:
-```{{r dim counts, }}
+```{{r dim counts, results='hide', include=FALSE}}
 # get counts
 counts_table = counts(dds, normalized=TRUE)
 dim(counts_table)
@@ -174,7 +174,7 @@ dim(counts_table)
 
 After filtering for low expression (where rowSum is greater than or equal to 1):
 
-```{{r filtering again, }}
+```{{r filtering again, results='hide', include=FALSE}}
 filtered_norm_counts<-counts_table[!rowSums(counts_table==0)>=1, ]
 dim(filtered_norm_counts)
 filtered_norm_counts<-as.data.frame(filtered_norm_counts)
@@ -215,7 +215,7 @@ text(log2(baseMean_mygenes),log2FoldChange_mygenes,labels=gene_id,pos=2,cex=0.60
 
 def biomaRt():
 	query="""
-```{{r biomaRt,}}
+```{{r biomaRt,results='hide', include=FALSE}}
 all_goi<-c("ENSFHEP00000007220.1","ENSFHEP00000025841","ENSFHEP00000019510",
            "ENSFHEP00000015383","ENSFHEP00000009753","ENSFHEP00000006725","ENSFHEP00000008393",
            "ENSFHEP00000013324","ENSFHEP00000001609","ENSFHEP00000013324","ENSFHEP00000034177",
@@ -246,8 +246,9 @@ tcounts <- t(log2((counts(dds[c("{}"), ], normalized=TRUE, replaced=FALSE)+.5)))
   merge(colData(dds), ., by="row.names") %>% 
   gather(gene, expression, (ncol(.)-1+1):ncol(.))
 
-C1<-ggplot(tcounts, aes(condition, expression)) +
+C1<-ggplot(tcounts, aes(condition, expression,group=1)) +
   geom_point() + 
+  scale_x_discrete(limits=c('0.2_ppt','transfer','15_ppt')) +
   stat_summary(fun.y="mean", geom="line") +
   stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
                geom="errorbar",width=0.2) +
@@ -263,18 +264,9 @@ plot(C1)
 
 	return goi_plot
 
-def sig_genes():
-	sig="""
-	counts_table_ann_sig <- subset(Axen_counts_table_ann,Axen_counts_table_ann$`padj-15ppt-v-0.2ppt`<0.05)
-	Axen_counts_table_ann_up <- subset(Axen_counts_table_ann_sig,Axen_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` > 0.5)
-	Axen_counts_table_ann_down <- subset(Axen_counts_table_ann_sig,Axen_counts_table_ann_sig$`log2FoldChange-15ppt-v-0.2ppt` < -0.5)
-dim(Axen_counts_table_ann_sig)
-""".format()
-	return
-
 def merge_counts_stats_annotations(species):
 	merged="""
-```{{r merge and write, }}
+```{{r merge and write, results='hide', include=FALSE}}
 # -----------------------------
 # stats results
 # -----------------------------
@@ -351,9 +343,45 @@ write.csv(counts_table_ann,"/Users/johnsolk/Documents/UCDavis/Whitehead/counts_s
 """.format(species)
 	return merged 
 
-def heatmap():
+def subset_sig():
+	subset = """
 
-	return
+# Significant genes
+
+Number of significant genes between conditions 15ppt vs. 0.2ppt, padj <0.05:
+```{{r subset, }}
+sig <- subset(counts_table_stats, counts_table_stats$`padj-15ppt-v-0.2ppt`<= 0.05)
+dim(sig)
+sig_id <- sig$row
+counts_table <- counts(dds,normalized=TRUE)
+counts_sig <- counts_table[rownames(counts_table) %in% sig_id,]
+```
+""".format()
+	return subset
+
+def heatmap(species):
+	heatmap_plot = """
+# Heatmap
+
+```{{r heatmap,}}
+id <- sig_id
+d<-as.matrix(counts_sig)
+hr <- hclust(as.dist(1-cor(t(d), method="pearson")), method="complete")
+mycl <- cutree(hr, h=max(hr$height/1.5))
+clusterCols <- rainbow(length(unique(mycl)))
+myClusterSideBar <- clusterCols[mycl]
+myheatcol <- greenred(75)
+heatmap.2(d, main="{}, padj<0.05",
+          Rowv=as.dendrogram(hr),
+          cexRow=0.75,cexCol=0.8,srtCol= 90,
+          adjCol = c(NA,0),offsetCol=2.5, 
+          Colv=NA, dendrogram="row", 
+          scale="row", col=myheatcol, 
+          density.info="none", 
+          trace="none", RowSideColors= myClusterSideBar)
+```
+""".format(species)
+	return heatmap_plot
 
 def make_Rmd(outfile,species):
 	header=make_header(species)
@@ -373,7 +401,9 @@ def make_Rmd(outfile,species):
 	counts=norm_counts()
 	query=biomaRt()
 	merged=merge_counts_stats_annotations(species)
-	chunks2=[counts,query,merged]
+	subset = subset_sig()
+	heatmap_plot = heatmap(species)
+	chunks2=[counts,query,merged,subset,heatmap_plot]
 	genes_proteins = {"ENSFHEP00000000036":"avpr2aa",
 	"ENSFHEP00000001609":"slc24a5",
 	"ENSFHEP00000003908":"CLDN4",

@@ -67,6 +67,9 @@ counts_design <- read.csv("../../Ensembl_species_counts_designfactors.csv",strin
 ```
 
 
+# Load counts and design:
+
+Dimensions of counts table, and design table:
 ```{r format counts and ExpDesign,}
 design <- counts_design[counts_design$Ensembl == 'Empty',]
 drops <- c("X","Ensembl")
@@ -76,7 +79,6 @@ design <- design[ , !(names(design) %in% drops)]
 counts <- counts[ , !(names(counts) %in% drops)]
 design <- design[ , startsWith(names(design),"F_rathbuni")]
 counts <- counts[ , startsWith(names(counts),"F_rathbuni")]
-dim(design)
 dim(counts)
 # design cateogories (full)
 species<-as.character(unlist(design[1,]))
@@ -113,9 +115,11 @@ dds<-DESeq(dds)
 
 # DESeq
 
+Model results, dispersion plot, and mean variance plot.
+
 ```{r DESeq QC, }
-plotDispEsts(dds)
 resultsNames(dds)
+plotDispEsts(dds)
 vsd <- vst(dds, blind=FALSE)
 meanSdPlot(assay(vsd))
 ```
@@ -212,8 +216,9 @@ tcounts <- t(log2((counts(dds[c("ENSFHEP00000000036"), ], normalized=TRUE, repla
   merge(colData(dds), ., by="row.names") %>% 
   gather(gene, expression, (ncol(.)-1+1):ncol(.))
 
-C1<-ggplot(tcounts, aes(condition, expression)) +
+C1<-ggplot(tcounts, aes(condition, expression,group=1)) +
   geom_point() + 
+  scale_x_discrete(limits=c('0.2_ppt','transfer','15_ppt')) +
   stat_summary(fun.y="mean", geom="line") +
   stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
                geom="errorbar",width=0.2) +
@@ -233,8 +238,9 @@ tcounts <- t(log2((counts(dds[c("ENSFHEP00000001609"), ], normalized=TRUE, repla
   merge(colData(dds), ., by="row.names") %>% 
   gather(gene, expression, (ncol(.)-1+1):ncol(.))
 
-C1<-ggplot(tcounts, aes(condition, expression)) +
+C1<-ggplot(tcounts, aes(condition, expression,group=1)) +
   geom_point() + 
+  scale_x_discrete(limits=c('0.2_ppt','transfer','15_ppt')) +
   stat_summary(fun.y="mean", geom="line") +
   stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
                geom="errorbar",width=0.2) +
@@ -254,8 +260,9 @@ tcounts <- t(log2((counts(dds[c("ENSFHEP00000003908"), ], normalized=TRUE, repla
   merge(colData(dds), ., by="row.names") %>% 
   gather(gene, expression, (ncol(.)-1+1):ncol(.))
 
-C1<-ggplot(tcounts, aes(condition, expression)) +
+C1<-ggplot(tcounts, aes(condition, expression,group=1)) +
   geom_point() + 
+  scale_x_discrete(limits=c('0.2_ppt','transfer','15_ppt')) +
   stat_summary(fun.y="mean", geom="line") +
   stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
                geom="errorbar",width=0.2) +
@@ -275,8 +282,9 @@ tcounts <- t(log2((counts(dds[c("ENSFHEP00000006725"), ], normalized=TRUE, repla
   merge(colData(dds), ., by="row.names") %>% 
   gather(gene, expression, (ncol(.)-1+1):ncol(.))
 
-C1<-ggplot(tcounts, aes(condition, expression)) +
+C1<-ggplot(tcounts, aes(condition, expression,group=1)) +
   geom_point() + 
+  scale_x_discrete(limits=c('0.2_ppt','transfer','15_ppt')) +
   stat_summary(fun.y="mean", geom="line") +
   stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
                geom="errorbar",width=0.2) +
@@ -296,8 +304,9 @@ tcounts <- t(log2((counts(dds[c("ENSFHEP00000008393"), ], normalized=TRUE, repla
   merge(colData(dds), ., by="row.names") %>% 
   gather(gene, expression, (ncol(.)-1+1):ncol(.))
 
-C1<-ggplot(tcounts, aes(condition, expression)) +
+C1<-ggplot(tcounts, aes(condition, expression,group=1)) +
   geom_point() + 
+  scale_x_discrete(limits=c('0.2_ppt','transfer','15_ppt')) +
   stat_summary(fun.y="mean", geom="line") +
   stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
                geom="errorbar",width=0.2) +
@@ -317,8 +326,9 @@ tcounts <- t(log2((counts(dds[c("ENSFHEP00000009753"), ], normalized=TRUE, repla
   merge(colData(dds), ., by="row.names") %>% 
   gather(gene, expression, (ncol(.)-1+1):ncol(.))
 
-C1<-ggplot(tcounts, aes(condition, expression)) +
+C1<-ggplot(tcounts, aes(condition, expression,group=1)) +
   geom_point() + 
+  scale_x_discrete(limits=c('0.2_ppt','transfer','15_ppt')) +
   stat_summary(fun.y="mean", geom="line") +
   stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
                geom="errorbar",width=0.2) +
@@ -338,8 +348,9 @@ tcounts <- t(log2((counts(dds[c("ENSFHEP00000013324"), ], normalized=TRUE, repla
   merge(colData(dds), ., by="row.names") %>% 
   gather(gene, expression, (ncol(.)-1+1):ncol(.))
 
-C1<-ggplot(tcounts, aes(condition, expression)) +
+C1<-ggplot(tcounts, aes(condition, expression,group=1)) +
   geom_point() + 
+  scale_x_discrete(limits=c('0.2_ppt','transfer','15_ppt')) +
   stat_summary(fun.y="mean", geom="line") +
   stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
                geom="errorbar",width=0.2) +
@@ -359,8 +370,9 @@ tcounts <- t(log2((counts(dds[c("ENSFHEP00000015383"), ], normalized=TRUE, repla
   merge(colData(dds), ., by="row.names") %>% 
   gather(gene, expression, (ncol(.)-1+1):ncol(.))
 
-C1<-ggplot(tcounts, aes(condition, expression)) +
+C1<-ggplot(tcounts, aes(condition, expression,group=1)) +
   geom_point() + 
+  scale_x_discrete(limits=c('0.2_ppt','transfer','15_ppt')) +
   stat_summary(fun.y="mean", geom="line") +
   stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
                geom="errorbar",width=0.2) +
@@ -380,8 +392,9 @@ tcounts <- t(log2((counts(dds[c("ENSFHEP00000015765"), ], normalized=TRUE, repla
   merge(colData(dds), ., by="row.names") %>% 
   gather(gene, expression, (ncol(.)-1+1):ncol(.))
 
-C1<-ggplot(tcounts, aes(condition, expression)) +
+C1<-ggplot(tcounts, aes(condition, expression,group=1)) +
   geom_point() + 
+  scale_x_discrete(limits=c('0.2_ppt','transfer','15_ppt')) +
   stat_summary(fun.y="mean", geom="line") +
   stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
                geom="errorbar",width=0.2) +
@@ -401,8 +414,9 @@ tcounts <- t(log2((counts(dds[c("ENSFHEP00000016853"), ], normalized=TRUE, repla
   merge(colData(dds), ., by="row.names") %>% 
   gather(gene, expression, (ncol(.)-1+1):ncol(.))
 
-C1<-ggplot(tcounts, aes(condition, expression)) +
+C1<-ggplot(tcounts, aes(condition, expression,group=1)) +
   geom_point() + 
+  scale_x_discrete(limits=c('0.2_ppt','transfer','15_ppt')) +
   stat_summary(fun.y="mean", geom="line") +
   stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
                geom="errorbar",width=0.2) +
@@ -422,8 +436,9 @@ tcounts <- t(log2((counts(dds[c("ENSFHEP00000017303"), ], normalized=TRUE, repla
   merge(colData(dds), ., by="row.names") %>% 
   gather(gene, expression, (ncol(.)-1+1):ncol(.))
 
-C1<-ggplot(tcounts, aes(condition, expression)) +
+C1<-ggplot(tcounts, aes(condition, expression,group=1)) +
   geom_point() + 
+  scale_x_discrete(limits=c('0.2_ppt','transfer','15_ppt')) +
   stat_summary(fun.y="mean", geom="line") +
   stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
                geom="errorbar",width=0.2) +
@@ -443,8 +458,9 @@ tcounts <- t(log2((counts(dds[c("ENSFHEP00000019510"), ], normalized=TRUE, repla
   merge(colData(dds), ., by="row.names") %>% 
   gather(gene, expression, (ncol(.)-1+1):ncol(.))
 
-C1<-ggplot(tcounts, aes(condition, expression)) +
+C1<-ggplot(tcounts, aes(condition, expression,group=1)) +
   geom_point() + 
+  scale_x_discrete(limits=c('0.2_ppt','transfer','15_ppt')) +
   stat_summary(fun.y="mean", geom="line") +
   stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
                geom="errorbar",width=0.2) +
@@ -464,8 +480,9 @@ tcounts <- t(log2((counts(dds[c("ENSFHEP00000025841"), ], normalized=TRUE, repla
   merge(colData(dds), ., by="row.names") %>% 
   gather(gene, expression, (ncol(.)-1+1):ncol(.))
 
-C1<-ggplot(tcounts, aes(condition, expression)) +
+C1<-ggplot(tcounts, aes(condition, expression,group=1)) +
   geom_point() + 
+  scale_x_discrete(limits=c('0.2_ppt','transfer','15_ppt')) +
   stat_summary(fun.y="mean", geom="line") +
   stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
                geom="errorbar",width=0.2) +
@@ -485,8 +502,9 @@ tcounts <- t(log2((counts(dds[c("ENSFHEP00000031108"), ], normalized=TRUE, repla
   merge(colData(dds), ., by="row.names") %>% 
   gather(gene, expression, (ncol(.)-1+1):ncol(.))
 
-C1<-ggplot(tcounts, aes(condition, expression)) +
+C1<-ggplot(tcounts, aes(condition, expression,group=1)) +
   geom_point() + 
+  scale_x_discrete(limits=c('0.2_ppt','transfer','15_ppt')) +
   stat_summary(fun.y="mean", geom="line") +
   stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
                geom="errorbar",width=0.2) +
@@ -506,8 +524,9 @@ tcounts <- t(log2((counts(dds[c("ENSFHEP00000034177"), ], normalized=TRUE, repla
   merge(colData(dds), ., by="row.names") %>% 
   gather(gene, expression, (ncol(.)-1+1):ncol(.))
 
-C1<-ggplot(tcounts, aes(condition, expression)) +
+C1<-ggplot(tcounts, aes(condition, expression,group=1)) +
   geom_point() + 
+  scale_x_discrete(limits=c('0.2_ppt','transfer','15_ppt')) +
   stat_summary(fun.y="mean", geom="line") +
   stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
                geom="errorbar",width=0.2) +
@@ -521,11 +540,7 @@ plot(C1)
 ```
 
 
-
-# Get normalized counts and filter out genes with low expression
-
-This is the number of genes in the expression counts table:
-```{r dim counts, }
+```{r dim counts, results='hide', include=FALSE}
 # get counts
 counts_table = counts(dds, normalized=TRUE)
 dim(counts_table)
@@ -533,7 +548,7 @@ dim(counts_table)
 
 After filtering for low expression (where rowSum is greater than or equal to 1):
 
-```{r filtering again, }
+```{r filtering again, results='hide', include=FALSE}
 filtered_norm_counts<-counts_table[!rowSums(counts_table==0)>=1, ]
 dim(filtered_norm_counts)
 filtered_norm_counts<-as.data.frame(filtered_norm_counts)
@@ -542,7 +557,7 @@ filtered_norm_counts<-cbind(filtered_norm_counts,GeneID)
 ```
 
 
-```{r biomaRt,}
+```{r biomaRt,results='hide', include=FALSE}
 all_goi<-c("ENSFHEP00000007220.1","ENSFHEP00000025841","ENSFHEP00000019510",
            "ENSFHEP00000015383","ENSFHEP00000009753","ENSFHEP00000006725","ENSFHEP00000008393",
            "ENSFHEP00000013324","ENSFHEP00000001609","ENSFHEP00000013324","ENSFHEP00000034177",
@@ -564,7 +579,7 @@ protein_id <- c("ENSFHEP00000000036","ENSFHEP00000001609","ENSFHEP00000003908","
 ```
 
 
-```{r merge and write, }
+```{r merge and write, results='hide', include=FALSE}
 # -----------------------------
 # stats results
 # -----------------------------
@@ -637,5 +652,39 @@ counts_table_ann <- counts_table_ann[ , -which(names(counts_table_ann) %in% c("R
 # -----------------------------
 counts_table_ann <- counts_table_ann[order(counts_table_ann[,19]), ]
 write.csv(counts_table_ann,"/Users/johnsolk/Documents/UCDavis/Whitehead/counts_stats_byspecies/F_rathbuni_stats_annotations_counts.csv")
+```
+
+
+
+# Significant genes
+
+Number of significant genes between conditions 15ppt vs. 0.2ppt, padj <0.05:
+```{r subset, }
+sig <- subset(counts_table_stats, counts_table_stats$`padj-15ppt-v-0.2ppt`<= 0.05)
+dim(sig)
+sig_id <- sig$row
+counts_table <- counts(dds,normalized=TRUE)
+counts_sig <- counts_table[rownames(counts_table) %in% sig_id,]
+```
+
+
+# Heatmap
+
+```{r heatmap,}
+id <- sig_id
+d<-as.matrix(counts_sig)
+hr <- hclust(as.dist(1-cor(t(d), method="pearson")), method="complete")
+mycl <- cutree(hr, h=max(hr$height/1.5))
+clusterCols <- rainbow(length(unique(mycl)))
+myClusterSideBar <- clusterCols[mycl]
+myheatcol <- greenred(75)
+heatmap.2(d, main="F_rathbuni, padj<0.05",
+          Rowv=as.dendrogram(hr),
+          cexRow=0.75,cexCol=0.8,srtCol= 90,
+          adjCol = c(NA,0),offsetCol=2.5, 
+          Colv=NA, dendrogram="row", 
+          scale="row", col=myheatcol, 
+          density.info="none", 
+          trace="none", RowSideColors= myClusterSideBar)
 ```
 

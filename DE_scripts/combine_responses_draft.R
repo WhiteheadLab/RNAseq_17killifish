@@ -1553,5 +1553,3 @@ heatmap.2(d, main="Clade1, FC > 0.5, common sig genes (padj<0.05)",
           scale="row", col=myheatcol, 
           density.info="none", 
           trace="none", RowSideColors= myClusterSideBar)
-
-                                  
