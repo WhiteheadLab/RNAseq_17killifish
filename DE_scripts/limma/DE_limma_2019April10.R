@@ -5,11 +5,18 @@ library('doParallel')
 #setwd("DE_scripts/limma")
 
 # This is the counts with Experimental Design Info in the last 5 rows
-if(!file.exists('../../../Ensembl_species_counts_designfactors.csv')){
-  download.file("https://osf.io/7vp38/download",'../../../Ensembl_species_counts_designfactors.csv')
-}
-counts_design <- read.csv("../../../Ensembl_species_counts_designfactors.csv",stringsAsFactors = FALSE)
+#if(!file.exists('../../../Ensembl_species_counts_designfactors.csv')){
+#  download.file("https://osf.io/7vp38/download",'../../../Ensembl_species_counts_designfactors.csv')
+#}
+#counts_design <- read.csv("../../../Ensembl_species_counts_designfactors.csv",stringsAsFactors = FALSE)
 
+if(!file.exists('../../../nonzero_clade_physiology_counts_design.csv')){
+  download.file("https://osf.io/wyx9h/download",'../../../Ensembl_species_counts_designfactors.csv')
+  }
+
+
+counts_design_filtered <- read.csv("../../../nonzero_clade_physiology_counts_design.csv")
+counts_design <- counts_design_filtered
 # -----------------------
 # Format design and counts matrix
 # -----------------------
@@ -43,7 +50,7 @@ design <- design[ , !(names(design) %in% transfer_drops)]
 counts <- counts[ , !(names(counts) %in% transfer_drops)]
 dim(design)
 #[1]  5 81
-> dim(counts)
+dim(counts)
 #[1] 30466    81
 
 # --------------------
@@ -61,6 +68,7 @@ ExpDesign <- data.frame(row.names=cols,
                         physiology = physiology,
                         clade = clade,
                         species = species,
+                        ConditionPhysiology = condition_physiology,
                         sample=cols)
 ExpDesign
 design = model.matrix( ~ physiology:condition, ExpDesign)
