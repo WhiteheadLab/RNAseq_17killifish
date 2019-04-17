@@ -1,22 +1,24 @@
 library(limma)
-library('variancePartition')
 library('edgeR')
-library('doParallel')
 #setwd("DE_scripts/limma")
 
 # This is the counts with Experimental Design Info in the last 5 rows
-#if(!file.exists('../../../Ensembl_species_counts_designfactors.csv')){
-#  download.file("https://osf.io/7vp38/download",'../../../Ensembl_species_counts_designfactors.csv')
-#}
-#counts_design <- read.csv("../../../Ensembl_species_counts_designfactors.csv",stringsAsFactors = FALSE)
 
-if(!file.exists('../../../nonzero_clade_physiology_counts_design.csv')){
-  download.file("https://osf.io/wyx9h/download",'../../../nonzero_clade_physiology_counts_design.csv')
-  }
+if(!file.exists('Ensembl_species_counts_designfactors.csv')){
+  download.file("https://osf.io/7vp38/download",'Ensembl_species_counts_designfactors.csv')
+}
+
+if(!file.exists('nonzero_clade_physiology_counts_design.csv')){
+  download.file("https://osf.io/be7ny/download",'nonzero_clade_physiology_counts_design.csv')
+}
 
 
-counts_design_filtered <- read.csv("../../../nonzero_clade_physiology_counts_design.csv")
-counts_design <- counts_design_filtered
+if(!file.exists('greater5counts_clade_physiology_counts_design.csv')){
+  download.file("https://osf.io/be7ny/download",'greater5counts_clade_physiology_counts_design.csv')
+}
+
+counts_design <- read.csv("Ensembl_species_counts_designfactors.csv",stringsAsFactors = TRUE)
+
 # -----------------------
 # Format design and counts matrix
 # -----------------------
@@ -68,10 +70,12 @@ ExpDesign <- data.frame(row.names=cols,
                         physiology = physiology,
                         clade = clade,
                         species = species,
-                        ConditionPhysiology = condition_physiology,
                         sample=cols)
 ExpDesign
-design = model.matrix( ~ physiology:condition, ExpDesign)
+design = model.matrix( ~ physiology + condition + physiology:condition, ExpDesign)
+
+#design1 = model.matrix( ~ -1 + physiology:condition, ExpDesign)
+
 colnames(design)
 # check rank of matrix
 Matrix::rankMatrix( design )
@@ -79,10 +83,39 @@ dim(design)
 
 # ---------------
 
-counts_round<- round(data.matrix(counts),digits=0)
+# normalization
+
+# ---------------
+
+counts_round <- round(data.matrix(counts), digits=0)
+counts_round <- head(counts_round, n = 19000)
+dim(counts_round)
+plot(colSums(t(counts_round)) )
+
+cpm <- cpm(counts_round)
+lcpm <- cpm(counts_round, log = TRUE)
+
+table(rowMeans(counts_round) < 300)
+plotDensities(lcpm, legend = FALSE, main = "Before filtering")
+keep.exprs <- rowSums(cpm > 20) >= 40
+x <- counts[keep.exprs,]
+dim(x)
+x <- round(data.matrix(x), digits=0)
+lcpm <- cpm(x, log=TRUE)
+plotDensities(lcpm, legend = FALSE, main = "After filtering")
+
+# ---------------
+
+# DE analysis
+
+# ---------------
+
 genes = DGEList(count = counts_round, group = condition_physiology)
 genes = calcNormFactors( genes )
 vobj = voom( genes, design, plot=TRUE)
+
+
+
 # Coefficients not estimable: physiologyM:condition15_ppt 
 # Warning message:
 #  Partial NA coefficients for 30466 probe(s) 
@@ -100,5 +133,4 @@ fitRan <- eBayes(fitRan)
 #  In .ebayes(fit = fit, proportion = proportion, stdev.coef.lim = stdev.coef.lim,  :
 #               Estimation of var.prior failed - set to default value
 topTable(fitRan,coef=ncol(design))
-
 
