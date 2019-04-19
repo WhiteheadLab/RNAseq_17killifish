@@ -190,27 +190,15 @@ lcpm <- cpm(counts, log = TRUE)
 
 # Exploratory Plots
 
-Some exploratory plots of un-modeled gene counts.
-
-Before you do any statistical analysis, it's important to know what your data looks like. This is important for two main reasons:
-
-  - It can help you find errors that will effect your downstream analysis
-  - It can help you to choose an appropriate analysis for your data
-
-We're going to look at the raw (and mostly raw) gene count data in a few ways.
 
 ## Heatmaps
 
 
-In all the following heatmaps, samples or genes are clustered by Euclidean distance of rlog-transformed gene counts (this removed the dependence of variance on mean, and flattens out the variance across the data set, which makes the heatmaps a little easier to read). Transformed counts were *not* used for the DESeq2 analysis.
-
 ### Individuals clustered by overall expression
 
-This is a heatmap clustering individuals by their expression levels for all genes. Essentially, this is a correlation plot. Each individual is perfectly correlated with itself (the dark blue diagonal). This plot shows two big groups. One that is all cannibals (on the left), one that is all non-cannibals (on the right). Families tend to cluster within feeding strategies/groups.
 
 ```{r PlainHeatmap, fig.keep="last", fig.width=11, fig.path='figures/', dev=c('png', 'pdf')}
-#A useful first step in an RNA-seq analysis is often to assess overall similarity between samples: Which samples are similar to each other, which are different? Does this fit to the expectation from the experiment’s design? We use the R function dist to calculate the Euclidean distance between samples. To ensure we have a roughly equal contribution from all genes, we use it on the rlog-transformed data. We need to transpose the matrix of values using t, because the dist function expects the different samples to be rows of its argument, and different dimensions (here, genes) to be columns. 
-#**Note that the two transformations offered by DESeq2 are provided for applications other than differential testing.** For differential testing we recommend the DESeq function applied to raw counts, as described later in this workflow, which also takes into account the dependence of the variance of counts on the mean value during the dispersion estimation step. The function rlog returns an object based on the SummarizedExperiment class that contains the rlog-transformed values in its assay slot. http://www.bioconductor.org/help/workflows/rnaseqGene/#the-deseqdataset-object-sample-information-and-the-design-formula
+
 
 
 rld <- vst(dds, blind = FALSE,fitType='local')
@@ -225,9 +213,8 @@ pheatmap(sampleDistMatrix,
 
 ```
 
-### Individuals by Top 500 genes heatmap
+### Individuals by Top 100 genes heatmap
 
-Here we're using the same transformed counts to look at overall expression, however I've filtered out all but the top 500 most highly expressed genes (on average, across all individuals). Here, I'm only clustering by individuals on the x-axis, where the x-axis is individuals, but the y-axis is transcripts. Here, we can see that in the 500 most expressed genes, there are very few that have highly varying expression across samples. However, in these 500 genes, we can better cluster non-cannibals vs cannibals. There is still pretty good clustering of families within feeding strategy. 
 
 
 ```{r MiniPlainGeneHeatmap, echo=FALSE, fig.keep="last", fig.width=11, fig.path='figures/', dev=c('png', 'pdf')}
@@ -240,9 +227,8 @@ pheatmap(assay(rld)[select100,], show_rownames=T,clustering_distance_rows = samp
 
 ```
 
-### Individuals clustered by top 500 gene expression
+### Individuals clustered by top 100 gene expression
 
-This plot is analogous to the first heatmap, in that I'm now showing a correlation matrix, however this is using just the top 500 most expressed genes rather than all of them. Clustering with the top 500 genes is giving us three big expression groups: cannibals, non-cannibals and a mix.
 
 ```{r MiniPlainHeatmap, echo=FALSE, fig.keep="last", fig.width=11, fig.path='figures/', dev=c('png', 'pdf')}
 
@@ -258,14 +244,6 @@ pheatmap(sampleDistMatrix, show_rownames=T,clustering_distance_rows = sampleDist
 ```
 
 ### PCA for overall expression
-
-Here, instead of looking at correlations, we're doing a PCA. This takes the entire (transformed) count table and rotates it to find the set of orthagonal axes with the most variation. Here I'm always plotting PC1 vs PC2 (the most variable and second most variable axis). I'm coloring points by either family, feeding strategy, or both. Since PCA looks for the axis in the data with the most variation, what this will do is push dis-similar samples away from each other in the plot. In effect, we can see whether there are already clusters in the data from variables that we're *not* interested in and want to model *out*. 
-
-In these plots, for instance, you can see on the top left that the Mc samples are pretty different from all the others, and that family effect might be part of why we're getting three clusters in the last heatmap. If we don't account for family in the DESeq model, we'll probably get the wrong genes. 
-
-In the top right plot, you can see that non-cannibals and cannibals actually are pretty easily distinguishable just by overall gene expression, which is good. Once we account for family, we should have a fairly reliable gene list. 
-
-However, if there are other meta-data factors that differ between samples we should add them into this plot and check for those *before* going forward. This would be things like batch effects, lane effects, sample extraction differences, etc.
 
 
 ```{r plainPCA, fig.keep="last", fig.width=11, fig.path='figures/', dev=c('png', 'pdf')}
