@@ -125,8 +125,9 @@ tf[is.na(tf)] <- 0
 
 #genes = DGEList(count = assay(vsd), group = condition_physiology)
 # Error: Negative counts not allowed
-genes = DGEList(count = tf, group = condition_physiology)
-genes = calcNormFactors( genes )
+#genes = DGEList(count = tf, group = condition_physiology)
+genes = DGEList(count = counts_round, group = condition_physiology)
+#genes = calcNormFactors( genes )
 vobj = voom( genes, design, plot=TRUE)
 lcpm <- cpm(genes$counts, log = TRUE)
 boxplot(lcpm, las = 2, main = "After limma-voom Normalization")
@@ -138,8 +139,8 @@ levels(col.group) <-  brewer.pal(nlevels(col.group), "Set1")
 col.group <- as.character(col.group)
 
 
-pca = prcomp(t(lcpm2))
-names = colnames(lcpm2)
+pca = prcomp(t(lcpm))
+names = colnames(lcpm)
 fac= factor(condition_physiology)
 colours = c("red","blue","green","orange")
 xyplot(
@@ -153,13 +154,13 @@ xyplot(
 )
 
 
-vobj = voom( genes, design, plot=TRUE)
+#vobj = voom( genes, design, plot=TRUE)
 vwts <- voomWithQualityWeights(genes, design=design, normalization="quantile", plot=TRUE)
 
 corfit <- duplicateCorrelation(vobj,design,block=ExpDesign$clade)
 
 corfit$consensus
-# [1] 0.00320933
+# [1] 0.01488349
 
 fitRan <- lmFit(vobj,design,block=ExpDesign$clade,correlation=corfit$consensus)
 fitRan <- eBayes(fitRan)
