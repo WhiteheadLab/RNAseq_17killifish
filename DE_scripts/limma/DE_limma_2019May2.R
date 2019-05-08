@@ -295,7 +295,7 @@ dev.off()
 # -------------------
 # proceed with DE
 # -------------------
-
+# log counts before DE
 boxplot(log(counts.filt+1), las = 2, main = "")
 
 #write.csv(counts.filt,"../../../21k_counts_filt_30April2019.csv")
@@ -313,6 +313,8 @@ write.csv(tmp, file = file.path(dir, "normalized_counts.csv"), quote = F, row.na
 
 vobj = voom( genes, design, plot=TRUE)
 lcpm <- cpm(genes$counts, log = TRUE)
+# log counts after DE
+
 boxplot(lcpm, las = 2, main = "")
 plot(colSums(t(lcpm)))
 

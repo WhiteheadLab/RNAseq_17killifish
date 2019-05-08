@@ -254,9 +254,9 @@ pheatmap(sampleDistMatrix,
 
 ```{r MiniPlainGeneHeatmap, echo=FALSE, fig.keep="last", fig.width=11, fig.path='figures/', dev=c('png', 'pdf')}
 
-select100 <- order(rowMeans(counts(dds,normalized=FALSE)),decreasing=TRUE)[1:100]
+select50 <- order(rowMeans(counts(dds,normalized=FALSE)),decreasing=TRUE)[1:50]
 
-pheatmap(assay(rld)[select100,], show_rownames=T,clustering_distance_rows = sampleDists,
+pheatmap(assay(rld)[select50,], show_rownames=T,clustering_distance_rows = sampleDists,
          clustering_distance_cols = sampleDists, annotation_col=df)
 
 

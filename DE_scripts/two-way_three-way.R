@@ -178,9 +178,10 @@ heatmap.2(d, main="M, Clade1-specific, padj<0.05)",
           density.info="none", 
           trace="none", RowSideColors= myClusterSideBar)
 
-sampleDists <- dist(t(mean_norm_counts_ordered_M_sig))
+rld <- log2(mean_norm_counts_ordered_M_sig+1)
+geneDists <- dist(mean_norm_counts_ordered_M_sig)
 df <- data.frame(ph,cl, condition,stringsAsFactors=FALSE)
-rownames(df) <- colnames(mean_norm_counts_ordered_M_sig)
-pheatmap(mean_norm_counts_ordered_M_sig, show_rownames=T,
-         clustering_distance_rows = sampleDists, cluster_cols= FALSE,annotation_col=df,scale="row")
+rownames(df) <- colnames(rld)
+pheatmap(rld, show_rownames=FALSE,
+         clustering_distance_rows = geneDists, cluster_cols= FALSE,annotation_col=df)
 
