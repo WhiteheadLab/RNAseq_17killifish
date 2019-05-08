@@ -31,7 +31,6 @@ FC_cutoff_original <- 0
 
 FC_cutoff_new <- 1
 
-
 ```
 
 
@@ -39,7 +38,7 @@ FC_cutoff_new <- 1
 
 
 
-```{r LoadPackages, results='hide', include=FALSE}
+```{r LoadPackages}
 
 # Install function for packages    
 packages<-function(x){
@@ -73,6 +72,7 @@ bioconductors(limma)
 bioconductors('edgeR')
 packages(gplots)
 packages(lattice)
+packages("vsn")
 
 sessionInfo()
 
@@ -82,27 +82,24 @@ sessionInfo()
 ```{r loadfiles, results='hide', include=FALSE}
 
 # This is the counts with Experimental Design Info in the last 5 rows
+setwd("~/Documents/UCDavis/Whitehead/RNAseq_15killifish/DE_scripts/limma")
+#if(!file.exists('../../../../Ensembl_species_counts_designfactors.csv')){
+#  download.file("https://osf.io/7vp38/download",'Ensembl_species_counts_designfactors.csv')
+#}
 
-if(!file.exists('../../../Ensembl_species_counts_designfactors.csv')){
-  download.file("https://osf.io/7vp38/download",'Ensembl_species_counts_designfactors.csv')
-}
-if(!file.exists('../../../nonzero_clade_physiology_counts_design.csv')){
-  download.file("https://osf.io/be7ny/download",'nonzero_clade_physiology_counts_design.csv')
-}
-if(!file.exists('../../../greater5counts_clade_physiology_counts_design.csv')){
-  download.file("https://osf.io/be7ny/download",'greater5counts_clade_physiology_counts_design.csv')
-}
-
-#counts_design <- read.csv("Ensembl_species_counts_designfactors.csv",stringsAsFactors = TRUE)
-counts_design <- read.csv("../../../nonzero_clade_physiology_counts_design.csv",stringsAsFactors = TRUE)
-
+counts_design <- read.csv("~/Documents/UCDavis/Whitehead/Ensembl_species_counts_designfactors.csv",stringsAsFactors = FALSE)
 
 ```
 
+Number of raw counts, samples
+```{r designinfo,results='show'}
 
-```{r designinfo, include=FALSE}
+dim(counts_design)
+#[1] 30471   130
+
 # -----------------------
 # Format design and counts matrix
+# Drop columns with no data
 # -----------------------
 
 design <- counts_design[counts_design$Ensembl == 'Empty',]
@@ -135,7 +132,10 @@ counts <- counts[ , !(names(counts) %in% transfer_drops)]
 dim(design)
 #[1]  5 81
 dim(counts)
-#[1] 30466    81
+gene.names<-rownames(counts)
+
+design[] <- lapply( design, factor)
+
 # --------------------
 # design cateogories
 # --------------------
@@ -145,6 +145,8 @@ physiology<-as.character(unlist(design[2,]))
 clade<-as.character(unlist(design[3,]))
 condition<-as.character(unlist(design[5,]))
 condition_physiology<-as.vector(paste(condition,physiology,sep="."))
+condition_physiology_clade <- as.vector(paste(condition_physiology,clade,sep="."))
+condition_physiology_clade <- as.vector(paste("group",condition_physiology_clade,sep=""))
 cols<-colnames(counts)
 ExpDesign <- data.frame(row.names=cols,
                         condition=condition,
@@ -153,8 +155,7 @@ ExpDesign <- data.frame(row.names=cols,
                         species = species,
                         sample=cols)
 ExpDesign
-design = model.matrix( ~ physiology + condition + physiology:condition, ExpDesign)
-
+design = model.matrix( ~0 + physiology*condition*clade, ExpDesign)
 colnames(design)
 # check rank of matrix
 Matrix::rankMatrix( design )
@@ -162,29 +163,65 @@ dim(design)
 ```
 
 
-```{r norm, results='hide', include=FALSE}
-counts_round <- round(data.matrix(counts), digits=0)
-#counts_round <- head(counts_round, n = 19000)
-dim(counts_round)
-#plot(colSums(t(counts_round)) )
-lcpm2 <- cpm(counts_round, log = TRUE)
-#boxplot(lcpm2, las = 2, main = "Before DESeq2 Normalization")
+```{r norm, results="show", fig.width=11, fig.path='figures/', dev=c('png', 'pdf')}
+# ---------------
 
-# transform with DESeq to stabilize variance
+# DE analysis
 
-dds <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,design = design)
-dds <- estimateSizeFactors(dds)
-dds <- estimateDispersions(dds)
-dds$sizeFactor
-nc <- counts(dds, normalized=TRUE)
-#write.csv(nc, "../../../normcounts.csv")
-counts<-nc
-#plot(colSums(t(counts)) )
+# ---------------
+gene.names<-rownames(counts)
+counts<-as.matrix(as.data.frame(sapply(counts, as.numeric)))
+rownames(counts)<-gene.names
+class(counts)
 
-cpm <- cpm(counts)
-lcpm <- cpm(counts, log = TRUE)
-#plot(colSums(t(lcpm)) )
-#boxplot(lcpm, las = 2, main = "After DESeq2 Normalization")
+keep<-filterByExpr(counts,design = design,group=condition_physiology,min.count = 10, min.total.count = 100)
+counts.filt <- counts[keep,]
+dim(counts.filt)
+#write.csv(counts.filt,"../../../21k_counts_filt_30April2019.csv")
+
+genes = DGEList(count = counts.filt, group = condition_physiology_clade)
+#genes = calcNormFactors( genes )
+
+vobj = voom( genes, design, plot=TRUE)
+lcpm <- cpm(genes$counts, log = TRUE)
+boxplot(lcpm, las = 2, main = "")
+plot(colSums(t(lcpm)))
+
+#pca = prcomp(t(lcpm))
+#names = colnames(lcpm)
+#fac= factor(condition_physiology)
+#colours = c("red","blue","green","orange")
+#xyplot(
+#  PC2 ~ PC1, groups=fac, data=as.data.frame(pca$x), pch=16, cex=1.5,
+#  panel=function(x, y, ...) {
+#    panel.xyplot(x, y, ...);
+#    ltext(x=x, y=y, labels=names, pos=1, offset=0.8, cex=1)
+#  },
+#  aspect = "fill", col=colours
+#  #main = draw.key(key = list(rect = list(col = list(col=colours), text = list(levels(fac)), rep = FALSE)))
+#)
+
+vwts <- voomWithQualityWeights(genes, design=design, normalization="quantile", plot=TRUE)
+
+corfit <- duplicateCorrelation(vobj,design,block=ExpDesign$species)
+
+corfit$consensus
+#[1] 0.751381
+
+fitRan <- lmFit(vobj,design,block=ExpDesign$species,correlation=corfit$consensus)
+colnames(coef(fitRan))
+
+# [1] "(Intercept)"                             "physiologyM"                            
+# [3] "condition15_ppt"                         "cladeClade2"                            
+# [5] "cladeClade3"                             "physiologyM:condition15_ppt"            
+# [7] "physiologyM:cladeClade2"                 "physiologyM:cladeClade3"                
+# [9] "condition15_ppt:cladeClade2"             "condition15_ppt:cladeClade3"            
+# [11] "physiologyM:condition15_ppt:cladeClade2" "physiologyM:condition15_ppt:cladeClade3"
+
+#fitRan <- eBayes(tmp)
+
+#stats<-topTable(fitRan,number=50,sort.by="p")
+#topTable(fitRan,number=50,sort.by="p")
 ```
 
 
@@ -198,9 +235,8 @@ lcpm <- cpm(counts, log = TRUE)
 
 
 ```{r PlainHeatmap, fig.keep="last", fig.width=11, fig.path='figures/', dev=c('png', 'pdf')}
-
-
-
+counts_round<-round(counts.filt,digits=0)
+dds <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,design = design)
 rld <- vst(dds, blind = FALSE,fitType='local')
 sampleDists <- dist(t(assay(rld)))
 df <- as.data.frame(colData(dds)[,c("physiology","condition","clade")])
@@ -210,7 +246,6 @@ pheatmap(sampleDistMatrix,
          clustering_distance_rows = sampleDists,
          clustering_distance_cols = sampleDists,
          col = colors, annotation = df, show_rownames=F)
-
 ```
 
 ### Individuals by Top 100 genes heatmap
@@ -219,7 +254,7 @@ pheatmap(sampleDistMatrix,
 
 ```{r MiniPlainGeneHeatmap, echo=FALSE, fig.keep="last", fig.width=11, fig.path='figures/', dev=c('png', 'pdf')}
 
-select100 <- order(rowMeans(counts(dds,normalized=TRUE)),decreasing=TRUE)[1:100]
+select100 <- order(rowMeans(counts(dds,normalized=FALSE)),decreasing=TRUE)[1:100]
 
 pheatmap(assay(rld)[select100,], show_rownames=T,clustering_distance_rows = sampleDists,
          clustering_distance_cols = sampleDists, annotation_col=df)
@@ -232,7 +267,7 @@ pheatmap(assay(rld)[select100,], show_rownames=T,clustering_distance_rows = samp
 
 ```{r MiniPlainHeatmap, echo=FALSE, fig.keep="last", fig.width=11, fig.path='figures/', dev=c('png', 'pdf')}
 
-select100 <- order(rowMeans(counts(dds,normalized=TRUE)),decreasing=TRUE)[1:100]
+select100 <- order(rowMeans(counts(dds,normalized=FALSE)),decreasing=TRUE)[1:100]
 
 sampleDists <- dist(t(assay(rld)[select100,]))
 sampleDistMatrix <- as.matrix( sampleDists )
@@ -252,7 +287,7 @@ pheatmap(sampleDistMatrix, show_rownames=T,clustering_distance_rows = sampleDist
 cowplot::plot_grid( plotPCA(rld, intgroup="condition"),
                     plotPCA(rld, intgroup="physiology"),
                     plotPCA(rld, intgroup="clade"),
-                    plotPCA(rld, intgroup=c("clade","physiology")),
+                    plotPCA(rld, intgroup=c("clade","physiology","condition"")),
                            align="c", ncol=2)
 
 ```

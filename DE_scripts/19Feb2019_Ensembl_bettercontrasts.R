@@ -19,13 +19,13 @@ bioconductors <- function(x){
     require(x, character.only = TRUE)
   }
 }
+
 # for QC
 packages("RColorBrewer")
 packages("pheatmap")
 packages("vsn")
 packages(pheatmap)
-# for DESeq
-
+# for DE analysis
 packages(lattice)
 packages(RColorBrewer)
 bioconductors(biomaRt)

@@ -13,10 +13,10 @@ if(!file.exists('../../../../mean1_species_counts_design.csv')){
 }
 
 
-#counts_design <- read.csv("../../../Ensembl_species_counts_designfactors.csv",stringsAsFactors = TRUE)
+counts_design <- read.csv("../../../Ensembl_species_counts_designfactors.csv",stringsAsFactors = TRUE)
 #counts_design <- read.csv("../../../nonzero_clade_physiology_counts_design.csv",stringsAsFactors = TRUE)
 #counts_design <- read.csv("../../../nozero_species_counts_design.csv",stringsAsFactors = TRUE)
-counts_design <- read.csv("../../../mean1_species_counts_design.csv",stringsAsFactors = TRUE)
+#counts_design <- read.csv("../../../mean1_species_counts_design.csv",stringsAsFactors = TRUE)
 dim(counts_design)
 #[1] 9111  129
 
@@ -74,7 +74,7 @@ ExpDesign <- data.frame(row.names=cols,
                         species = species,
                         sample=cols)
 ExpDesign
-design = model.matrix( ~ physiology + condition + physiology:condition, ExpDesign)
+design = model.matrix( ~ physiology*condition*clade, ExpDesign)
 
 colnames(design)
 # check rank of matrix
@@ -84,6 +84,7 @@ dim(design)
 # ---------------
 
 # stabilize variance
+# NOT NEEDED IF YOU ARE USING VOOM
 
 # ---------------
 
@@ -126,11 +127,14 @@ tf[is.na(tf)] <- 0
 #genes = DGEList(count = assay(vsd), group = condition_physiology)
 # Error: Negative counts not allowed
 #genes = DGEList(count = tf, group = condition_physiology)
-genes = DGEList(count = counts_round, group = condition_physiology)
+
+head(data.matrix(counts))
+
+genes = DGEList(count = data.matrix(counts), group = condition_physiology)
 #genes = calcNormFactors( genes )
 vobj = voom( genes, design, plot=TRUE)
 lcpm <- cpm(genes$counts, log = TRUE)
-boxplot(lcpm, las = 2, main = "After limma-voom Normalization")
+boxplot(lcpm, las = 2, main = "")
 
 
 
@@ -157,10 +161,10 @@ xyplot(
 #vobj = voom( genes, design, plot=TRUE)
 vwts <- voomWithQualityWeights(genes, design=design, normalization="quantile", plot=TRUE)
 
-corfit <- duplicateCorrelation(vobj,design,block=ExpDesign$clade)
+corfit <- duplicateCorrelation(vobj,design,block=ExpDesign$species)
 
 corfit$consensus
-# [1] 0.01488349
+#[1] 0.3887354
 
 fitRan <- lmFit(vobj,design,block=ExpDesign$clade,correlation=corfit$consensus)
 fitRan <- eBayes(fitRan)
