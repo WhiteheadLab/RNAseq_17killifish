@@ -117,6 +117,10 @@ dim(design)
 counts<-as.matrix(as.data.frame(sapply(counts, as.numeric)))
 rownames(counts)<-gene.names
 class(counts)
+test<-counts %>% drop_na()
+test<-as.matrix(test)
+lcom_unfilt<-log2(counts+1)
+plot(colSums(t(lcom_unfilt)))
 
 keep<-filterByExpr(counts,design = design,group=condition_physiology,min.count = 10, min.total.count = 100)
 counts.filt <- counts[keep,]
@@ -346,6 +350,12 @@ colnames(coef(fitRan))
 # [5] "groupFW.0.2_ppt.Clade2" "groupM.0.2_ppt.Clade2"  "groupFW.15_ppt.Clade2"  "groupM.15_ppt.Clade2"  
 # [9] "groupFW.0.2_ppt.Clade3" "groupM.0.2_ppt.Clade3"  "groupFW.15_ppt.Clade3"  "groupM.15_ppt.Clade3"
 # 
+
+# ---------------------
+# physiology*condition*clade three-way interaction
+# regardless of clade
+# ---------------------
+
 y <- rnorm(n = nrow(design))
 dummy.mod <- lm(y ~ physiology*condition*clade, 
                 data = ExpDesign)
@@ -387,8 +397,6 @@ tables <- lapply(contrasts, function(contr){
 )
 
 
-
-
 sigps <- unlist(lapply(tables, function(x)x[[2]]))
 sumtab <- data.frame(Comparison = contrasts, `Number of genes with adjusted P < 0.05` = sigps,
                      check.names = F)
@@ -422,10 +430,55 @@ tables <- lapply(contrasts, function(contr){
   tmp <- contrasts.fit(fitRan, contrasts = cm)
   tmp <- eBayes(tmp)
   tmp2 <- topTable(tmp, n = Inf, sort.by = "P")
-  tmp3 <- tmp2
-  tmp3$row <- rownames(tmp3)
-  tmp3 <- merge(ann,tmp3,by.x = "ensembl_peptide_id", by.y = "row", all = TRUE)
-  tmp3 <- tmp3[order(tmp3$adj.P.Val),]
+  #tmp3 <- tmp2
+  #tmp3$row <- rownames(tmp3)
+  #tmp3 <- merge(ann,tmp3,by.x = "ensembl_peptide_id", by.y = "row", all = TRUE)
+  #tmp3 <- tmp3[order(tmp3$adj.P.Val),]
+  filename <- paste0(contr, ".csv")
+  #write.csv(tmp2, file = file.path(dir, filename),quote = F)
+  tab <- kable(head(tmp2, 20), digits = 5, row.names = F)
+  header1 <- 6
+  names(header1) <- paste0("Top 20 genes for ", contr)
+  header2 <- 6
+  names(header2) <- paste0("Number of genes with adjusted P < 0.05 = ", length(which(tmp2$adj.P.Val < 0.05)))
+  header3 <- 6
+  names(header3) <- paste0("Output file is ", filename)
+  tab <- tab %>% add_header_above(header3, align = 'l') %>% add_header_above(header2, align = 'l') %>% add_header_above(header1, align = 'l', font_size = "larger", bold = T)
+  tab <- tab %>% kable_styling()
+  return(list(tab, nump = length(which(tmp2$adj.P.Val < 0.05))))
+}
+
+)
+
+
+# ---------------------
+# condition main effect
+# ---------------------
+
+y <- rnorm(n = nrow(design))
+dummy.mod <- lm(y ~0 + physiology*condition*clade, 
+                data = ExpDesign)
+pairs <- pairs(emmeans(dummy.mod, ~condition ), reverse = T)
+contrast.matrix <- pairs@linfct
+tmp <- pairs@grid
+contrasts <- gsub(" ", "", tmp$contrast)
+contrasts <- gsub("-", "_v_", contrasts)
+rownames(contrast.matrix) <- contrasts
+
+contrasts
+
+tables <- lapply(contrasts, function(contr){
+  print(contr)
+  cm <- contrast.matrix[contr,]
+  ph <- sapply(strsplit(as.character(contr), "_"), tail, 1)
+  cl <- sapply(strsplit(as.character(contr), "_"), tail, 2)
+  tmp <- contrasts.fit(fitRan, contrasts = cm)
+  tmp <- eBayes(tmp)
+  tmp2 <- topTable(tmp, n = Inf, sort.by = "P")
+  #tmp3 <- tmp2
+  #tmp3$row <- rownames(tmp3)
+  #tmp3 <- merge(ann,tmp3,by.x = "ensembl_peptide_id", by.y = "row", all = TRUE)
+  #tmp3 <- tmp3[order(tmp3$adj.P.Val),]
   filename <- paste0(contr, ".csv")
   write.csv(tmp2, file = file.path(dir, filename),quote = F)
   tab <- kable(head(tmp2, 20), digits = 5, row.names = F)
@@ -442,6 +495,48 @@ tables <- lapply(contrasts, function(contr){
 
 )
 
-
 # merge each three-way with two-way to get sig and not for two-way (which are the genes that see dig diff between M and FW across all clades - these are the conserved responses, the others are the newly evolved, clade-specific responses)
 
+# ---------------------
+# physiology main effect
+# ---------------------
+
+y <- rnorm(n = nrow(design))
+dummy.mod <- lm(y ~0 + physiology*condition*clade, 
+                data = ExpDesign)
+pairs <- pairs(emmeans(dummy.mod, ~physiology ), reverse = T)
+contrast.matrix <- pairs@linfct
+tmp <- pairs@grid
+contrasts <- gsub(" ", "", tmp$contrast)
+contrasts <- gsub("-", "_v_", contrasts)
+rownames(contrast.matrix) <- contrasts
+
+contrasts
+
+tables <- lapply(contrasts, function(contr){
+  print(contr)
+  cm <- contrast.matrix[contr,]
+  ph <- sapply(strsplit(as.character(contr), "_"), tail, 1)
+  cl <- sapply(strsplit(as.character(contr), "_"), tail, 2)
+  tmp <- contrasts.fit(fitRan, contrasts = cm)
+  tmp <- eBayes(tmp)
+  tmp2 <- topTable(tmp, n = Inf, sort.by = "P")
+  #tmp3 <- tmp2
+  #tmp3$row <- rownames(tmp3)
+  #tmp3 <- merge(ann,tmp3,by.x = "ensembl_peptide_id", by.y = "row", all = TRUE)
+  #tmp3 <- tmp3[order(tmp3$adj.P.Val),]
+  filename <- paste0(contr, ".csv")
+  write.csv(tmp2, file = file.path(dir, filename),quote = F)
+  tab <- kable(head(tmp2, 20), digits = 5, row.names = F)
+  header1 <- 6
+  names(header1) <- paste0("Top 20 genes for ", contr)
+  header2 <- 6
+  names(header2) <- paste0("Number of genes with adjusted P < 0.05 = ", length(which(tmp2$adj.P.Val < 0.05)))
+  header3 <- 6
+  names(header3) <- paste0("Output file is ", filename)
+  tab <- tab %>% add_header_above(header3, align = 'l') %>% add_header_above(header2, align = 'l') %>% add_header_above(header1, align = 'l', font_size = "larger", bold = T)
+  tab <- tab %>% kable_styling()
+  return(list(tab, nump = length(which(tmp2$adj.P.Val < 0.05))))
+}
+
+)

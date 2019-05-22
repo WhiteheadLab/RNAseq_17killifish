@@ -2,6 +2,8 @@
 library(data.table)
 
 setwd("~/Documents/UCDavis/Whitehead")
+condition_DE <- read.csv("15_ppt_v_0.2_ppt.csv")
+physiology_DE <-read.csv("M_v_FW.csv")
 M <- read.csv("15_ppt_v_0.2_ppt_M.csv",stringsAsFactors = FALSE, header = TRUE, row.names = NULL)
 FW <- read.csv("15_ppt_v_0.2_ppt_FW.csv", stringsAsFactors = FALSE, header = TRUE, row.names = NULL)
 Clade3_M <- read.csv("15_ppt_v_0.2_ppt_Clade3_M.csv", stringsAsFactors = FALSE, header = TRUE, row.names = NULL)
@@ -10,6 +12,23 @@ Clade2_M <- read.csv("15_ppt_v_0.2_ppt_Clade2_M.csv",stringsAsFactors = FALSE, h
 Clade2_FW <- read.csv("15_ppt_v_0.2_ppt_Clade2_FW.csv", stringsAsFactors = FALSE, header = TRUE, row.names = NULL)
 Clade1_M <- read.csv("15_ppt_v_0.2_ppt_Clade1_M.csv", stringsAsFactors = FALSE, header = TRUE, row.names = NULL)
 Clade1_FW <- read.csv("15_ppt_v_0.2_ppt_Clade1_FW.csv", stringsAsFactors = FALSE, header = TRUE, row.names = NULL)
+
+# sig genes 15ppt vs. 0.2ppt
+
+dim(condition_DE)
+
+condition_sig<-condition[condition$adj.P.Val <= 0.05,]
+condition_sig<-condition_sig[!is.na(condition_sig$adj.P.Val),]
+condition_sig<-condition_sig$X
+length(condition_sig)
+
+# sig genes M vs. FW
+dim(physiology_DE)
+
+physiology_sig<-physiology_DE[physiology_DE$adj.P.Val <= 0.05,]
+physiology_sig<-physiology_sig[!is.na(physiology_sig$adj.P.Val),]
+physiology_sig<-physiology_sig$X
+length(physiology_sig)
 
 # sig genes M and FW
 # two-way
@@ -178,10 +197,27 @@ heatmap.2(d, main="M, Clade1-specific, padj<0.05)",
           density.info="none", 
           trace="none", RowSideColors= myClusterSideBar)
 
-rld <- log2(mean_norm_counts_ordered_M_sig+1)
-geneDists <- dist(mean_norm_counts_ordered_M_sig)
+mean_norm_counts_ordered_condition_sig <- mean_norm_counts_ordered[rownames(mean_norm_counts_ordered) %in% condition_sig,]
+dim(mean_norm_counts_ordered_condition_sig)
+
+rld <- log2(mean_norm_counts_ordered_condition_sig+1)
+geneDists <- dist(mean_norm_counts_ordered_condition_sig)
+df <- data.frame(ph,cl, condition,stringsAsFactors=FALSE)
+rownames(df) <- colnames(rld)
+pheatmap(rld, show_rownames=FALSE,
+         clustering_distance_rows = geneDists, 
+         cluster_cols= FALSE,
+         annotation_col=df,
+         scale = "row")
+
+
+mean_norm_counts_ordered_M_sig <- mean_norm_counts_ordered_M_sig[rownames(mean_norm_counts_ordered_M_sig) %in% condition_sig,]
+
+mean_norm_counts_ordered_physiology_sig <- mean_norm_counts_ordered[rownames(mean_norm_counts_ordered) %in% physiology_sig,]
+dim(mean_norm_counts_ordered_physiology_sig)
+rld <- log2(mean_norm_counts_ordered_physiology_sig+1)
+geneDists <- dist(mean_norm_counts_ordered_physiology_sig)
 df <- data.frame(ph,cl, condition,stringsAsFactors=FALSE)
 rownames(df) <- colnames(rld)
 pheatmap(rld, show_rownames=FALSE,
          clustering_distance_rows = geneDists, cluster_cols= FALSE,annotation_col=df)
-
