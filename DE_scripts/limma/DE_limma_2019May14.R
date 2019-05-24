@@ -348,10 +348,10 @@ main_phys<-topTableF(efit,n = Inf, sort.by = "F")
 sig_main_phys <- main_phys[main_phys$adj.P.Val<0.05,]
 dim(sig_main_phys)
 dim(main_phys)
-ann_phys <- merge(main_phys,ann,all=TRUE,by.x = "X", by.y  = "ensembl_peptide_id")
+ann_phys <- merge(main_phys,ann,all=TRUE,by.x = "row.names", by.y  = "ensembl_peptide_id")
 dim(ann_phys)
 ann_phys <- ann_phys[order(ann_phys$adj.P.Val,decreasing = FALSE), ]
-rownames(ann_phys) <- ann_phys$X
+rownames(ann_phys) <- ann_phys$Row.names
 ann_phys <- ann_phys[,-1]
 write.csv(ann_phys, file = file.path(dir, "main_phys.csv"), quote = F, row.names = T)
 
@@ -364,10 +364,10 @@ main_condition<-topTableF(efit,n = Inf, sort.by = "F")
 sig_main_condition <- main_condition[main_condition$adj.P.Val<0.05,]
 dim(sig_main_condition)
 dim(main_condition)
-ann_condition <- merge(main_condition,ann,all=TRUE,by.x = "X", by.y  = "ensembl_peptide_id")
+ann_condition <- merge(main_condition,ann,all=TRUE,by.x = "row.names", by.y  = "ensembl_peptide_id")
 dim(ann_condition)
 ann_condition <- ann_condition[order(ann_condition$adj.P.Val,decreasing = FALSE), ]
-rownames(ann_condition) <- ann_condition$X
+rownames(ann_condition) <- ann_condition$Row.names
 ann_condition <- ann_condition[,-1]
 write.csv(ann_condition, file = file.path(dir, "main_condition.csv"), quote = F, row.names = T)
 
@@ -379,7 +379,12 @@ summary(decideTests(efit))
 main_clade<-topTableF(efit,n = Inf, sort.by = "F")
 sig_main_clade <- main_clade[main_clade$adj.P.Val<0.05,]
 dim(sig_main_clade)
-write.csv(main_clade, file = file.path(dir, "main_clade.csv"), quote = F, row.names = T)
+ann_clade <- merge(main_clade,ann,all=TRUE,by.x = "row.names", by.y  = "ensembl_peptide_id")
+dim(ann_clade)
+ann_clade <- ann_clade[order(ann_clade$adj.P.Val,decreasing = FALSE), ]
+rownames(ann_clade) <- ann_clade$Row.names
+ann_clade <- ann_clade[,-1]
+write.csv(ann_clade, file = file.path(dir, "main_clade.csv"), quote = F, row.names = T)
 
 #two-way interactions:
 #physiology:condition: coef=6
@@ -390,7 +395,12 @@ summary(decideTests(efit))
 int_phys_condition<-topTableF(efit,n = Inf, sort.by = "F")
 sig_int_phys_condition <- int_phys_condition[int_phys_condition$adj.P.Val<0.05,]
 dim(sig_int_phys_condition)
-write.csv(int_phys_condition, file = file.path(dir, "interaction_physiology_condition.csv"), quote = F, row.names = T)
+ann_int_phys_condition <- merge(int_phys_condition,ann,all=TRUE,by.x = "row.names", by.y  = "ensembl_peptide_id")
+dim(ann_int_phys_condition)
+ann_int_phys_condition <- ann_int_phys_condition[order(ann_int_phys_condition$adj.P.Val,decreasing = FALSE), ]
+rownames(ann_int_phys_condition) <- ann_int_phys_condition$Row.names
+ann_int_phys_condition <- ann_int_phys_condition[,-1]
+write.csv(ann_int_phys_condition, file = file.path(dir, "interaction_physiology_condition.csv"), quote = F, row.names = T)
 
 #physiology:clade: coef=7:8
 vfit <- contrasts.fit(fitRan, coef = 7:8)
