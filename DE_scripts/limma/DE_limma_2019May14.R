@@ -1,4 +1,5 @@
 library(limma)
+library(ggplot2)
 library('edgeR')
 library("RColorBrewer")
 library(gplots)
@@ -99,16 +100,16 @@ dim(design)
 # https://uswest.ensembl.org/Fundulus_heteroclitus/Info/Index
 # ============================================
 
-#ensembl=useMart("ENSEMBL_MART_ENSEMBL")
-#ensembl = useDataset("fheteroclitus_gene_ensembl",mart=ensembl)
-#ensembl_proteinID = rownames(counts)
-#length(ensembl_proteinID)
-#ann<-getBM(attributes=c('ensembl_peptide_id','ensembl_transcript_id','ensembl_gene_id','gene_biotype','external_gene_name','description','entrezgene'), filters = 'ensembl_peptide_id', values = ensembl_proteinID, mart=ensembl)
-#head(ann)
-#dim(ann)
-#length(unique(ann$ensembl_peptide_id))
-#ann <- ann[!duplicated(ann[,c(1)]),]
-#dim(ann)
+ensembl=useMart("ENSEMBL_MART_ENSEMBL")
+ensembl = useDataset("fheteroclitus_gene_ensembl",mart=ensembl)
+ensembl_proteinID = rownames(counts)
+length(ensembl_proteinID)
+ann<-getBM(attributes=c('ensembl_peptide_id','ensembl_transcript_id','ensembl_gene_id','gene_biotype','external_gene_name','description','entrezgene'), filters = 'ensembl_peptide_id', values = ensembl_proteinID, mart=ensembl)
+head(ann)
+dim(ann)
+length(unique(ann$ensembl_peptide_id))
+ann <- ann[!duplicated(ann[,c(1)]),]
+dim(ann)
 
 # ---------------
 
@@ -235,17 +236,21 @@ all_goi<-c("ENSFHEP00000007220.1","ENSFHEP00000025841","ENSFHEP00000019510",
 # https://rpubs.com/turnersd/plot-deseq-results-multipage-pdf
 # 
 # ============================================
-
+class(counts.filt)
+j <- data.frame(counts.filt,stringsAsFactors = FALSE)
+j <- data.matrix(j)
+head(j,quote = FALSE)
 pdf("~/Documents/UCDavis/Whitehead/multi-ggplot2-catalog_salinity_7May2019.pdf",paper="USr",width=13.5, height=8)
+
 for (i in all_goi){
-  tcounts <- t(log2((counts(dds[i, ], normalized=TRUE, replaced=FALSE)+.5))) %>% 
-    merge(colData(dds), ., by="row.names") %>% 
+  tcounts <- t(log2(j[rownames(j) == "ENSFHEP00000007220.1",]+0.5)) %>% 
+    merge(ExpDesign, ., by.x="sample",by.y="col.names") %>% 
     gather(gene, expression, (ncol(.)-length(i)+1):ncol(.))
-  #tcounts %>% select(Row.names, species, clade, condition, gene, expression) %>% head %>% knitr::kable()
+  tcounts %>% select(row.names, species, clade, condition, gene, expression) %>% head %>% knitr::kable()
   
   C1<-ggplot(tcounts %>%
                filter(clade=='Clade1'),
-             aes(factor(condition,levels = c("0.2_ppt","transfer","15_ppt")), expression)) +
+             aes(factor(condition,levels = c("0.2_ppt","15_ppt")), expression)) +
     geom_point(aes(color=physiology)) +
     stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
     facet_grid(~gene~species,scales='fixed') +
@@ -263,7 +268,7 @@ for (i in all_goi){
   #plot(C1)
   C2<-ggplot(tcounts %>%
                filter(clade=='Clade2'),
-             aes(factor(condition,levels = c("0.2_ppt","transfer","15_ppt")), expression)) + 
+             aes(factor(condition,levels = c("0.2_ppt","15_ppt")), expression)) + 
     geom_point(aes(color=physiology)) +
     stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
     facet_grid(~gene~species,scales='fixed') +
@@ -280,7 +285,7 @@ for (i in all_goi){
   #plot(C2)
   C3<-ggplot(tcounts %>%
                filter(clade=='Clade3'),
-             aes(factor(condition,levels = c("0.2_ppt","transfer","15_ppt")), expression)) + 
+             aes(factor(condition,levels = c("0.2_ppt","15_ppt")), expression)) + 
     geom_point(aes(color=physiology)) +
     stat_summary(fun.y="mean", geom="line", aes(group=physiology,color=physiology)) +
     facet_grid(~gene~species,scales='fixed',labeller=) +
@@ -297,7 +302,6 @@ for (i in all_goi){
   grid.arrange(C1,C2,C3,ncol=3)
 }
 dev.off()
-
 
 # -------------------
 # proceed with DE
@@ -325,205 +329,100 @@ lcpm <- cpm(genes$counts, log = TRUE)
 boxplot(lcpm, las = 2, main = "")
 plot(colSums(t(lcpm)))
 
-pca = prcomp(t(lcpm))
-names = colnames(lcpm)
-fac= factor(condition_physiology)
-colours = c("red","blue","green","orange")
-xyplot(
-  PC2 ~ PC1, groups=fac, data=as.data.frame(pca$x), pch=16, cex=1.5,
-  panel=function(x, y, ...) {
-    panel.xyplot(x, y, ...);
-    ltext(x=x, y=y, labels=names, pos=1, offset=0.8, cex=1)
-  },
-  aspect = "fill", col=colours
-  #main = draw.key(key = list(rect = list(col = list(col=colours), text = list(levels(fac)), rep = FALSE)))
-)
 
 vwts <- voomWithQualityWeights(genes, design=design, normalization="quantile", plot=TRUE)
-
 corfit <- duplicateCorrelation(vobj,mm,block=ExpDesign$species)
-
 corfit$consensus
 #[1] 0.7596421
-
 fitRan <- lmFit(vobj,design,block=ExpDesign$species,correlation=corfit$consensus)
 colnames(coef(fitRan))
+dir <- "~/Documents/UCDavis/Whitehead/"
+# -------------------------------
+# main effects
+# physiology: coef = 2
+vfit <- contrasts.fit(fitRan, coef = 2)
+efit<-eBayes(vfit)
+classifyTestsF(efit)
+summary(decideTests(efit))
+main_phys<-topTableF(efit,n = Inf, sort.by = "F")
+sig_main_phys <- main_phys[main_phys$adj.P.Val<0.05,]
+dim(sig_main_phys)
+dim(main_phys)
+ann_phys <- merge(main_phys,ann,all=TRUE,by.x = "X", by.y  = "ensembl_peptide_id")
+dim(ann_phys)
+ann_phys <- ann_phys[order(ann_phys$adj.P.Val,decreasing = FALSE), ]
+rownames(ann_phys) <- ann_phys$X
+ann_phys <- ann_phys[,-1]
+write.csv(ann_phys, file = file.path(dir, "main_phys.csv"), quote = F, row.names = T)
 
+# condition: coef=3
+vfit <- contrasts.fit(fitRan, coef = 3)
+efit<-eBayes(vfit)
+classifyTestsF(efit)
+summary(decideTests(efit))
+main_condition<-topTableF(efit,n = Inf, sort.by = "F")
+sig_main_condition <- main_condition[main_condition$adj.P.Val<0.05,]
+dim(sig_main_condition)
+dim(main_condition)
+ann_condition <- merge(main_condition,ann,all=TRUE,by.x = "X", by.y  = "ensembl_peptide_id")
+dim(ann_condition)
+ann_condition <- ann_condition[order(ann_condition$adj.P.Val,decreasing = FALSE), ]
+rownames(ann_condition) <- ann_condition$X
+ann_condition <- ann_condition[,-1]
+write.csv(ann_condition, file = file.path(dir, "main_condition.csv"), quote = F, row.names = T)
 
+# clade: coef=4:5
+vfit <- contrasts.fit(fitRan, coef = 4:5)
+efit<-eBayes(vfit)
+classifyTestsF(efit)
+summary(decideTests(efit))
+main_clade<-topTableF(efit,n = Inf, sort.by = "F")
+sig_main_clade <- main_clade[main_clade$adj.P.Val<0.05,]
+dim(sig_main_clade)
+write.csv(main_clade, file = file.path(dir, "main_clade.csv"), quote = F, row.names = T)
+
+#two-way interactions:
+#physiology:condition: coef=6
+vfit <- contrasts.fit(fitRan, coef = 6)
+efit<-eBayes(vfit)
+classifyTestsF(efit)
+summary(decideTests(efit))
+int_phys_condition<-topTableF(efit,n = Inf, sort.by = "F")
+sig_int_phys_condition <- int_phys_condition[int_phys_condition$adj.P.Val<0.05,]
+dim(sig_int_phys_condition)
+write.csv(int_phys_condition, file = file.path(dir, "interaction_physiology_condition.csv"), quote = F, row.names = T)
+
+#physiology:clade: coef=7:8
+vfit <- contrasts.fit(fitRan, coef = 7:8)
+efit<-eBayes(vfit)
+classifyTestsF(efit)
+summary(decideTests(efit))
+int_phys_clade<-topTableF(efit,n = Inf, sort.by = "F")
+sig_int_phys_clade <- int_phys_clade[int_phys_clade$adj.P.Val<0.05,]
+dim(sig_int_phys_clade)
+write.csv(int_phys_clade, file = file.path(dir, "interaction_physiology_clade.csv"), quote = F, row.names = T)
+
+#clade:condition: coef=9:10
+vfit <- contrasts.fit(fitRan, coef = 9:10)
+efit<-eBayes(vfit)
+classifyTestsF(efit)
+summary(decideTests(efit))
+int_clade_condition<-topTableF(efit,n = Inf, sort.by = "F")
+sig_int_clade_condition <- int_clade_condition[int_clade_condition$adj.P.Val<0.05,]
+dim(sig_int_clade_condition)
+write.csv(int_clade_condition, file = file.path(dir, "interaction_clade_condition.csv"), quote = F, row.names = T)
+#three-way interaction:
+#coef=11:12
 vfit <- contrasts.fit(fitRan, coef = 11:12)
 efit<-eBayes(vfit)
+classifyTestsF(efit)
 summary(decideTests(efit))
-topTableF(efit)
+int_three<-topTableF(efit,n = Inf, sort.by = "F")
+sig_int_three <- int_three[int_three$adj.P.Val<0.05,]
+dim(sig_int_three)
+write.csv(int_three, file = file.path(dir, "interaction_threeway.csv"), quote = F, row.names = T)
+
+#======================
 
 
-tables <- lapply(contrasts, function(contr){
-    print(contr)
-    cm <- contrast.matrix[contr,]
-    ph <- sapply(strsplit(as.character(contr), "_"), tail, 1)
-    cl <- sapply(strsplit(as.character(contr), "_"), tail, 2)
-    tmp <- contrasts.fit(fitRan, contrasts = cm)
-    tmp <- eBayes(tmp)
-    tmp2 <- topTable(tmp, n = Inf, sort.by = "P")
-    tmp3 <- tmp2
-    tmp3$row <- rownames(tmp3)
-    tmp3 <- merge(ann,tmp3,by.x = "ensembl_peptide_id", by.y = "row", all = TRUE)
-    tmp3 <- tmp3[order(tmp3$adj.P.Val),]
-    filename <- paste0(contr, ".csv")
-    write.csv(tmp2, file = file.path(dir, filename),quote = F)
-    tab <- kable(head(tmp2, 20), digits = 5, row.names = F)
-    header1 <- 6
-    names(header1) <- paste0("Top 20 genes for ", contr)
-    header2 <- 6
-    names(header2) <- paste0("Number of genes with adjusted P < 0.05 = ", length(which(tmp2$adj.P.Val < 0.05)))
-    header3 <- 6
-    names(header3) <- paste0("Output file is ", filename)
-    tab <- tab %>% add_header_above(header3, align = 'l') %>% add_header_above(header2, align = 'l') %>% add_header_above(header1, align = 'l', font_size = "larger", bold = T)
-    tab <- tab %>% kable_styling()
-    return(list(tab, nump = length(which(tmp2$adj.P.Val < 0.05))))
-}
-)
 
-
-sigps <- unlist(lapply(tables, function(x)x[[2]]))
-sumtab <- data.frame(Comparison = contrasts, `Number of genes with adjusted P < 0.05` = sigps,
-                     check.names = F)
-kable(sumtab, align = 'c') %>% kable_styling() %>%
-  add_header_above(c("Overview of results" = 2), font_size = "larger", bold = T, align = "l")
-
-
-# ---------------------
-# physiology*condition two-way interaction
-# regardless of clade
-# ---------------------
-
-y <- rnorm(n = nrow(design))
-dummy.mod <- lm(y ~ physiology*condition*clade, 
-                data = ExpDesign)
-pairs <- pairs(emmeans(dummy.mod, ~condition|physiology ), reverse = T)
-contrast.matrix <- pairs@linfct
-tmp <- pairs@grid
-contrasts <- gsub(" ", "", tmp$contrast)
-contrasts <- gsub("-", "_v_", contrasts)
-contrasts <- paste0(contrasts, "_", tmp$physiology)
-rownames(contrast.matrix) <- contrasts
-
-contrasts
-
-tables <- lapply(contrasts, function(contr){
-  print(contr)
-  cm <- contrast.matrix[contr,]
-  ph <- sapply(strsplit(as.character(contr), "_"), tail, 1)
-  cl <- sapply(strsplit(as.character(contr), "_"), tail, 2)
-  tmp <- contrasts.fit(fitRan, contrasts = cm)
-  tmp <- eBayes(tmp)
-  tmp2 <- topTable(tmp, n = Inf, sort.by = "P")
-  #tmp3 <- tmp2
-  #tmp3$row <- rownames(tmp3)
-  #tmp3 <- merge(ann,tmp3,by.x = "ensembl_peptide_id", by.y = "row", all = TRUE)
-  #tmp3 <- tmp3[order(tmp3$adj.P.Val),]
-  filename <- paste0(contr, ".csv")
-  #write.csv(tmp2, file = file.path(dir, filename),quote = F)
-  tab <- kable(head(tmp2, 20), digits = 5, row.names = F)
-  header1 <- 6
-  names(header1) <- paste0("Top 20 genes for ", contr)
-  header2 <- 6
-  names(header2) <- paste0("Number of genes with adjusted P < 0.05 = ", length(which(tmp2$adj.P.Val < 0.05)))
-  header3 <- 6
-  names(header3) <- paste0("Output file is ", filename)
-  tab <- tab %>% add_header_above(header3, align = 'l') %>% add_header_above(header2, align = 'l') %>% add_header_above(header1, align = 'l', font_size = "larger", bold = T)
-  tab <- tab %>% kable_styling()
-  return(list(tab, nump = length(which(tmp2$adj.P.Val < 0.05))))
-}
-
-)
-
-
-# ---------------------
-# condition main effect
-# ---------------------
-
-y <- rnorm(n = nrow(design))
-dummy.mod <- lm(y ~0 + physiology*condition*clade, 
-                data = ExpDesign)
-pairs <- pairs(emmeans(dummy.mod, ~condition ), reverse = T)
-contrast.matrix <- pairs@linfct
-tmp <- pairs@grid
-contrasts <- gsub(" ", "", tmp$contrast)
-contrasts <- gsub("-", "_v_", contrasts)
-rownames(contrast.matrix) <- contrasts
-
-contrasts
-
-tables <- lapply(contrasts, function(contr){
-  print(contr)
-  cm <- contrast.matrix[contr,]
-  ph <- sapply(strsplit(as.character(contr), "_"), tail, 1)
-  cl <- sapply(strsplit(as.character(contr), "_"), tail, 2)
-  tmp <- contrasts.fit(fitRan, contrasts = cm)
-  tmp <- eBayes(tmp)
-  tmp2 <- topTable(tmp, n = Inf, sort.by = "P")
-  #tmp3 <- tmp2
-  #tmp3$row <- rownames(tmp3)
-  #tmp3 <- merge(ann,tmp3,by.x = "ensembl_peptide_id", by.y = "row", all = TRUE)
-  #tmp3 <- tmp3[order(tmp3$adj.P.Val),]
-  filename <- paste0(contr, ".csv")
-  write.csv(tmp2, file = file.path(dir, filename),quote = F)
-  tab <- kable(head(tmp2, 20), digits = 5, row.names = F)
-  header1 <- 6
-  names(header1) <- paste0("Top 20 genes for ", contr)
-  header2 <- 6
-  names(header2) <- paste0("Number of genes with adjusted P < 0.05 = ", length(which(tmp2$adj.P.Val < 0.05)))
-  header3 <- 6
-  names(header3) <- paste0("Output file is ", filename)
-  tab <- tab %>% add_header_above(header3, align = 'l') %>% add_header_above(header2, align = 'l') %>% add_header_above(header1, align = 'l', font_size = "larger", bold = T)
-  tab <- tab %>% kable_styling()
-  return(list(tab, nump = length(which(tmp2$adj.P.Val < 0.05))))
-}
-
-)
-
-# merge each three-way with two-way to get sig and not for two-way (which are the genes that see dig diff between M and FW across all clades - these are the conserved responses, the others are the newly evolved, clade-specific responses)
-
-# ---------------------
-# physiology main effect
-# ---------------------
-
-y <- rnorm(n = nrow(design))
-dummy.mod <- lm(y ~0 + physiology*condition*clade, 
-                data = ExpDesign)
-pairs <- pairs(emmeans(dummy.mod, ~physiology ), reverse = T)
-contrast.matrix <- pairs@linfct
-tmp <- pairs@grid
-contrasts <- gsub(" ", "", tmp$contrast)
-contrasts <- gsub("-", "_v_", contrasts)
-rownames(contrast.matrix) <- contrasts
-
-contrasts
-
-tables <- lapply(contrasts, function(contr){
-  print(contr)
-  cm <- contrast.matrix[contr,]
-  ph <- sapply(strsplit(as.character(contr), "_"), tail, 1)
-  cl <- sapply(strsplit(as.character(contr), "_"), tail, 2)
-  tmp <- contrasts.fit(fitRan, contrasts = cm)
-  tmp <- eBayes(tmp)
-  tmp2 <- topTable(tmp, n = Inf, sort.by = "P")
-  #tmp3 <- tmp2
-  #tmp3$row <- rownames(tmp3)
-  #tmp3 <- merge(ann,tmp3,by.x = "ensembl_peptide_id", by.y = "row", all = TRUE)
-  #tmp3 <- tmp3[order(tmp3$adj.P.Val),]
-  filename <- paste0(contr, ".csv")
-  write.csv(tmp2, file = file.path(dir, filename),quote = F)
-  tab <- kable(head(tmp2, 20), digits = 5, row.names = F)
-  header1 <- 6
-  names(header1) <- paste0("Top 20 genes for ", contr)
-  header2 <- 6
-  names(header2) <- paste0("Number of genes with adjusted P < 0.05 = ", length(which(tmp2$adj.P.Val < 0.05)))
-  header3 <- 6
-  names(header3) <- paste0("Output file is ", filename)
-  tab <- tab %>% add_header_above(header3, align = 'l') %>% add_header_above(header2, align = 'l') %>% add_header_above(header1, align = 'l', font_size = "larger", bold = T)
-  tab <- tab %>% kable_styling()
-  return(list(tab, nump = length(which(tmp2$adj.P.Val < 0.05))))
-}
-
-)
