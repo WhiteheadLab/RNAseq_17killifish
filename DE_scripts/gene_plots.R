@@ -306,7 +306,6 @@ tmp <- data.matrix(tmp)
 head(tmp,quote = FALSE)
 ltmp <- log2(tmp+0.5)
 
-
 tcounts <- t(ltmp) %>%
   merge(ExpDesign, ., by="row.names") %>% 
   gather(gene, expression, (ncol(.)-length(rownames(tmp))+1):ncol(.))
@@ -386,12 +385,29 @@ for (i in rownames(ltmp)){
 # ----------------------------
 # main effects
 length(sig_main_phys)
-tmp <- j[rownames(j) %in% sig_main_phys,]
+
+tmp <- norm_counts[rownames(norm_counts) %in% sig_main_phys,]
+tmp_ann <- merge(tmp,ann,by.x = "row.names", by.y  = "ensembl_peptide_id")
+dim(tmp_ann)
+
+rownames(tmp_ann) <- tmp_ann$external_gene_name
+tmp <- tmp_ann[,c(2:82)]
+tmp <- data.frame(tmp,stringsAsFactors = FALSE)
+tmp <- data.matrix(tmp)
+head(tmp,quote = FALSE)
+ltmp <- log2(tmp+0.5)
+
+
+tmp <- j[rownames(j) %in% ,]
 ltmp <- log2(tmp+0.5)
 tcounts <- t(ltmp) %>%
   merge(ExpDesign, ., by="row.names") %>% 
   gather(gene, expression, (ncol(.)-length(rownames(tmp))+1):ncol(.))
 tcounts %>% dplyr::select(Row.names, clade, physiology, condition, gene, expression) %>% head %>% knitr::kable() %>% kable_styling()
+
+
+
+
 
 #ggplot(tcounts,aes(x=clade:condition, y=expression,fill=physiology)) + 
 #  geom_boxplot() + 
@@ -467,7 +483,15 @@ dev.off()
 
 # condition
 length(sig_main_condition)
-tmp <- j[rownames(j) %in% sig_main_condition,]
+tmp <- norm_counts[rownames(norm_counts) %in% sig_main_condition,]
+tmp_ann <- merge(tmp,ann,by.x = "row.names", by.y  = "ensembl_peptide_id")
+dim(tmp_ann)
+tmp_ann <- tmp_ann[!(tmp_ann$external_gene_name == ""),]
+rownames(tmp_ann) <- tmp_ann$external_gene_name
+tmp <- tmp_ann[,c(2:82)]
+tmp <- data.frame(tmp,stringsAsFactors = FALSE)
+tmp <- data.matrix(tmp)
+head(tmp,quote = FALSE)
 ltmp <- log2(tmp+0.5)
 tcounts <- t(ltmp) %>%
   merge(ExpDesign, ., by="row.names") %>% 
@@ -476,75 +500,12 @@ tcounts %>% dplyr::select(Row.names, clade, physiology, condition, gene, express
 
 ggplot(tcounts,aes(x=clade:condition, y=expression,fill=physiology)) + 
   geom_boxplot() + 
-  facet_wrap(~gene,scales="free_x") +
-  labs(x="Clade",
-       y="Expression of sig for three-way (log2 cpm normalized counts)",
+  facet_wrap(~gene) +
+  labs(x="Clade:Condition",
+       y="Expression (log2 cpm normalized counts)",
        fill = "Native Physiology") +
-  theme_bw()
-
-
-pdf("~/Documents/UCDavis/Whitehead/condition_maineffect_23May2019.pdf",paper="USr",width=13.5, height=8)
-for (i in rownames(ltmp)){
-  new <- data.frame(ltmp[i, ])
-  colnames(new) <- c(i)
-  tcounts <- new %>% 
-    merge(ExpDesign, ., by="row.names") %>% 
-    gather(gene, expression, (ncol(.)-length(colnames(new))+1):ncol(.))
-  
-  C1<-ggplot(tcounts %>%
-               filter(clade=='Clade1'),
-             aes(factor(condition,levels = c("0.2_ppt","15_ppt")), expression)) +
-    geom_point(aes(color=physiology)) +
-    stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
-    facet_grid(~gene,scales='free') +
-    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-                 geom="errorbar", aes(color=physiology),width=0.2) +
-    theme_bw() +
-    theme(legend.position="none",panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.text.x = element_text(angle = 90, hjust = 1),
-          strip.text.y = element_blank(),
-          axis.title.x = element_blank()) +
-    labs(y="Expression (log2 normalized counts)")+
-    ggtitle("Clade 1")
-  
-  #plot(C1)
-  C2<-ggplot(tcounts %>%
-               filter(clade=='Clade2'),
-             aes(factor(condition,levels = c("0.2_ppt","15_ppt")), expression)) + 
-    geom_point(aes(color=physiology)) +
-    stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
-    facet_grid(~gene,scales='free') +
-    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-                 geom="errorbar", aes(color=physiology),width=0.2) +
-    theme_bw() +
-    theme(legend.position="bottom",panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.text.x = element_text(angle = 90, hjust = 1),
-          axis.title.y = element_blank(),
-          strip.text.y = element_blank()) +
-    labs(x="salinity treatment")+
-    ggtitle("Clade 2")
-  #plot(C2)
-  C3<-ggplot(tcounts %>%
-               filter(clade=='Clade3'),
-             aes(factor(condition,levels = c("0.2_ppt","15_ppt")), expression)) + 
-    geom_point(aes(color=physiology)) +
-    stat_summary(fun.y="mean", geom="line", aes(group=physiology,color=physiology)) +
-    facet_grid(~gene,scales='free',labeller=) +
-    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-                 geom="errorbar", aes(color=physiology), width=0.2) +
-    theme_bw() +
-    theme(legend.position="none",panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.text.x = element_text(angle = 90, hjust = 1),
-          axis.title.y = element_blank(),
-          axis.title.x = element_blank()) +
-    ggtitle("Clade 3")
-  #plot(C3)
-  grid.arrange(C1,C2,C3,ncol=3)
-}
-dev.off()
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=90, hjust=1))
 
 
 # clade
@@ -565,81 +526,20 @@ tcounts %>% dplyr::select(Row.names, clade, physiology, condition, gene, express
 #       fill = "Native Physiology") +
 #  theme_bw()
 
-#ggplot(tcounts,aes(x=clade, y=expression,fill=physiology)) + 
-#  geom_boxplot() + 
-#  facet_wrap(~gene,scales="free_x") +
-#  labs(x="Clade",
-#       y="Expression of sig for three-way (log2 cpm normalized counts)",
-#       fill = "Native Physiology") +
-#  theme_bw()
 
-pdf("~/Documents/UCDavis/Whitehead/clade_maineffect_23May2019.pdf",paper="USr",width=13.5, height=8)
-for (i in rownames(ltmp)){
-  new <- data.frame(ltmp[i, ])
-  colnames(new) <- c(i)
-  tcounts <- new %>% 
-    merge(ExpDesign, ., by="row.names") %>% 
-    gather(gene, expression, (ncol(.)-length(colnames(new))+1):ncol(.))
-  
-  C1<-ggplot(tcounts %>%
-               filter(clade=='Clade1'),
-             aes(factor(condition,levels = c("0.2_ppt","15_ppt")), expression)) +
-    geom_point(aes(color=physiology)) +
-    stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
-    facet_grid(~gene,scales='free') +
-    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-                 geom="errorbar", aes(color=physiology),width=0.2) +
-    theme_bw() +
-    theme(legend.position="none",panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.text.x = element_text(angle = 90, hjust = 1),
-          strip.text.y = element_blank(),
-          axis.title.x = element_blank()) +
-    labs(y="Expression (log2 normalized counts)")+
-    ggtitle("Clade 1")
-  
-  #plot(C1)
-  C2<-ggplot(tcounts %>%
-               filter(clade=='Clade2'),
-             aes(factor(condition,levels = c("0.2_ppt","15_ppt")), expression)) + 
-    geom_point(aes(color=physiology)) +
-    stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
-    facet_grid(~gene,scales='free') +
-    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-                 geom="errorbar", aes(color=physiology),width=0.2) +
-    theme_bw() +
-    theme(legend.position="bottom",panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.text.x = element_text(angle = 90, hjust = 1),
-          axis.title.y = element_blank(),
-          strip.text.y = element_blank()) +
-    labs(x="salinity treatment")+
-    ggtitle("Clade 2")
-  #plot(C2)
-  C3<-ggplot(tcounts %>%
-               filter(clade=='Clade3'),
-             aes(factor(condition,levels = c("0.2_ppt","15_ppt")), expression)) + 
-    geom_point(aes(color=physiology)) +
-    stat_summary(fun.y="mean", geom="line", aes(group=physiology,color=physiology)) +
-    facet_grid(~gene,scales='free',labeller=) +
-    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-                 geom="errorbar", aes(color=physiology), width=0.2) +
-    theme_bw() +
-    theme(legend.position="none",panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.text.x = element_text(angle = 90, hjust = 1),
-          axis.title.y = element_blank(),
-          axis.title.x = element_blank()) +
-    ggtitle("Clade 3")
-  #plot(C3)
-  grid.arrange(C1,C2,C3,ncol=3)
-}
-dev.off()
 
 # ---------------------------
 # two-way interactions
 length(sig_int_phys_condition)
-tmp <- j[rownames(j) %in% sig_int_phys_condition,]
+tmp <- norm_counts[rownames(norm_counts) %in% sig_int_phys_condition,]
+tmp_ann <- merge(tmp,ann,by.x = "row.names", by.y  = "ensembl_peptide_id")
+dim(tmp_ann)
+tmp_ann <- tmp_ann[!(tmp_ann$external_gene_name == ""),]
+rownames(tmp_ann) <- tmp_ann$external_gene_name
+tmp <- tmp_ann[,c(2:82)]
+tmp <- data.frame(tmp,stringsAsFactors = FALSE)
+tmp <- data.matrix(tmp)
+head(tmp,quote = FALSE)
 ltmp <- log2(tmp+0.5)
 tcounts <- t(ltmp) %>%
   merge(ExpDesign, ., by="row.names") %>% 
@@ -648,74 +548,13 @@ tcounts %>% dplyr::select(Row.names, clade, physiology, condition, gene, express
 
 ggplot(tcounts,aes(x=clade:condition, y=expression,fill=physiology)) + 
   geom_boxplot() + 
-  facet_wrap(~gene,scales="free_x") +
-  labs(x="Clade",
-       y="Expression of sig for three-way (log2 cpm normalized counts)",
+  facet_wrap(~gene) +
+  labs(x="Clade:Condition",
+       y="Expression (log2 cpm normalized counts)",
        fill = "Native Physiology") +
-  theme_bw()
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=90, hjust=1))
 
-pdf("~/Documents/UCDavis/Whitehead/physiologycondition_twowayinteraction_23May2019.pdf",paper="USr",width=13.5, height=8)
-for (i in rownames(ltmp)){
-  new <- data.frame(ltmp[i, ])
-  colnames(new) <- c(i)
-  tcounts <- new %>% 
-    merge(ExpDesign, ., by="row.names") %>% 
-    gather(gene, expression, (ncol(.)-length(colnames(new))+1):ncol(.))
-  
-  C1<-ggplot(tcounts %>%
-               filter(clade=='Clade1'),
-             aes(factor(condition,levels = c("0.2_ppt","15_ppt")), expression)) +
-    geom_point(aes(color=physiology)) +
-    stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
-    facet_grid(~gene,scales='free') +
-    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-                 geom="errorbar", aes(color=physiology),width=0.2) +
-    theme_bw() +
-    theme(legend.position="none",panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.text.x = element_text(angle = 90, hjust = 1),
-          strip.text.y = element_blank(),
-          axis.title.x = element_blank()) +
-    labs(y="Expression (log2 normalized counts)")+
-    ggtitle("Clade 1")
-  
-  #plot(C1)
-  C2<-ggplot(tcounts %>%
-               filter(clade=='Clade2'),
-             aes(factor(condition,levels = c("0.2_ppt","15_ppt")), expression)) + 
-    geom_point(aes(color=physiology)) +
-    stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
-    facet_grid(~gene,scales='free') +
-    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-                 geom="errorbar", aes(color=physiology),width=0.2) +
-    theme_bw() +
-    theme(legend.position="bottom",panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.text.x = element_text(angle = 90, hjust = 1),
-          axis.title.y = element_blank(),
-          strip.text.y = element_blank()) +
-    labs(x="salinity treatment")+
-    ggtitle("Clade 2")
-  #plot(C2)
-  C3<-ggplot(tcounts %>%
-               filter(clade=='Clade3'),
-             aes(factor(condition,levels = c("0.2_ppt","15_ppt")), expression)) + 
-    geom_point(aes(color=physiology)) +
-    stat_summary(fun.y="mean", geom="line", aes(group=physiology,color=physiology)) +
-    facet_grid(~gene,scales='free',labeller=) +
-    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-                 geom="errorbar", aes(color=physiology), width=0.2) +
-    theme_bw() +
-    theme(legend.position="none",panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.text.x = element_text(angle = 90, hjust = 1),
-          axis.title.y = element_blank(),
-          axis.title.x = element_blank()) +
-    ggtitle("Clade 3")
-  #plot(C3)
-  grid.arrange(C1,C2,C3,ncol=3)
-}
-dev.off()
 
 
 length(sig_int_phys_clade)
@@ -735,149 +574,34 @@ tcounts %>% dplyr::select(Row.names, clade, physiology, condition, gene, express
 #  theme_bw()
 
 
-pdf("~/Documents/UCDavis/Whitehead/physiologyclade_twowayinteraction_23May2019.pdf",paper="USr",width=13.5, height=8)
-for (i in rownames(ltmp)){
-  new <- data.frame(ltmp[i, ])
-  colnames(new) <- c(i)
-  tcounts <- new %>% 
-    merge(ExpDesign, ., by="row.names") %>% 
-    gather(gene, expression, (ncol(.)-length(colnames(new))+1):ncol(.))
-  
-  C1<-ggplot(tcounts %>%
-               filter(clade=='Clade1'),
-             aes(factor(condition,levels = c("0.2_ppt","15_ppt")), expression)) +
-    geom_point(aes(color=physiology)) +
-    stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
-    facet_grid(~gene,scales='free') +
-    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-                 geom="errorbar", aes(color=physiology),width=0.2) +
-    theme_bw() +
-    theme(legend.position="none",panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.text.x = element_text(angle = 90, hjust = 1),
-          strip.text.y = element_blank(),
-          axis.title.x = element_blank()) +
-    labs(y="Expression (log2 normalized counts)")+
-    ggtitle("Clade 1")
-  
-  #plot(C1)
-  C2<-ggplot(tcounts %>%
-               filter(clade=='Clade2'),
-             aes(factor(condition,levels = c("0.2_ppt","15_ppt")), expression)) + 
-    geom_point(aes(color=physiology)) +
-    stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
-    facet_grid(~gene,scales='free') +
-    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-                 geom="errorbar", aes(color=physiology),width=0.2) +
-    theme_bw() +
-    theme(legend.position="bottom",panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.text.x = element_text(angle = 90, hjust = 1),
-          axis.title.y = element_blank(),
-          strip.text.y = element_blank()) +
-    labs(x="salinity treatment")+
-    ggtitle("Clade 2")
-  #plot(C2)
-  C3<-ggplot(tcounts %>%
-               filter(clade=='Clade3'),
-             aes(factor(condition,levels = c("0.2_ppt","15_ppt")), expression)) + 
-    geom_point(aes(color=physiology)) +
-    stat_summary(fun.y="mean", geom="line", aes(group=physiology,color=physiology)) +
-    facet_grid(~gene,scales='free',labeller=) +
-    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-                 geom="errorbar", aes(color=physiology), width=0.2) +
-    theme_bw() +
-    theme(legend.position="none",panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.text.x = element_text(angle = 90, hjust = 1),
-          axis.title.y = element_blank(),
-          axis.title.x = element_blank()) +
-    ggtitle("Clade 3")
-  #plot(C3)
-  grid.arrange(C1,C2,C3,ncol=3)
-}
-dev.off()
-
-
 
 
 length(sig_int_clade_condition)
-tmp <- j[rownames(j) %in% sig_int_clade_condition,]
+
+tmp <- norm_counts[rownames(norm_counts) %in% sig_int_clade_condition,]
+tmp_ann <- merge(tmp,ann,by.x = "row.names", by.y  = "ensembl_peptide_id")
+dim(tmp_ann)
+tmp_ann <- tmp_ann[!(tmp_ann$external_gene_name == ""),]
+rownames(tmp_ann) <- tmp_ann$external_gene_name
+tmp <- tmp_ann[,c(2:82)]
+tmp <- data.frame(tmp,stringsAsFactors = FALSE)
+tmp <- data.matrix(tmp)
+head(tmp,quote = FALSE)
 ltmp <- log2(tmp+0.5)
 tcounts <- t(ltmp) %>%
   merge(ExpDesign, ., by="row.names") %>% 
   gather(gene, expression, (ncol(.)-length(rownames(tmp))+1):ncol(.))
 tcounts %>% dplyr::select(Row.names, clade, physiology, condition, gene, expression) %>% head %>% knitr::kable() %>% kable_styling()
 
-ggplot(tcounts,aes(x=clade:condition, y=expression,alpha=clade,fill=physiology)) + 
-  geom_boxplot() + 
-  facet_wrap(~gene,scales="free_x") +
-  labs(y="Expression (log2 cpm normalized counts)",
-       fill = "Native Physiology") +
-  theme_bw()
 
-pdf("~/Documents/UCDavis/Whitehead/cladecondition_twowayinteraction_23May2019.pdf",paper="USr",width=13.5, height=8)
-for (i in rownames(ltmp)){
-  new <- data.frame(ltmp[i, ])
-  colnames(new) <- c(i)
-  tcounts <- new %>% 
-    merge(ExpDesign, ., by="row.names") %>% 
-    gather(gene, expression, (ncol(.)-length(colnames(new))+1):ncol(.))
-  
-  C1<-ggplot(tcounts %>%
-               filter(clade=='Clade1'),
-             aes(factor(condition,levels = c("0.2_ppt","15_ppt")), expression)) +
-    geom_point(aes(color=physiology)) +
-    stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
-    facet_grid(~gene,scales='free') +
-    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-                 geom="errorbar", aes(color=physiology),width=0.2) +
-    theme_bw() +
-    theme(legend.position="none",panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.text.x = element_text(angle = 90, hjust = 1),
-          strip.text.y = element_blank(),
-          axis.title.x = element_blank()) +
-    labs(y="Expression (log2 normalized counts)")+
-    ggtitle("Clade 1")
-  
-  #plot(C1)
-  C2<-ggplot(tcounts %>%
-               filter(clade=='Clade2'),
-             aes(factor(condition,levels = c("0.2_ppt","15_ppt")), expression)) + 
-    geom_point(aes(color=physiology)) +
-    stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
-    facet_grid(~gene,scales='free') +
-    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-                 geom="errorbar", aes(color=physiology),width=0.2) +
-    theme_bw() +
-    theme(legend.position="bottom",panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.text.x = element_text(angle = 90, hjust = 1),
-          axis.title.y = element_blank(),
-          strip.text.y = element_blank()) +
-    labs(x="salinity treatment")+
-    ggtitle("Clade 2")
-  #plot(C2)
-  C3<-ggplot(tcounts %>%
-               filter(clade=='Clade3'),
-             aes(factor(condition,levels = c("0.2_ppt","15_ppt")), expression)) + 
-    geom_point(aes(color=physiology)) +
-    stat_summary(fun.y="mean", geom="line", aes(group=physiology,color=physiology)) +
-    facet_grid(~gene,scales='free',labeller=) +
-    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-                 geom="errorbar", aes(color=physiology), width=0.2) +
-    theme_bw() +
-    theme(legend.position="none",panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.text.x = element_text(angle = 90, hjust = 1),
-          axis.title.y = element_blank(),
-          axis.title.x = element_blank()) +
-    ggtitle("Clade 3")
-  #plot(C3)
-  grid.arrange(C1,C2,C3,ncol=3)
-}
-dev.off()
+ggplot(tcounts,aes(x=clade:condition, y=expression,fill=physiology)) + 
+  geom_boxplot() + 
+  facet_wrap(~gene) +
+  labs(x="Clade:Condition",
+       y="Expression (log2 cpm normalized counts)",
+       fill = "Native Physiology") +
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=90, hjust=1))
 
 
 # --------------------------
@@ -885,7 +609,14 @@ dev.off()
 length(sig_int_three)
 sig_int_three
 
-tmp <- j[rownames(j) %in% sig_int_three,]
+tmp <- norm_counts[rownames(norm_counts) %in% sig_int_three,]
+tmp_ann <- merge(tmp,ann,by.x = "row.names", by.y  = "ensembl_peptide_id")
+dim(tmp_ann)
+rownames(tmp_ann) <- tmp_ann$external_gene_name
+tmp <- tmp_ann[,c(2:82)]
+tmp <- data.frame(tmp,stringsAsFactors = FALSE)
+tmp <- data.matrix(tmp)
+head(tmp,quote = FALSE)
 ltmp <- log2(tmp+0.5)
 tcounts <- t(ltmp) %>%
   merge(ExpDesign, ., by="row.names") %>% 
@@ -894,79 +625,9 @@ tcounts %>% dplyr::select(Row.names, clade, physiology, condition, gene, express
 
 ggplot(tcounts,aes(x=clade:condition, y=expression,fill=physiology)) + 
   geom_boxplot() + 
-  facet_wrap(~gene,scales="free_x") +
-  labs(x="Clade",
+  facet_wrap(~gene) +
+  labs(x="Clade:Condition",
        y="Expression (log2 cpm normalized counts)",
        fill = "Native Physiology") +
-  theme_bw()
-
-ggplot(tcounts,aes(x=clade, y=expression,fill=physiology)) + 
-  geom_boxplot() + 
-  facet_wrap(~gene,scales="free_x") +
-  labs(x="Clade",
-       y="Expression of sig for three-way (log2 cpm normalized counts)",
-       fill = "Native Physiology") +
-  theme_bw()
-
-pdf("~/Documents/UCDavis/Whitehead/physiologycladecondition_threewayinteraction_23May2019.pdf",paper="USr",width=13.5, height=8)
-for (i in rownames(ltmp)){
-  new <- data.frame(ltmp[i, ])
-  colnames(new) <- c(i)
-  tcounts <- new %>% 
-    merge(ExpDesign, ., by="row.names") %>% 
-    gather(gene, expression, (ncol(.)-length(colnames(new))+1):ncol(.))
-  
-  C1<-ggplot(tcounts %>%
-               filter(clade=='Clade1'),
-             aes(factor(condition,levels = c("0.2_ppt","15_ppt")), expression)) +
-    geom_point(aes(color=physiology)) +
-    stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
-    facet_grid(~gene,scales='free') +
-    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-                 geom="errorbar", aes(color=physiology),width=0.2) +
-    theme_bw() +
-    theme(legend.position="none",panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.text.x = element_text(angle = 90, hjust = 1),
-          strip.text.y = element_blank(),
-          axis.title.x = element_blank()) +
-    labs(y="Expression (log2 normalized counts)")+
-    ggtitle("Clade 1")
-  
-  #plot(C1)
-  C2<-ggplot(tcounts %>%
-               filter(clade=='Clade2'),
-             aes(factor(condition,levels = c("0.2_ppt","15_ppt")), expression)) + 
-    geom_point(aes(color=physiology)) +
-    stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
-    facet_grid(~gene,scales='free') +
-    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-                 geom="errorbar", aes(color=physiology),width=0.2) +
-    theme_bw() +
-    theme(legend.position="bottom",panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.text.x = element_text(angle = 90, hjust = 1),
-          axis.title.y = element_blank(),
-          strip.text.y = element_blank()) +
-    labs(x="salinity treatment")+
-    ggtitle("Clade 2")
-  #plot(C2)
-  C3<-ggplot(tcounts %>%
-               filter(clade=='Clade3'),
-             aes(factor(condition,levels = c("0.2_ppt","15_ppt")), expression)) + 
-    geom_point(aes(color=physiology)) +
-    stat_summary(fun.y="mean", geom="line", aes(group=physiology,color=physiology)) +
-    facet_grid(~gene,scales='free',labeller=) +
-    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-                 geom="errorbar", aes(color=physiology), width=0.2) +
-    theme_bw() +
-    theme(legend.position="none",panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.text.x = element_text(angle = 90, hjust = 1),
-          axis.title.y = element_blank(),
-          axis.title.x = element_blank()) +
-    ggtitle("Clade 3")
-  #plot(C3)
-  grid.arrange(C1,C2,C3,ncol=3)
-}
-dev.off()
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=90, hjust=1))
