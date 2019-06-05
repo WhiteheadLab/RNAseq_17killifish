@@ -120,8 +120,8 @@ dim(ann)
 counts<-as.matrix(as.data.frame(sapply(counts, as.numeric)))
 rownames(counts)<-gene.names
 class(counts)
-test<-counts %>% drop_na()
-test<-as.matrix(test)
+#test<-counts %>% drop_na()
+#test<-as.matrix(test)
 lcom_unfilt<-log2(counts+1)
 plot(colSums(t(lcom_unfilt)))
 
@@ -171,6 +171,7 @@ goi <- countsfilt$row[countsfilt$row == "ENSFHEP00000009753"]
 # --------------------------------
 # other salinity genes of interest
 # --------------------------------
+
 # ============================================
 # aquaporin-3
 goi <- countsfilt$row[countsfilt$row == "ENSFHEP00000006725"]
@@ -206,6 +207,10 @@ goi
 # Funhe2EKm001174
 goi <- countsfilt$row[countsfilt$row == "ENSFHEP00000031108"]
 goi
+# ENSFHEP00000023396
+# sodium/potassium ATPase alpha subunit isoform 2 
+goi <- countsfilt$row[countsfilt$row == "ENSFHEP00000023396"]
+goi
 # septin-2
 # Funhe2EKm012182
 goi <- countsfilt$row[countsfilt$row == "ENSFHEP00000016853"]
@@ -223,85 +228,11 @@ goi
 # Funhe2EKm007149
 goi <- countsfilt$row[countsfilt$row == "ENSFHEP00000003908"]
 goi
-all_goi<-c("ENSFHEP00000007220.1","ENSFHEP00000025841","ENSFHEP00000019510",
+all_goi<-c("ENSFHEP00000023396","ENSFHEP00000007220.1","ENSFHEP00000025841","ENSFHEP00000019510",
            "ENSFHEP00000015383","ENSFHEP00000009753","ENSFHEP00000006725","ENSFHEP00000008393",
            "ENSFHEP00000013324","ENSFHEP00000001609","ENSFHEP00000013324","ENSFHEP00000034177",
            "ENSFHEP00000015765","ENSFHEP00000017303","ENSFHEP00000000036","ENSFHEP00000031108",
            "ENSFHEP00000016853","ENSFHEP00000003908")
-
-# ============================================
-#
-# Make plots with goi
-# This was very helpful:
-# https://rpubs.com/turnersd/plot-deseq-results-multipage-pdf
-# 
-# ============================================
-class(counts.filt)
-j <- data.frame(counts.filt,stringsAsFactors = FALSE)
-j <- data.matrix(j)
-head(j,quote = FALSE)
-pdf("~/Documents/UCDavis/Whitehead/multi-ggplot2-catalog_salinity_7May2019.pdf",paper="USr",width=13.5, height=8)
-
-for (i in all_goi){
-  tcounts <- t(log2(j[rownames(j) == "ENSFHEP00000007220.1",]+0.5)) %>% 
-    merge(ExpDesign, ., by.x="sample",by.y="col.names") %>% 
-    gather(gene, expression, (ncol(.)-length(i)+1):ncol(.))
-  tcounts %>% select(row.names, species, clade, condition, gene, expression) %>% head %>% knitr::kable()
-  
-  C1<-ggplot(tcounts %>%
-               filter(clade=='Clade1'),
-             aes(factor(condition,levels = c("0.2_ppt","15_ppt")), expression)) +
-    geom_point(aes(color=physiology)) +
-    stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
-    facet_grid(~gene~species,scales='fixed') +
-    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-                 geom="errorbar", aes(color=physiology),width=0.2) +
-    theme_bw() +
-    theme(legend.position="none",panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.text.x = element_text(angle = 90, hjust = 1),
-          strip.text.y = element_blank(),
-          axis.title.x = element_blank()) +
-    labs(y="Expression (log2 normalized counts)")+
-    ggtitle("Clade 1")
-  
-  #plot(C1)
-  C2<-ggplot(tcounts %>%
-               filter(clade=='Clade2'),
-             aes(factor(condition,levels = c("0.2_ppt","15_ppt")), expression)) + 
-    geom_point(aes(color=physiology)) +
-    stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
-    facet_grid(~gene~species,scales='fixed') +
-    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-                 geom="errorbar", aes(color=physiology),width=0.2) +
-    theme_bw() +
-    theme(legend.position="bottom",panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.text.x = element_text(angle = 90, hjust = 1),
-          axis.title.y = element_blank(),
-          strip.text.y = element_blank()) +
-    labs(x="salinity treatment")+
-    ggtitle("Clade 2")
-  #plot(C2)
-  C3<-ggplot(tcounts %>%
-               filter(clade=='Clade3'),
-             aes(factor(condition,levels = c("0.2_ppt","15_ppt")), expression)) + 
-    geom_point(aes(color=physiology)) +
-    stat_summary(fun.y="mean", geom="line", aes(group=physiology,color=physiology)) +
-    facet_grid(~gene~species,scales='fixed',labeller=) +
-    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
-                 geom="errorbar", aes(color=physiology), width=0.2) +
-    theme_bw() +
-    theme(legend.position="none",panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.text.x = element_text(angle = 90, hjust = 1),
-          axis.title.y = element_blank(),
-          axis.title.x = element_blank()) +
-    ggtitle("Clade 3")
-  #plot(C3)
-  grid.arrange(C1,C2,C3,ncol=3)
-}
-dev.off()
 
 # -------------------
 # proceed with DE
@@ -410,7 +341,12 @@ summary(decideTests(efit))
 int_phys_clade<-topTableF(efit,n = Inf, sort.by = "F")
 sig_int_phys_clade <- int_phys_clade[int_phys_clade$adj.P.Val<0.05,]
 dim(sig_int_phys_clade)
-write.csv(int_phys_clade, file = file.path(dir, "interaction_physiology_clade.csv"), quote = F, row.names = T)
+ann_int_phys_clade <- merge(int_phys_clade,ann,all=TRUE,by.x = "row.names", by.y  = "ensembl_peptide_id")
+dim(ann_int_phys_clade)
+ann_int_phys_clade <- ann_int_phys_clade[order(ann_int_phys_clade$adj.P.Val,decreasing = FALSE), ]
+rownames(ann_int_phys_clade) <- ann_int_phys_clade$Row.names
+ann_int_phys_clade <- ann_int_phys_clade[,-1]
+write.csv(ann_int_phys_clade, file = file.path(dir, "interaction_physiology_clade.csv"), quote = F, row.names = T)
 
 #clade:condition: coef=9:10
 vfit <- contrasts.fit(fitRan, coef = 9:10)
@@ -420,7 +356,14 @@ summary(decideTests(efit))
 int_clade_condition<-topTableF(efit,n = Inf, sort.by = "F")
 sig_int_clade_condition <- int_clade_condition[int_clade_condition$adj.P.Val<0.05,]
 dim(sig_int_clade_condition)
-write.csv(int_clade_condition, file = file.path(dir, "interaction_clade_condition.csv"), quote = F, row.names = T)
+ann_int_clade_condition <- merge(int_clade_condition,ann,all=TRUE,by.x = "row.names", by.y  = "ensembl_peptide_id")
+dim(ann_int_clade_condition)
+ann_int_clade_condition <- ann_int_clade_condition[order(ann_int_clade_condition$adj.P.Val,decreasing = FALSE), ]
+rownames(ann_int_clade_condition) <- ann_int_clade_condition$Row.names
+ann_int_clade_condition <- ann_int_clade_condition[,-1]
+write.csv(ann_int_clade_condition, file = file.path(dir, "interaction_clade_condition.csv"), quote = F, row.names = T)
+
+
 #three-way interaction:
 #coef=11:12
 vfit <- contrasts.fit(fitRan, coef = 11:12)
@@ -430,9 +373,47 @@ summary(decideTests(efit))
 int_three<-topTableF(efit,n = Inf, sort.by = "F")
 sig_int_three <- int_three[int_three$adj.P.Val<0.05,]
 dim(sig_int_three)
-write.csv(int_three, file = file.path(dir, "interaction_threeway.csv"), quote = F, row.names = T)
+ann_int_three <- merge(int_three,ann,all=TRUE,by.x = "row.names", by.y  = "ensembl_peptide_id")
+dim(ann_int_three)
+ann_int_three <- ann_int_three[order(ann_int_three$adj.P.Val,decreasing = FALSE), ]
+rownames(ann_int_three) <- ann_int_three$Row.names
+ann_int_three <- ann_int_three[,-1]
+write.csv(ann_int_three, file = file.path(dir, "interaction_threeway.csv"), quote = F, row.names = T)
 
 #======================
+
+#-------------------------------------
+# significant genes
+# main effects
+#-------------------------------------
+
+#dim(sig_main_phys)
+sig_main_phys_genes <- rownames(sig_main_phys)
+length(sig_main_phys_genes)
+
+#dim(sig_main_condition)
+sig_main_condition_genes <- rownames(sig_main_condition)
+length(sig_main_condition_genes)
+
+#dim(sig_main_clade)
+sig_main_clade_genes <- rownames(sig_main_clade)
+length(sig_main_clade_genes)
+
+#dim(sig_int_phys_condition)
+sig_int_phys_condition_genes <- rownames(sig_int_phys_condition)
+length(sig_int_phys_condition_genes)
+
+#dim(sig_int_phys_clade)
+sig_int_phys_clade_genes <- rownames(sig_int_phys_clade)
+length(sig_int_phys_clade_genes)
+
+#dim(sig_int_clade_condition)
+sig_int_clade_condition_genes <- rownames(sig_int_clade_condition)
+length(sig_int_clade_condition_genes)
+
+#dim(sig_int_three)
+sig_int_three_genes <- rownames(sig_int_three)
+length(sig_int_three_genes)
 
 
 

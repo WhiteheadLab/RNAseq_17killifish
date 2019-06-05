@@ -272,6 +272,7 @@ pheatmap(rld, show_rownames=FALSE,
          annotation_col=df,
          scale = "none")
 head(rld)
+
 # for each FW col, subtract values by itself and subtract 15ppt col by original FW
 # in for loop
 
