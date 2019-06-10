@@ -252,14 +252,12 @@ tmp$Ensembl <- rownames(tmp)
 tmp <- dplyr::select(tmp, Ensembl, everything())
 write.csv(tmp, file = file.path(dir, "normalized_counts.csv"), quote = F, row.names = F)
 
-
 vobj = voom( genes, design, plot=TRUE)
 lcpm <- cpm(genes$counts, log = TRUE)
 # log counts after DE
 
 boxplot(lcpm, las = 2, main = "")
 plot(colSums(t(lcpm)))
-
 
 vwts <- voomWithQualityWeights(genes, design=design, normalization="quantile", plot=TRUE)
 corfit <- duplicateCorrelation(vobj,mm,block=ExpDesign$species)
@@ -268,6 +266,15 @@ corfit$consensus
 fitRan <- lmFit(vobj,design,block=ExpDesign$species,correlation=corfit$consensus)
 colnames(coef(fitRan))
 dir <- "~/Documents/UCDavis/Whitehead/"
+
+#> colnames(coef(fitRan))
+#[1] "(Intercept)"                             "physiologyM"                            
+#[3] "condition15_ppt"                         "cladeClade2"                            
+#[5] "cladeClade3"                             "physiologyM:condition15_ppt"            
+#[7] "physiologyM:cladeClade2"                 "physiologyM:cladeClade3"                
+#[9] "condition15_ppt:cladeClade2"             "condition15_ppt:cladeClade3"            
+#[11] "physiologyM:condition15_ppt:cladeClade2" "physiologyM:condition15_ppt:cladeClade3"
+
 # -------------------------------
 # main effects
 # physiology: coef = 2
