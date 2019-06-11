@@ -398,7 +398,7 @@ df <- data.frame(ph,cl, condition,stringsAsFactors=FALSE)
 rownames(df) <- colnames(rld)
 pheatmap(rld, show_rownames=FALSE,
          clustering_distance_rows = geneDists, 
-         cluster_cols= TRUE,
+         cluster_cols= FALSE,
          annotation_col=df,
          scale = "row")
 
@@ -511,7 +511,7 @@ ltmp <- log2(tmp+0.5)
 tcounts <- t(ltmp) %>%
   merge(ExpDesign, ., by="row.names") %>% 
   gather(gene, expression, (ncol(.)-length(rownames(tmp))+1):ncol(.))
-tcounts %>% dplyr::select(Row.names, clade, physiology, condition, gene, expression) %>% head %>% knitr::kable() %>% kable_styling()
+tcounts %>% dplyr::select(Row.names, clade, species,physiology, condition, gene, expression) %>% head %>% knitr::kable() %>% kable_styling()
 
 ggplot(tcounts,aes(x=clade:condition, y=expression,fill=physiology)) + 
   geom_boxplot() + 
@@ -785,7 +785,7 @@ text(log2(baseMean_mygenes),log2FoldChange_mygenes,labels=gene_id,pos=2,cex=0.60
 length(sig_main_phys_genes)
 # CFTR
 goi <- c("ENSFHEP00000008393")
-
+goi <- c("ENSFHEP00000006725")
 tmp <- norm_counts[rownames(norm_counts) %in% goi,]
 tmp_ann <- merge(tmp,ann,by.x = "row.names", by.y  = "ensembl_peptide_id")
 dim(tmp_ann)
@@ -800,21 +800,83 @@ ltmp <- log2(tmp+0.5)
 tcounts <- t(ltmp) %>%
   merge(ExpDesign, ., by="row.names") %>% 
   gather(gene, expression, (ncol(.)-length(rownames(tmp))+1):ncol(.))
-tcounts %>% dplyr::select(Row.names, clade, physiology, condition, gene, expression) %>% head %>% knitr::kable() %>% kable_styling()
+tcounts %>% dplyr::select(Row.names, clade, species, physiology, condition, gene, expression) %>% head %>% knitr::kable() %>% kable_styling()
 
-#pdf("~/Documents/UCDavis/Whitehead/physiology_maineffect_28May2019.pdf",paper="USr",width=13.5, height=8)
+
 for (i in seq(1, length(unique(tcounts$gene)), 100)) {
-  print(ggplot(tcounts[tcounts$gene %in% levels(as.factor(tcounts$gene))[i:(i+19)], ], 
-               aes(x=clade:condition, y=expression,fill=physiology)) + 
+  print(ggplot(tcounts[tcounts$gene %in% levels(as.factor(tcounts$gene))[i:(i+19)], ],
+               aes(x=species:condition, y=expression,fill=physiology)) + 
           geom_boxplot() +
           facet_wrap(~gene) +
           labs(x="Clade:Condition",
-               y="Expression (log2 cpm normalized counts)",
-               fill = "Native Physiology") +
+               y="Expression (log2 cpm normalized counts)") +
           theme_bw() +
           theme(axis.text.x=element_text(angle=90, hjust=1)))
 }
 #dev.off()
+
+
+C1<-ggplot(tcounts %>% filter(clade=='Clade1'), aes(factor(condition,levels = c("0.2_ppt","15_ppt")), expression)) +
+    geom_point(size = 0.7) +
+  ylim(-2.4, 10) +
+  stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
+  facet_grid(~species,scales='fixed', space = "free") +
+  stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+                 geom="errorbar", aes(color=physiology),width=0.2) +
+  stat_summary(fun.y="mean", geom="point", size=5, 
+               aes(shape = physiology,color=physiology)) +
+    theme_bw() +
+    theme(legend.position="none",panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          axis.text.y = element_text(size= 20),
+          axis.title.y = element_text(size= 20),
+          axis.text.x = element_text(angle = 90, hjust = 1,size=20),
+          strip.text.y = element_blank(),
+          axis.title.x = element_blank(),
+          strip.text.x = element_text(size = 12)) +
+    labs(y="Expression (log2 normalized counts)") +
+    ggtitle("Clade 1")
+plot(C1)
+C2<-ggplot(tcounts %>% filter(clade=='Clade2'), aes(factor(condition,levels = c("0.2_ppt","15_ppt")), expression)) + 
+  ylim(-2.4, 10) +
+    geom_point(size = 0.7) +
+    stat_summary(fun.y="mean", geom="line",aes(group=physiology,color=physiology)) +
+    facet_grid(~species,scales='fixed', space = "free") +
+    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1), 
+                 geom="errorbar", aes(color=physiology),width=0.2) +
+  stat_summary(fun.y="mean", geom="point", size=5, 
+               aes(shape = physiology,color=physiology)) +
+    theme_bw() +
+    theme(legend.position="none",panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          axis.text.y = element_text(size= 20),
+          axis.text.x = element_text(angle = 90, hjust = 1,size=20),
+          axis.title.y = element_blank(),
+          strip.text.y = element_blank(),
+          axis.title.x = element_blank(),
+          strip.text.x = element_text(size = 12)) +
+    ggtitle("Clade 2")
+plot(C2)
+C3<-ggplot(tcounts %>% filter(clade=='Clade3'), aes(factor(condition,levels = c("0.2_ppt","15_ppt")), expression)) + 
+  ylim(-2.4, 10) +
+    geom_point(size=0.7) +
+    stat_summary(fun.y="mean", geom="line", aes(group=physiology,color=physiology)) +
+    facet_grid(~species,scales='fixed', space = "free") +
+    stat_summary(fun.data=mean_sdl, fun.args = list(mult=1),
+                 geom="errorbar", aes(color=physiology), width=0.2) +
+  stat_summary(fun.y="mean", geom="point", size=5, 
+               aes(shape = physiology,color=physiology)) +
+    theme_bw() +
+    theme(legend.position="none",panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          axis.text.x = element_text(angle = 90, hjust = 1, size = 20),
+          axis.text.y = element_text(size= 20),
+          axis.title.y = element_blank(),
+          axis.title.x = element_blank(),
+          strip.text.x = element_text(size = 12)) +
+    ggtitle("Clade 3")
+plot(C3)
+grid.arrange(C1,C2,C3,ncol=3, widths = c(7,3,4))
 
 # Na/K ATPases
 goi<-c("ENSFHEP00000003519","ENSFHEP00000011077","ENSFHEP00000015386","ENSFHEP00000031108")
