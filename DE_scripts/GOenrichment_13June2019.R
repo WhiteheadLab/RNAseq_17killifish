@@ -28,60 +28,6 @@ library(clusterProfiler)
 setwd("~/Documents/UCDavis/Whitehead/RNAseq_15killifish/DE_scripts")
 # ------------------------
 
-# Import data from each species DE analysis
-
-# ------------------------
-# load each species response table
-# ------------------------
-A_xenica_stats <- read.csv("~/Documents/UCDavis/Whitehead/counts_stats_byspecies/A_xenica_stats_annotations_counts.csv")
-F_catenatus_stats <- read.csv("~/Documents/UCDavis/Whitehead/counts_stats_byspecies/F_catanatus_stats_annotations_counts.csv")
-F_chrysotus_stats <- read.csv("~/Documents/UCDavis/Whitehead/counts_stats_byspecies/F_chrysotus_stats_annotations_counts.csv")
-F_diaphanus_stats <- read.csv("~/Documents/UCDavis/Whitehead/counts_stats_byspecies/F_diaphanus_stats_annotations_counts.csv")
-F_grandis_stats <- read.csv("~/Documents/UCDavis/Whitehead/counts_stats_byspecies/F_grandis_stats_annotations_counts.csv")
-F_heteroclitusMDPL_stats <- read.csv("~/Documents/UCDavis/Whitehead/counts_stats_byspecies/F_heteroclitusMDPL_stats_annotations_counts.csv")
-F_heteroclitusMDPP_stats <- read.csv("~/Documents/UCDavis/Whitehead/counts_stats_byspecies/F_heteroclitusMDPP_stats_annotations_counts.csv")
-F_notatus_stats <- read.csv("~/Documents/UCDavis/Whitehead/counts_stats_byspecies/F_notatus_stats_annotations_counts.csv")
-F_olivaceus_stats <- read.csv("~/Documents/UCDavis/Whitehead/counts_stats_byspecies/F_olivaceous_stats_annotations_counts.csv")
-F_parvapinis_stats <- read.csv("~/Documents/UCDavis/Whitehead/counts_stats_byspecies/F_parvapinis_stats_annotations_counts.csv")
-F_rathbuni_stats <- read.csv("~/Documents/UCDavis/Whitehead/counts_stats_byspecies/F_rathbuni_stats_annotations_counts.csv")
-F_sciadicus_stats <- read.csv("~/Documents/UCDavis/Whitehead/counts_stats_byspecies/F_sciadicus_stats_annotations_counts.csv")
-F_similis_stats <- read.csv("~/Documents/UCDavis/Whitehead/counts_stats_byspecies/F_similis_stats_annotations_counts.csv")
-L_goodei_stats <- read.csv("~/Documents/UCDavis/Whitehead/counts_stats_byspecies/L_goodei_stats_annotations_counts.csv")
-L_parva_stats <- read.csv("~/Documents/UCDavis/Whitehead/counts_stats_byspecies/L_parva_stats_annotations_counts.csv")
-# --------------------------------
-# isolate only padj<0.05 for each
-# --------------------------------
-A_xenica_stats_sig <- subset(A_xenica_stats, A_xenica_stats$`padj.15ppt.v.0.2ppt`<= 0.05)
-dim(A_xenica_stats_sig)
-F_catenatus_stats_sig <- subset(F_catenatus_stats, F_catenatus_stats$`padj.15ppt.v.0.2ppt`<= 0.05)
-dim(F_catenatus_stats_sig)
-F_chrysotus_stats_sig <- subset(F_chrysotus_stats, F_chrysotus_stats$`padj.15ppt.v.0.2ppt`<= 0.05)
-dim(F_chrysotus_stats_sig)
-F_diaphanus_stats_sig <- subset(F_diaphanus_stats, F_diaphanus_stats$`padj.15ppt.v.0.2ppt`<= 0.05)
-dim(F_diaphanus_stats_sig)
-F_grandis_stats_sig <- subset(F_grandis_stats, F_grandis_stats$`padj.15ppt.v.0.2ppt`<= 0.05)
-dim(F_grandis_stats_sig)
-F_heteroclitusMDPL_stats_sig <- subset(F_heteroclitusMDPL_stats, F_heteroclitusMDPL_stats$`padj.15ppt.v.0.2ppt`<= 0.05)
-dim(F_heteroclitusMDPL_stats_sig)
-F_heteroclitusMDPP_stats_sig <- subset(F_heteroclitusMDPP_stats, F_heteroclitusMDPP_stats$`padj.15ppt.v.0.2ppt`<= 0.05)
-dim(F_heteroclitusMDPP_stats_sig)
-F_notatus_stats_sig <- subset(F_notatus_stats, F_notatus_stats$`padj.15ppt.v.0.2ppt`<= 0.05)
-dim(F_notatus_stats_sig)
-F_olivaceus_stats_sig <- subset(F_olivaceus_stats, F_olivaceus_stats$`padj.15ppt.v.0.2ppt`<= 0.05)
-dim(F_olivaceus_stats_sig)
-F_parvapinis_stats_sig <- subset(F_parvapinis_stats, F_parvapinis_stats$`padj.15ppt.v.0.2ppt`<= 0.05)
-dim(F_parvapinis_stats_sig)
-F_rathbuni_stats_sig <- subset(F_rathbuni_stats, F_rathbuni_stats$`padj.15ppt.v.0.2ppt`<= 0.05)
-dim(F_rathbuni_stats_sig)
-F_sciadicus_stats_sig <- subset(F_sciadicus_stats, F_sciadicus_stats$`padj.15ppt.v.0.2ppt`<= 0.05)
-dim(F_sciadicus_stats_sig)
-F_similis_stats_sig <- subset(F_similis_stats, F_similis_stats$`padj.15ppt.v.0.2ppt`<= 0.05)
-dim(F_similis_stats_sig)
-L_goodei_stats_sig <- subset(L_goodei_stats, L_goodei_stats$`padj.15ppt.v.0.2ppt`<= 0.05)
-dim(L_goodei_stats_sig)
-L_parva_stats_sig <- subset(L_parva_stats, L_parva_stats$`padj.15ppt.v.0.2ppt`<= 0.05)
-dim(L_parva_stats_sig)
-
 # ============================================
 
 # Get biomart annotations from Ensembl
@@ -166,13 +112,13 @@ colnames(TERM2GENE) <- c("GO_ID","gene")
 dim(TERM2GENE)
 universe <- universe[universe %in% TERM2GENE$gene]
 length(universe)
-#df = NULL
-#for (GO_ID in TERM2GENE$GO_ID){
-#  GOterm <- Term(as.list(GOTERM[GO_ID])[[1]])
-#  df = rbind(df, data.frame(GO_ID,GOterm))
-#}
-#dim(df)
-#head(df)
+df = NULL
+for (GO_ID in TERM2GENE$GO_ID){
+  GOterm <- Term(as.list(GOTERM[GO_ID])[[1]])
+  df = rbind(df, data.frame(GO_ID,GOterm))
+}
+dim(df)
+head(df)
 
 # change gene for each effect
 gene <- salGO$ensembl_peptide_id[salGO$ensembl_peptide_id %in% universe]
