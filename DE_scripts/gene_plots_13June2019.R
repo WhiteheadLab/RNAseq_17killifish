@@ -31,226 +31,16 @@ ann <- ann[!duplicated(ann[,c(1)]),]
 dim(ann)
 
 #-------------------------------------
-# contrasts
-#-------------------------------------
-
-condition_DE <- read.csv("15_ppt_v_0.2_ppt.csv")
-physiology_DE <-read.csv("M_v_FW.csv")
-M <- read.csv("15_ppt_v_0.2_ppt_M.csv",stringsAsFactors = FALSE, header = TRUE, row.names = NULL)
-FW <- read.csv("15_ppt_v_0.2_ppt_FW.csv", stringsAsFactors = FALSE, header = TRUE, row.names = NULL)
-Clade3_M <- read.csv("15_ppt_v_0.2_ppt_Clade3_M.csv", stringsAsFactors = FALSE, header = TRUE, row.names = NULL)
-Clade3_FW <- read.csv("15_ppt_v_0.2_ppt_Clade3_FW.csv", stringsAsFactors = FALSE, header = TRUE, row.names = NULL)
-Clade2_M <- read.csv("15_ppt_v_0.2_ppt_Clade2_M.csv",stringsAsFactors = FALSE, header = TRUE, row.names = NULL)
-Clade2_FW <- read.csv("15_ppt_v_0.2_ppt_Clade2_FW.csv", stringsAsFactors = FALSE, header = TRUE, row.names = NULL)
-Clade1_M <- read.csv("15_ppt_v_0.2_ppt_Clade1_M.csv", stringsAsFactors = FALSE, header = TRUE, row.names = NULL)
-Clade1_FW <- read.csv("15_ppt_v_0.2_ppt_Clade1_FW.csv", stringsAsFactors = FALSE, header = TRUE, row.names = NULL)
-
-#-------------------------------------
 # main and interaction effects, F tests
 #-------------------------------------
 
 main_condition <- read.csv("main_condition.csv", stringsAsFactors = FALSE,header = TRUE)
-
 main_phys <- read.csv("main_phys.csv", stringsAsFactors = FALSE, header = TRUE)
 main_clade <- read.csv("main_clade.csv", stringsAsFactors = FALSE, header = TRUE)
-
-
 int_phys_condition <- read.csv("interaction_physiology_condition.csv", stringsAsFactors = FALSE, header = TRUE)
 int_phys_clade <- read.csv("interaction_physiology_clade.csv", stringsAsFactors = FALSE, header = TRUE)
 int_clade_condition <- read.csv("interaction_clade_condition.csv", stringsAsFactors = FALSE, header = TRUE)
 int_three <- read.csv("interaction_threeway.csv", stringsAsFactors = FALSE, header = TRUE)
-
-#-------------------------------------
-# contrasts
-# sig genes 15ppt vs. 0.2ppt
-#-------------------------------------
-
-dim(condition_DE)
-condition_sig<-condition[condition$adj.P.Val <= 0.05,]
-condition_sig<-condition_sig[!is.na(condition_sig$adj.P.Val),]
-condition_sig<-condition_sig$X
-length(condition_sig)
-
-tmp <- norm_counts[rownames(norm_counts) %in% condition_sig,]
-tmp_ann <- merge(tmp,ann,by.x = "row.names", by.y  = "ensembl_peptide_id")
-dim(tmp_ann)
-rownames(tmp_ann) <- tmp_ann$Row.names
-tmp <- tmp_ann[,c(2:82)]
-tmp <- data.frame(tmp,stringsAsFactors = FALSE)
-tmp <- data.matrix(tmp)
-head(tmp,quote = FALSE)
-ltmp <- log2(tmp+0.5)
-tcounts <- t(ltmp) %>%
-  merge(ExpDesign, ., by="row.names") %>% 
-  gather(gene, expression, (ncol(.)-length(rownames(tmp))+1):ncol(.))
-tcounts %>% dplyr::select(Row.names, clade, physiology, condition, gene, expression) %>% head %>% knitr::kable() %>% kable_styling()
-
-
-pdf("~/Documents/UCDavis/Whitehead/15ppt_v_0.2ppt_28May2019.pdf",paper="USr",width=13.5, height=8)
-for (i in seq(1, length(unique(tcounts$gene)), 20)) {
-  print(ggplot(tcounts[tcounts$gene %in% levels(as.factor(tcounts$gene))[i:(i+19)], ], 
-               aes(x=clade:condition, y=expression,fill=physiology)) + 
-          geom_boxplot() +
-          facet_wrap(~gene) +
-          labs(x="Clade:Condition",
-               y="Expression (log2 cpm normalized counts)",
-               fill = "Native Physiology") +
-          theme_bw() +
-          theme(axis.text.x=element_text(angle=90, hjust=1)))
-}
-dev.off()
-
-# sig genes M vs. FW
-physiology_sig<-physiology_DE[physiology_DE$adj.P.Val <= 0.05,]
-physiology_sig<-physiology_sig[!is.na(physiology_sig$adj.P.Val),]
-physiology_sig<-physiology_sig$X
-length(physiology_sig)
-
-tmp <- norm_counts[rownames(norm_counts) %in% physiology_sig,]
-tmp_ann <- merge(tmp,ann,by.x = "row.names", by.y  = "ensembl_peptide_id")
-dim(tmp_ann)
-rownames(tmp_ann) <- tmp_ann$Row.names
-tmp <- tmp_ann[,c(2:82)]
-tmp <- data.frame(tmp,stringsAsFactors = FALSE)
-tmp <- data.matrix(tmp)
-head(tmp,quote = FALSE)
-ltmp <- log2(tmp+0.5)
-tcounts <- t(ltmp) %>%
-  merge(ExpDesign, ., by="row.names") %>% 
-  gather(gene, expression, (ncol(.)-length(rownames(tmp))+1):ncol(.))
-tcounts %>% dplyr::select(Row.names, clade, physiology, condition, gene, expression) %>% head %>% knitr::kable() %>% kable_styling()
-
-
-pdf("~/Documents/UCDavis/Whitehead/physiology_M_v_FW_28May2019.pdf",paper="USr",width=13.5, height=8)
-for (i in seq(1, length(unique(tcounts$gene)), 20)) {
-  print(ggplot(tcounts[tcounts$gene %in% levels(as.factor(tcounts$gene))[i:(i+19)], ], 
-               aes(x=clade:condition, y=expression,fill=physiology)) + 
-          geom_boxplot() +
-          facet_wrap(~gene) +
-          labs(x="Clade:Condition",
-               y="Expression (log2 cpm normalized counts)",
-               fill = "Native Physiology") +
-          theme_bw() +
-          theme(axis.text.x=element_text(angle=90, hjust=1)))
-}
-dev.off()
-
-# sig genes M and FW
-# two-way
-# conserved response
-dim(M)
-M_sig <- M[M$adj.P.Val <= 0.05,] 
-M_sig <- M_sig[!is.na(M_sig$adj.P.Val),]
-M_sig <- M_sig$X
-length(M_sig)
-dim(FW)
-FW_sig <- FW[FW$adj.P.Val <= 0.05,] 
-FW_sig <- FW_sig[!is.na(FW_sig$adj.P.Val),]
-FW_sig <- FW_sig$X
-length(FW_sig)
-
-# Clade 3 - specific response
-# sig genes Clade 3, M
-# but not sig for 2-way
-
-Clade3_M_sig <- Clade3_M[Clade3_M$adj.P.Val <= 0.05,]
-Clade3_M_sig <- Clade3_M_sig[!is.na(Clade3_M_sig$adj.P.Val),]
-dim(Clade3_M_sig)
-Clade3_M_sig_genes <- Clade3_M_sig$X
-length(Clade3_M_sig_genes)
-[1] 105
-
-Clade3_M_sig_specific <- Clade3_M_sig[!Clade3_M_sig$X %in% M_sig,]
-dim(Clade3_M_sig_specific)
-Clade3_M_sig_specific <- Clade3_M_sig_specific$X
-length(Clade3_M_sig_specific)
-
-length(Clade3_M_sig_specific)
-# [1] 50
-tmp <- norm_counts[rownames(norm_counts) %in% Clade3_M_sig_specific,]
-tmp_ann <- merge(tmp,ann,by.x = "row.names", by.y  = "ensembl_peptide_id")
-dim(tmp_ann)
-tmp_ann <- tmp_ann[!(tmp_ann$external_gene_name == ""),]
-rownames(tmp_ann) <- tmp_ann$external_gene_name
-tmp <- tmp_ann[,c(2:82)]
-tmp <- data.frame(tmp,stringsAsFactors = FALSE)
-tmp <- data.matrix(tmp)
-head(tmp,quote = FALSE)
-ltmp <- log2(tmp+0.5)
-tcounts <- t(ltmp) %>%
-  merge(ExpDesign, ., by="row.names") %>% 
-  gather(gene, expression, (ncol(.)-length(rownames(tmp))+1):ncol(.))
-tcounts %>% dplyr::select(Row.names, clade, physiology, condition, gene, expression) %>% head %>% knitr::kable() %>% kable_styling()
-
-
-pdf("~/Documents/UCDavis/Whitehead/clade3_M_specific_conditioncladephysiology_15ppt_v_0.2ppt_28May2019.pdf",paper="USr",width=13.5, height=8)
-for (i in seq(1, length(unique(tcounts$gene)), 20)) {
-  print(ggplot(tcounts[tcounts$gene %in% levels(as.factor(tcounts$gene))[i:(i+19)], ], 
-               aes(x=clade:condition, y=expression,fill=physiology)) + 
-          geom_boxplot() +
-          facet_wrap(~gene) +
-          labs(x="Clade:Condition",
-               y="Expression (log2 cpm normalized counts)",
-               fill = "Native Physiology") +
-          theme_bw() +
-          theme(axis.text.x=element_text(angle=90, hjust=1)))
-}
-dev.off()
-
-# Clade 3 - specific response
-# sig genes Clade 1,FW
-# but not sig for 2-way
-
-Clade3_FW_sig <- Clade3_FW[Clade3_FW$adj.P.Val <= 0.05,]
-Clade3_FW_sig <- Clade3_FW_sig[!is.na(Clade3_FW_sig$adj.P.Val),]
-dim(Clade3_FW_sig)
-Clade3_FW_sig_specific <- Clade3_FW_sig[!Clade3_FW_sig$X %in% FW_sig,]
-dim(Clade3_FW_sig_specific)
-Clade3_FW_sig_specific <- Clade3_FW_sig_specific$X
-
-# Clade 2 - specific response
-# sig genes Clade 2, M
-# but not sig for 2-way
-
-Clade2_M_sig <- Clade2_M[Clade2_M$adj.P.Val <= 0.05,]
-Clade2_M_sig <- Clade2_M_sig[!is.na(Clade2_M_sig$adj.P.Val),]
-dim(Clade2_M_sig)
-Clade2_M_sig_specific <- Clade2_M_sig[!Clade2_M_sig$X %in% M_sig,]
-dim(Clade2_M_sig_specific)
-Clade2_M_sig_specific <- Clade2_M_sig_specific$X
-
-# Clade 2 - specific response
-# sig genes Clade 2, FW
-# but not sig for 2-way
-
-Clade2_FW_sig <- Clade2_FW[Clade2_FW$adj.P.Val <= 0.05,]
-Clade2_FW_sig <- Clade2_FW_sig[!is.na(Clade2_FW_sig$adj.P.Val),]
-dim(Clade2_FW_sig)
-Clade2_FW_sig_specific <- Clade2_FW_sig[!Clade2_FW_sig$X %in% FW_sig,]
-dim(Clade2_FW_sig_specific)
-Clade2_FW_sig_specific <- Clade2_FW_sig_specific$X
-
-# Clade 1 - specific response
-# sig genes Clade 1, M
-# but not sig for 2-way
-
-Clade1_M_sig <- Clade1_M[Clade1_M$adj.P.Val <= 0.05,]
-Clade1_M_sig <- Clade1_M_sig[!is.na(Clade1_M_sig$adj.P.Val),]
-dim(Clade1_M_sig)
-Clade1_M_sig_specific <- Clade1_M_sig[!Clade1_M_sig$X %in% M_sig,]
-dim(Clade1_M_sig_specific)
-Clade1_M_sig_specific <- Clade1_M_sig_specific$X
-
-# Clade 1 - specific response
-# sig genes Clade 1, FW
-# but not sig for 2-way
-
-Clade1_FW_sig <- Clade1_FW[Clade1_FW$adj.P.Val <= 0.05,]
-Clade1_FW_sig <- Clade1_FW_sig[!is.na(Clade1_FW_sig$adj.P.Val),]
-dim(Clade1_FW_sig)
-Clade1_FW_sig_specific <- Clade1_FW_sig[!Clade1_FW_sig$X %in% FW_sig,]
-dim(Clade1_FW_sig_specific)
-Clade1_FW_sig_specific <- Clade1_FW_sig_specific$X
 
 #-------------------------------------
 # significant genes
@@ -285,7 +75,7 @@ length(sig_int_three)
 # import normalized counts
 # formatting
 # --------------------------
-norm_counts <- read.csv("normalized_counts.csv",stringsAsFactors = FALSE, header = TRUE, row.names = NULL)
+#norm_counts <- read.csv("normalized_counts.csv",stringsAsFactors = FALSE, header = TRUE, row.names = NULL)
 colnames(norm_counts)
 cols.norm_counts <- colnames(norm_counts)
 
@@ -343,21 +133,25 @@ sample_order <- c("F_grandis.0.2_ppt","F_grandis.15_ppt","F_similis.0.2_ppt","F_
 mean_norm_counts_ordered <- mean_norm_counts[,sample_order]
 colnames(mean_norm_counts_ordered)
 
+
+
 # -----------------------------------
 
+# main effects
+dim(sig_main_clade)
+dim(sig_main_physiology)
+dim(sig_main_salinity)
 
-length(sig_main_phys)
-#sig_main_salinity
-sig_main_salinity_genes <- rownames(sig_main_salinity)
-length(sig_main_salinity_genes)
-length(sig_main_clade)
 # two-way interactions
-length(sig_int_phys_condition)
-length(sig_int_phys_clade)
-length(sig_int_clade_condition)
-# three-way interaction
-length(sig_int_three)
+dim(sig_clade_physiology_interaction)
+dim(sig_salinity_physiology_interaction)
+dim(sig_salinity_clade_interaction)
 
+# three-way interaction
+dim(sig_threeway)
+
+
+# sig expression
 mean_norm_counts_ordered_phys_sig <- mean_norm_counts_ordered[rownames(mean_norm_counts_ordered) %in% sig_main_phys,]
 dim(mean_norm_counts_ordered_phys_sig)
 mean_norm_counts_ordered_cond_sig <- mean_norm_counts_ordered[rownames(mean_norm_counts_ordered) %in% sig_main_condition,]

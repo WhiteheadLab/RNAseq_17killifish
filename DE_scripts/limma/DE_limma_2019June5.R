@@ -262,7 +262,7 @@ boxplot(lcpm, las = 2, main = "")
 plot(colSums(t(lcpm)))
 
 vwts <- voomWithQualityWeights(genes, design=design, normalization="quantile", plot=TRUE)
-corfit <- duplicateCorrelation(vobj,mm,block=ExpDesign$species)
+corfit <- duplicateCorrelation(vobj,design,block=ExpDesign$species)
 corfit$consensus
 #[1] 0.7596421
 fitRan <- lmFit(vobj,design,block=ExpDesign$species,correlation=corfit$consensus)
@@ -288,7 +288,7 @@ rownames(contrasts_salinity_main) <- colnames(coef(fitRan))
 vfit <- contrasts.fit(fitRan, contrasts = contrasts_salinity_main)
 vfit <- eBayes(vfit)
 main_salinity<-topTableF(vfit,n = Inf, sort.by = "F")
-sig_main_salinity <- main_salinity[main_salinity$adj.P.Val<0.05,]
+sig_main_salinity <- main_salinity[main_salinity$adj.P.Val<0.01,]
 dim(sig_main_salinity)
 dim(main_salinity)
 ann_salinity <- merge(main_salinity,ann,all=TRUE,by.x = "row.names", by.y  = "ensembl_peptide_id")
@@ -297,7 +297,7 @@ dim(ann_salinity)
 ann_salinity <- ann_salinity[order(ann_salinity$adj.P.Val,decreasing = FALSE), ]
 rownames(ann_salinity) <- ann_salinity$Row.names
 ann_salinity <- ann_salinity[,-1]
-write.csv(ann_salinity, file = file.path(dir, "main_salinity.csv"), quote = F, row.names = T)
+#write.csv(ann_salinity, file = file.path(dir, "main_salinity.csv"), quote = F, row.names = T)
 
 # ---------------------
 # physiology main effect
@@ -316,7 +316,7 @@ dim(ann_physiology)
 ann_physiology <- ann_physiology[order(ann_physiology$adj.P.Val,decreasing = FALSE), ]
 rownames(ann_physiology) <- ann_physiology$Row.names
 ann_physiology <- ann_physiology[,-1]
-write.csv(ann_physiology, file = file.path(dir, "main_physiology.csv"), quote = F, row.names = T)
+#write.csv(ann_physiology, file = file.path(dir, "main_physiology.csv"), quote = F, row.names = T)
 
 
 # ---------------------
@@ -336,7 +336,7 @@ dim(ann_clade)
 ann_clade <- ann_clade[order(ann_clade$adj.P.Val,decreasing = FALSE), ]
 rownames(ann_clade) <- ann_clade$Row.names
 ann_clade <- ann_clade[,-1]
-write.csv(ann_clade, file = file.path(dir, "main_clade.csv"), quote = F, row.names = T)
+#write.csv(ann_clade, file = file.path(dir, "main_clade.csv"), quote = F, row.names = T)
 
 
 # ---------------------
@@ -356,7 +356,7 @@ dim(ann_threeway)
 ann_threeway <- ann_threeway[order(ann_threeway$adj.P.Val,decreasing = FALSE), ]
 rownames(ann_threeway) <- ann_threeway$Row.names
 ann_threeway <- ann_threeway[,-1]
-write.csv(ann_threeway, file = file.path(dir, "threeway.csv"), quote = F, row.names = T)
+#write.csv(ann_threeway, file = file.path(dir, "threeway.csv"), quote = F, row.names = T)
 
 # ---------------------
 # salinity x clade two-way interaction
@@ -375,7 +375,7 @@ dim(ann_salinity_clade_interaction)
 ann_salinity_clade_interaction <- ann_salinity_clade_interaction[order(ann_salinity_clade_interaction$adj.P.Val,decreasing = FALSE), ]
 rownames(ann_salinity_clade_interaction) <- ann_salinity_clade_interaction$Row.names
 ann_salinity_clade_interaction <- ann_salinity_clade_interaction[,-1]
-write.csv(ann_salinity_clade_interaction, file = file.path(dir, "salinity_clade_interaction.csv"), quote = F, row.names = T)
+#write.csv(ann_salinity_clade_interaction, file = file.path(dir, "salinity_clade_interaction.csv"), quote = F, row.names = T)
 
 # ---------------------
 # salinity x physiology two-way interaction
@@ -394,7 +394,7 @@ dim(ann_salinity_physiology_interaction)
 ann_salinity_physiology_interaction <- ann_salinity_physiology_interaction[order(ann_salinity_physiology_interaction$adj.P.Val,decreasing = FALSE), ]
 rownames(ann_salinity_physiology_interaction) <- ann_salinity_physiology_interaction$Row.names
 ann_salinity_physiology_interaction <- ann_salinity_physiology_interaction[,-1]
-write.csv(ann_salinity_physiology_interaction, file = file.path(dir, "salinity_physiology_interaction.csv"), quote = F, row.names = T)
+#write.csv(ann_salinity_physiology_interaction, file = file.path(dir, "salinity_physiology_interaction.csv"), quote = F, row.names = T)
 
 # ---------------------
 # physiology x clade two-way interaction
@@ -414,52 +414,21 @@ dim(ann_clade_physiology_interaction)
 ann_clade_physiology_interaction <- ann_clade_physiology_interaction[order(ann_clade_physiology_interaction$adj.P.Val,decreasing = FALSE), ]
 rownames(ann_clade_physiology_interaction) <- ann_clade_physiology_interaction$Row.names
 ann_clade_physiology_interaction <- ann_clade_physiology_interaction[,-1]
-write.csv(ann_clade_physiology_interaction, file = file.path(dir, "clade_physiology_interaction.csv"), quote = F, row.names = T)
+#write.csv(ann_clade_physiology_interaction, file = file.path(dir, "clade_physiology_interaction.csv"), quote = F, row.names = T)
 
-
-rownames(contrasts) <- colnames(coef(fitRan))
-vfit <- contrasts.fit(fitRan, contrasts = contrasts)
-vfit <- eBayes(vfit)
-main_salinity<-topTableF(vfit,n = Inf, sort.by = "F")
-sig_main_salinity <- main_salinity[main_salinity$adj.P.Val<0.05,]
-dim(sig_main_salinity)
-dim(main_salinity)
 
 
 #======================
 
 #-------------------------------------
 # significant genes
-# main effects
 #-------------------------------------
 
-#dim(sig_main_phys)
-sig_main_phys_genes <- rownames(sig_main_phys)
-length(sig_main_phys_genes)
-
-#dim(sig_main_condition)
-sig_main_condition_genes <- rownames(sig_main_condition)
-length(sig_main_condition_genes)
-
-#dim(sig_main_clade)
-sig_main_clade_genes <- rownames(sig_main_clade)
-length(sig_main_clade_genes)
-
-#dim(sig_int_phys_condition)
-sig_int_phys_condition_genes <- rownames(sig_int_phys_condition)
-length(sig_int_phys_condition_genes)
-
-#dim(sig_int_phys_clade)
-sig_int_phys_clade_genes <- rownames(sig_int_phys_clade)
-length(sig_int_phys_clade_genes)
-
-#dim(sig_int_clade_condition)
-sig_int_clade_condition_genes <- rownames(sig_int_clade_condition)
-length(sig_int_clade_condition_genes)
-
-#dim(sig_int_three)
-sig_int_three_genes <- rownames(sig_int_three)
-length(sig_int_three_genes)
-
-
+dim(sig_clade_physiology_interaction)
+dim(sig_salinity_physiology_interaction)
+dim(sig_salinity_clade_interaction)
+dim(sig_threeway)
+dim(sig_main_clade)
+dim(sig_main_physiology)
+dim(sig_main_salinity)
 
