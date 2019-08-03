@@ -1,0 +1,52 @@
+[2019-07-21 17:47:01.130] [jointLog] [info] Fragment incompatibility prior below threshold.  Incompatible fragments will be ignored.
+[2019-07-21 17:47:01.130] [jointLog] [info] Usage of --validateMappings implies use of minScoreFraction. Since not explicitly specified, it is being set to 0.65
+[2019-07-21 17:47:01.130] [jointLog] [info] Usage of --validateMappings, without --hardFilter implies use of range factorization. rangeFactorizationBins is being set to 4
+[2019-07-21 17:47:01.130] [jointLog] [info] Usage of --validateMappings implies a default consensus slack of 0.2. Setting consensusSlack to 0.2.
+[2019-07-21 17:47:01.130] [jointLog] [info] parsing read library format
+[2019-07-21 17:47:01.130] [jointLog] [info] There is 1 library.
+[2019-07-21 17:47:01.186] [jointLog] [info] Loading Quasi index
+[2019-07-21 17:47:01.188] [jointLog] [info] Loading 32-bit quasi index
+[2019-07-21 17:47:14.175] [jointLog] [info] done
+[2019-07-21 17:47:14.175] [jointLog] [info] Index contained 296,801 targets
+[2019-07-21 17:47:56.709] [fileLog] [info] 
+At end of round 0
+==================
+Observed 11678006 total fragments (11678006 in most recent round)
+
+[2019-07-21 17:47:56.708] [jointLog] [info] Computed 420,915 rich equivalence classes for further processing
+[2019-07-21 17:47:56.708] [jointLog] [info] Counted 10,022,177 total reads in the equivalence classes 
+[2019-07-21 17:47:56.738] [jointLog] [warning] 0.000488097% of fragments were shorter than the k used to build the index (31).
+If this fraction is too large, consider re-building the index with a smaller k.
+The minimum read size found was 25.
+
+
+[2019-07-21 17:47:56.738] [jointLog] [info] Number of mappings discarded because of alignment score : 604,438
+[2019-07-21 17:47:56.738] [jointLog] [info] Number of fragments entirely discarded because of alignment score : 416,413
+[2019-07-21 17:47:56.738] [jointLog] [info] Number of fragments discarded because they are best-mapped to decoys : 0
+[2019-07-21 17:47:56.738] [jointLog] [info] Number of fragments discarded because they have only dovetail (discordant) mappings : 59,882
+[2019-07-21 17:47:56.738] [jointLog] [info] Mapping rate = 85.821%
+
+[2019-07-21 17:47:56.738] [jointLog] [info] finished quantifyLibrary()
+[2019-07-21 17:47:56.741] [jointLog] [info] Starting optimizer
+[2019-07-21 17:47:56.888] [jointLog] [info] Marked 0 weighted equivalence classes as degenerate
+[2019-07-21 17:47:56.900] [jointLog] [info] iteration = 0 | max rel diff. = 2688.72
+[2019-07-21 17:47:57.956] [jointLog] [info] iteration = 100 | max rel diff. = 17.0452
+[2019-07-21 17:47:59.009] [jointLog] [info] iteration = 200 | max rel diff. = 8.70132
+[2019-07-21 17:48:00.062] [jointLog] [info] iteration = 300 | max rel diff. = 8.85693
+[2019-07-21 17:48:01.115] [jointLog] [info] iteration = 400 | max rel diff. = 0.610138
+[2019-07-21 17:48:02.168] [jointLog] [info] iteration = 500 | max rel diff. = 7.0551
+[2019-07-21 17:48:03.222] [jointLog] [info] iteration = 600 | max rel diff. = 0.547119
+[2019-07-21 17:48:04.274] [jointLog] [info] iteration = 700 | max rel diff. = 0.441873
+[2019-07-21 17:48:05.328] [jointLog] [info] iteration = 800 | max rel diff. = 1.3587
+[2019-07-21 17:48:06.393] [jointLog] [info] iteration = 900 | max rel diff. = 1.43284
+[2019-07-21 17:48:07.456] [jointLog] [info] iteration = 1,000 | max rel diff. = 1.4323
+[2019-07-21 17:48:08.520] [jointLog] [info] iteration = 1,100 | max rel diff. = 0.246783
+[2019-07-21 17:48:09.585] [jointLog] [info] iteration = 1,200 | max rel diff. = 0.0976539
+[2019-07-21 17:48:10.652] [jointLog] [info] iteration = 1,300 | max rel diff. = 1.5917
+[2019-07-21 17:48:11.707] [jointLog] [info] iteration = 1,400 | max rel diff. = 0.0977408
+[2019-07-21 17:48:12.753] [jointLog] [info] iteration = 1,500 | max rel diff. = 1.76686
+[2019-07-21 17:48:13.806] [jointLog] [info] iteration = 1,600 | max rel diff. = 0.0139871
+[2019-07-21 17:48:14.797] [jointLog] [info] iteration = 1,694 | max rel diff. = 0.00712383
+[2019-07-21 17:48:14.805] [jointLog] [info] Finished optimizer
+[2019-07-21 17:48:14.805] [jointLog] [info] writing output 
+

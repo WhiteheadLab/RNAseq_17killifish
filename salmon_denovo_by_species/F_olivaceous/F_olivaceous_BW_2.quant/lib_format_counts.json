@@ -1,0 +1,25 @@
+{
+    "read_files": [
+        "/pylon5/bi5fpmp/ljcohen/kfish_trimmed/F_olivaceous_BW_2.trim_1P.fq",
+        "/pylon5/bi5fpmp/ljcohen/kfish_trimmed/F_olivaceous_BW_2.trim_2P.fq"
+    ],
+    "expected_format": "IU",
+    "compatible_fragment_ratio": 1.0,
+    "num_compatible_fragments": 17124721,
+    "num_assigned_fragments": 17124721,
+    "num_frags_with_concordant_consistent_mappings": 17407016,
+    "num_frags_with_inconsistent_or_orphan_mappings": 864846,
+    "strand_mapping_bias": 0.4923230380209911,
+    "MSF": 0,
+    "OSF": 0,
+    "ISF": 8837141,
+    "MSR": 0,
+    "OSR": 0,
+    "ISR": 8569875,
+    "SF": 444312,
+    "SR": 420534,
+    "MU": 0,
+    "OU": 0,
+    "IU": 0,
+    "U": 0
+}

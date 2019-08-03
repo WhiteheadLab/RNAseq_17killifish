@@ -1,9 +1,11 @@
 {
-    "salmon_version": "0.9.1",
-    "index": "/home/ljcohen/osmotic_assemblies_farm/F_diaphanus_index",
+    "salmon_version": "0.14.1",
+    "index": "/pylon5/bi5fpmp/ljcohen/kfish_salmon_ref/F_diaphanus",
+    "threads": "12",
+    "validateMappings": [],
     "libType": "IU",
-    "mates1": "/home/ljcohen/osmotic_trim/F_diaphanus_FW_2.trim_1P.fq",
-    "mates2": "/home/ljcohen/osmotic_trim/F_diaphanus_FW_2.trim_2P.fq",
+    "mates1": "/pylon5/bi5fpmp/ljcohen/kfish_trimmed/F_diaphanus_FW_2.trim_1P.fq",
+    "mates2": "/pylon5/bi5fpmp/ljcohen/kfish_trimmed/F_diaphanus_FW_2.trim_2P.fq",
     "output": "F_diaphanus_FW_2.quant",
     "auxDir": "aux_info"
 }

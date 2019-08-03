@@ -1,0 +1,11 @@
+{
+    "salmon_version": "0.14.1",
+    "index": "/pylon5/bi5fpmp/ljcohen/kfish_salmon_ref/F_olivaceous",
+    "threads": "12",
+    "validateMappings": [],
+    "libType": "IU",
+    "mates1": "/pylon5/bi5fpmp/ljcohen/kfish_trimmed/F_olivaceous_FW_3.trim_1P.fq",
+    "mates2": "/pylon5/bi5fpmp/ljcohen/kfish_trimmed/F_olivaceous_FW_3.trim_2P.fq",
+    "output": "F_olivaceous_FW_3.quant",
+    "auxDir": "aux_info"
+}

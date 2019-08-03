@@ -1,0 +1,25 @@
+{
+    "read_files": [
+        "/pylon5/bi5fpmp/ljcohen/kfish_trimmed/F_olivaceous_transfer_1.trim_1P.fq",
+        "/pylon5/bi5fpmp/ljcohen/kfish_trimmed/F_olivaceous_transfer_1.trim_2P.fq"
+    ],
+    "expected_format": "IU",
+    "compatible_fragment_ratio": 1.0,
+    "num_compatible_fragments": 9896383,
+    "num_assigned_fragments": 9896383,
+    "num_frags_with_concordant_consistent_mappings": 9846345,
+    "num_frags_with_inconsistent_or_orphan_mappings": 660335,
+    "strand_mapping_bias": 0.49278072218676069,
+    "MSF": 0,
+    "OSF": 0,
+    "ISF": 4994256,
+    "MSR": 0,
+    "OSR": 0,
+    "ISR": 4852089,
+    "SF": 338493,
+    "SR": 321842,
+    "MU": 0,
+    "OU": 0,
+    "IU": 0,
+    "U": 0
+}

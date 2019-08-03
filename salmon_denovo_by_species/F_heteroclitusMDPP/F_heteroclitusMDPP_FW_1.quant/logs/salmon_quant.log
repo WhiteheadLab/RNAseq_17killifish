@@ -1,40 +1,62 @@
-[2018-03-07 11:37:33.008] [jointLog] [info] parsing read library format
-[2018-03-07 11:37:33.008] [jointLog] [info] There is 1 library.
-[2018-03-07 11:37:33.531] [jointLog] [info] Loading Quasi index
-[2018-03-07 11:37:33.593] [jointLog] [info] Loading 32-bit quasi index
-[2018-03-07 11:37:45.378] [jointLog] [info] done
-[2018-03-07 11:37:45.378] [jointLog] [info] Index contained 668484 targets
-[2018-03-07 11:44:42.358] [fileLog] [info] 
+[2019-07-21 17:52:44.474] [jointLog] [info] Fragment incompatibility prior below threshold.  Incompatible fragments will be ignored.
+[2019-07-21 17:52:44.474] [jointLog] [info] Usage of --validateMappings implies use of minScoreFraction. Since not explicitly specified, it is being set to 0.65
+[2019-07-21 17:52:44.474] [jointLog] [info] Usage of --validateMappings, without --hardFilter implies use of range factorization. rangeFactorizationBins is being set to 4
+[2019-07-21 17:52:44.474] [jointLog] [info] Usage of --validateMappings implies a default consensus slack of 0.2. Setting consensusSlack to 0.2.
+[2019-07-21 17:52:44.474] [jointLog] [info] parsing read library format
+[2019-07-21 17:52:44.474] [jointLog] [info] There is 1 library.
+[2019-07-21 17:52:44.537] [jointLog] [info] Loading Quasi index
+[2019-07-21 17:52:44.537] [jointLog] [info] Loading 32-bit quasi index
+[2019-07-21 17:52:59.950] [jointLog] [info] done
+[2019-07-21 17:52:59.950] [jointLog] [info] Index contained 552,204 targets
+[2019-07-21 17:54:30.525] [fileLog] [info] 
 At end of round 0
 ==================
 Observed 19277445 total fragments (19277445 in most recent round)
 
-[2018-03-07 11:44:42.357] [jointLog] [info] Computed 629140 rich equivalence classes for further processing
-[2018-03-07 11:44:42.357] [jointLog] [info] Counted 14762245 total reads in the equivalence classes 
-[2018-03-07 11:44:42.394] [jointLog] [warning] 0.000669176% of fragments were shorter than the k used to build the index (31).
+[2019-07-21 17:54:30.524] [jointLog] [info] Computed 787,534 rich equivalence classes for further processing
+[2019-07-21 17:54:30.524] [jointLog] [info] Counted 15,416,804 total reads in the equivalence classes 
+[2019-07-21 17:54:30.551] [jointLog] [warning] 0.000669176% of fragments were shorter than the k used to build the index (31).
 If this fraction is too large, consider re-building the index with a smaller k.
 The minimum read size found was 25.
 
 
-[2018-03-07 11:44:42.394] [jointLog] [info] Mapping rate = 76.5778%
+[2019-07-21 17:54:30.551] [jointLog] [info] Number of mappings discarded because of alignment score : 1,385,448
+[2019-07-21 17:54:30.551] [jointLog] [info] Number of fragments entirely discarded because of alignment score : 938,635
+[2019-07-21 17:54:30.551] [jointLog] [info] Number of fragments discarded because they are best-mapped to decoys : 0
+[2019-07-21 17:54:30.551] [jointLog] [info] Number of fragments discarded because they have only dovetail (discordant) mappings : 159,525
+[2019-07-21 17:54:30.551] [jointLog] [info] Mapping rate = 79.9733%
 
-[2018-03-07 11:44:42.394] [jointLog] [info] finished quantifyLibrary()
-[2018-03-07 11:44:42.589] [jointLog] [info] Starting optimizer
-[2018-03-07 11:44:43.439] [jointLog] [info] Marked 0 weighted equivalence classes as degenerate
-[2018-03-07 11:44:43.476] [jointLog] [info] iteration = 0 | max rel diff. = 11.9635
-[2018-03-07 11:44:45.474] [jointLog] [info] iteration = 100 | max rel diff. = 0.100664
-[2018-03-07 11:44:47.563] [jointLog] [info] iteration = 200 | max rel diff. = 0.0597758
-[2018-03-07 11:44:49.522] [jointLog] [info] iteration = 300 | max rel diff. = 0.0378287
-[2018-03-07 11:44:51.447] [jointLog] [info] iteration = 400 | max rel diff. = 0.0281033
-[2018-03-07 11:44:53.375] [jointLog] [info] iteration = 500 | max rel diff. = 0.0259382
-[2018-03-07 11:44:55.298] [jointLog] [info] iteration = 600 | max rel diff. = 0.0215119
-[2018-03-07 11:44:57.244] [jointLog] [info] iteration = 700 | max rel diff. = 0.0165216
-[2018-03-07 11:44:59.200] [jointLog] [info] iteration = 800 | max rel diff. = 0.0158335
-[2018-03-07 11:45:01.247] [jointLog] [info] iteration = 900 | max rel diff. = 0.014141
-[2018-03-07 11:45:03.194] [jointLog] [info] iteration = 1000 | max rel diff. = 0.0152557
-[2018-03-07 11:45:05.152] [jointLog] [info] iteration = 1100 | max rel diff. = 0.0205428
-[2018-03-07 11:45:07.124] [jointLog] [info] iteration = 1200 | max rel diff. = 0.0106521
-[2018-03-07 11:45:08.103] [jointLog] [info] iteration = 1249 | max rel diff. = 0.00978299
-[2018-03-07 11:45:08.192] [jointLog] [info] Finished optimizer
-[2018-03-07 11:45:08.192] [jointLog] [info] writing output 
+[2019-07-21 17:54:30.551] [jointLog] [info] finished quantifyLibrary()
+[2019-07-21 17:54:30.553] [jointLog] [info] Starting optimizer
+[2019-07-21 17:54:30.796] [jointLog] [info] Marked 0 weighted equivalence classes as degenerate
+[2019-07-21 17:54:30.816] [jointLog] [info] iteration = 0 | max rel diff. = 1924.67
+[2019-07-21 17:54:32.714] [jointLog] [info] iteration = 100 | max rel diff. = 16.6409
+[2019-07-21 17:54:34.614] [jointLog] [info] iteration = 200 | max rel diff. = 9.74539
+[2019-07-21 17:54:36.514] [jointLog] [info] iteration = 300 | max rel diff. = 7.58078
+[2019-07-21 17:54:38.413] [jointLog] [info] iteration = 400 | max rel diff. = 3.92206
+[2019-07-21 17:54:40.313] [jointLog] [info] iteration = 500 | max rel diff. = 0.451902
+[2019-07-21 17:54:42.224] [jointLog] [info] iteration = 600 | max rel diff. = 8.07419
+[2019-07-21 17:54:44.136] [jointLog] [info] iteration = 700 | max rel diff. = 1.36279
+[2019-07-21 17:54:46.036] [jointLog] [info] iteration = 800 | max rel diff. = 1.13327
+[2019-07-21 17:54:47.936] [jointLog] [info] iteration = 900 | max rel diff. = 0.183163
+[2019-07-21 17:54:49.836] [jointLog] [info] iteration = 1,000 | max rel diff. = 0.325576
+[2019-07-21 17:54:51.736] [jointLog] [info] iteration = 1,100 | max rel diff. = 3.5698
+[2019-07-21 17:54:53.636] [jointLog] [info] iteration = 1,200 | max rel diff. = 14.7502
+[2019-07-21 17:54:55.536] [jointLog] [info] iteration = 1,300 | max rel diff. = 0.0731524
+[2019-07-21 17:54:57.436] [jointLog] [info] iteration = 1,400 | max rel diff. = 0.474246
+[2019-07-21 17:54:59.336] [jointLog] [info] iteration = 1,500 | max rel diff. = 0.29749
+[2019-07-21 17:55:01.245] [jointLog] [info] iteration = 1,600 | max rel diff. = 2.40583
+[2019-07-21 17:55:03.149] [jointLog] [info] iteration = 1,700 | max rel diff. = 3.59126
+[2019-07-21 17:55:05.049] [jointLog] [info] iteration = 1,800 | max rel diff. = 0.0150671
+[2019-07-21 17:55:06.952] [jointLog] [info] iteration = 1,900 | max rel diff. = 3.04467
+[2019-07-21 17:55:08.852] [jointLog] [info] iteration = 2,000 | max rel diff. = 0.6945
+[2019-07-21 17:55:10.752] [jointLog] [info] iteration = 2,100 | max rel diff. = 0.0273075
+[2019-07-21 17:55:12.655] [jointLog] [info] iteration = 2,200 | max rel diff. = 0.064832
+[2019-07-21 17:55:13.900] [jointLog] [info] iteration = 2,266 | max rel diff. = 0.00530117
+[2019-07-21 17:55:13.934] [jointLog] [info] Finished optimizer
+[2019-07-21 17:55:13.934] [jointLog] [info] writing output 
+
+[2019-07-21 17:55:14.841] [jointLog] [warning] NOTE: Read Lib [[ /pylon5/bi5fpmp/ljcohen/kfish_trimmed/F_heteroclitusMDPP_FW_1.trim_1P.fq, /pylon5/bi5fpmp/ljcohen/kfish_trimmed/F_heteroclitusMDPP_FW_1.trim_2P.fq]] :
+
+Detected a *potential* strand bias > 1% in an unstranded protocol check the file: F_heteroclitusMDPP_FW_1.quant/lib_format_counts.json for details
 
