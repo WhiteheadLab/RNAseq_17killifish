@@ -1,0 +1,491 @@
+---
+title: "DEanalysis_kfish_osmotic_limma_QC"
+author: "Lisa Johnson"
+date: '`r Sys.Date()`'
+output:
+  html_document:
+    code_folding: hide
+    collapsed: no
+    df_print: paged
+    number_sections: yes
+    theme: cerulean
+    toc: yes
+    toc_depth: 5
+    toc_float: yes
+  html_notebook:
+    toc: yes
+    toc_depth: 5
+---
+
+# Introduction
+
+A mixed model with random effects was chosen for this multifactor experiment, and analyzed using the `limma` package in R. This package implements a linear modeling approach and empirical Bayes statistics. The `limma` package with the `voom` method estimates the mean-variance relationship of the log-counts, generates a precision weight for each observation and enters these into the limma empirical Bayes analysis pipeline.
+
+In this model, `clade` (levels = Clade1, Clade2, Clade3), `physiology` (levels = Marine, Freshwater), and experimental `condition` (levels = 15ppt, 0.2ppt) are fixed effects while `species` (levels = 14) is considered a random effect.
+
+```{r LoadPackages, results='hide', include=FALSE, warning=FALSE}
+
+# Install function for packages    
+packages<-function(x){
+  x<-as.character(match.call()[[2]])
+  if (!require(x,character.only=TRUE)){
+    install.packages(pkgs=x,repos="http://cran.r-project.org")
+    require(x,character.only=TRUE)
+  }
+}
+
+bioconductors <- function(x){
+    x<- as.character(match.call()[[2]])
+    if (!require(x, character.only = TRUE)){
+      source("https://bioconductor.org/biocLite.R")
+      biocLite(pkgs=x)
+      require(x, character.only = TRUE)
+    }
+}
+
+packages(MASS)
+packages(ggplot2)
+packages(gtools)
+packages(pheatmap)
+packages(cowplot)
+packages(RColorBrewer)
+packages(dplyr)
+packages(tidyr)
+packages(knitr)
+packages(ggrepel)
+bioconductors(DESeq2)
+bioconductors(limma)
+bioconductors('edgeR')
+packages(gplots)
+packages(lattice)
+packages("vsn")
+bioconductors(biomaRt)
+packages(kableExtra)
+packages(pheatmap)
+packages("SummarizedExperiment")
+packages("emmeans")
+packages(data.table)
+```
+
+The raw counts file, generated with `NumReads` from the salmon (version 0.12.0) quantification tool and summarized with the tximport Bioconductor package (version 1.10.1) in R, can be downloaded from an [osf repository](https://osf.io/m4xeg/) with this [link](https://osf.io/7vp38/download), then imported into the R framework.
+
+```{r loadfiles, results='hide', include=FALSE, warning=FALSE}
+# This is the counts with Experimental Design Info in the last 5 rows
+
+setwd("~/Documents/UCDavis/Whitehead/RNAseq_15killifish/DE_scripts/limma")
+if(!file.exists('~/Documents/UCDavis/Whitehead/kfish_expression_July2019/Ensembl_species_counts_designfactors.csv')){
+  download.file("https://osf.io/7vp38/download",'Ensembl_species_counts_designfactors.csv')
+}
+
+counts_design <- read.csv("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/Ensembl_species_counts_designfactors.csv",stringsAsFactors = FALSE)
+
+```
+
+Samples from species with low numbers of replicates were dropped from the raw counts table (*F. zebrinus*, *F. nottii*, *F. sciadicus*). The raw counts table has the following dimensions (genes x samples). 
+
+```{r dropsamples,results='show', warning=FALSE}
+
+#dim(counts_design)
+#[1] 31595   130
+
+# -----------------------
+# Format design and counts matrix
+# Drop columns with no data
+# -----------------------
+
+design <- counts_design[counts_design$Ensembl == 'Empty',]
+#design$type <- c("species","native_salinity","clade","group","condition")
+drops <- c("X","Ensembl",
+           "F_zebrinus_BW_1.quant","F_zebrinus_BW_2.quant",
+           "F_zebrinus_FW_1.quant","F_zebrinus_FW_2.quant",
+           "F_nottii_FW_1.quant","F_nottii_FW_2.quant",
+           "F_sciadicus_BW_1.quant","F_sciadicus_FW_1.quant","F_sciadicus_FW_2.quant")
+transfer_drops <- c("F_sciadicus_transfer_1.quant","F_rathbuni_transfer_1.quant","F_rathbuni_transfer_2.quant","F_rathbuni_transfer_3.quant",
+                    "F_grandis_transfer_1.quant","F_grandis_transfer_2.quant","F_grandis_transfer_3.quant",
+                    "F_notatus_transfer_1.quant","F_notatus_transfer_2.quant","F_notatus_transfer_3.quant",
+                    "F_parvapinis_transfer_1.quant","F_parvapinis_transfer_2.quant",
+                    "L_goodei_transfer_1.quant","L_goodei_transfer_2.quant","L_goodei_transfer_3.quant",
+                    "F_olivaceous_transfer_1.quant","F_olivaceous_transfer_2.quant",
+                    "L_parva_transfer_1.quant","L_parva_transfer_2.quant","L_parva_transfer_3.quant",
+                    "F_heteroclitusMDPP_transfer_1.quant","F_heteroclitusMDPP_transfer_2.quant","F_heteroclitusMDPP_transfer_3.quant",
+                    "F_similis_transfer_1.quant","F_similis_transfer_2.quant","F_similis_transfer_3.quant",
+                    "F_diaphanus_transfer_1.quant","F_diaphanus_transfer_2.quant",
+                    "F_chrysotus_transfer_1.quant","F_chrysotus_transfer_2.quant",
+                    "A_xenica_transfer_1.quant","A_xenica_transfer_2.quant","A_xenica_transfer_3.quant" ,
+                    "F_catanatus_transfer_1.quant","F_catanatus_transfer_2.quant",
+                    "F_heteroclitusMDPL_transfer_1.quant","F_heteroclitusMDPL_transfer_2.quant","F_heteroclitusMDPL_transfer_3.quant")
+counts<-counts_design[!counts_design$Ensembl == 'Empty',]
+rownames(counts)<-counts$Ensembl
+design <- design[ , !(names(design) %in% drops)]
+counts <- counts[ , !(names(counts) %in% drops)]
+design <- design[ , !(names(design) %in% transfer_drops)]
+counts <- counts[ , !(names(counts) %in% transfer_drops)]
+#dim(design)
+#[1]  5 81
+dim(counts)
+gene.names<-rownames(counts)
+design[] <- lapply( design, factor)
+```
+
+# Sample Design Matrix
+
+A matrix was generated using the following model with fixed effects: 
+
+```
+~physiology*condition*clade
+```
+The random effect of `species` will be taken into account later.
+
+```{r designinfo,results='show', warning=FALSE}
+
+# --------------------
+# design cateogories
+# --------------------
+
+species<-as.character(unlist(design[1,]))
+physiology<-as.character(unlist(design[2,]))
+clade<-as.character(unlist(design[3,]))
+condition<-as.character(unlist(design[5,]))
+condition_physiology<-as.vector(paste(condition,physiology,sep="."))
+condition_physiology_clade <- as.vector(paste(condition_physiology,clade,sep="."))
+condition_physiology_clade <- as.vector(paste("group",condition_physiology_clade,sep=""))
+cols<-colnames(counts)
+ExpDesign <- data.frame(row.names=cols,
+                        condition=condition,
+                        physiology = physiology,
+                        clade = clade,
+                        species = species,
+                        sample=cols)
+ExpDesign
+design = model.matrix( ~physiology*condition*clade, ExpDesign)
+colnames(design)
+# check rank of matrix
+#Matrix::rankMatrix( design )
+#dim(design)
+```
+
+# Filtering and Normalization
+
+Genes with low expression across samples were dropped from the analysis using a conservative approach. The function `filterByExpr` was used on the raw counts matrix. For each `condition_physiology` group (regardless of species), each sample must have a minium count of 10, and a group minium total count of 100. This reduced the counts table to the following dimensions (genes x samples):
+
+```{r filt, results="show",warning=FALSE}
+
+gene.names<-rownames(counts)
+counts<-as.matrix(as.data.frame(sapply(counts, as.numeric)))
+rownames(counts)<-gene.names
+#class(counts)
+
+keep<-filterByExpr(counts,design = design,group=condition_physiology,min.count = 10, min.total.count = 100)
+counts.filt <- counts[keep,]
+dim(counts.filt)
+#write.csv(counts.filt,"../../../21k_counts_filt_30April2019.csv")
+```
+
+# Genes of Interest
+
+After filtration, we check the counts matrix for the presence of several genes of interest. These genes have demonstrated responsiveness to salinity change from past studies.
+
+| gene  | Funhe  | Ensembl  |  
+|---|---|---|---|---|
+| zymogen granule membrane protein 16  | Funhe2EKm029929  | ENSFHEP00000007220.1  |  
+| zymogen granule membrane protein 16  | Funhe2EKm029931 | ENSFHEP00000025841  | 
+| solute carrier family 12 member 3-like (removed)  | Funhe2EKm006896  |  ENSFHEP00000009214 | 
+| chloride channel, voltage-sensitive 2 (clcn2), transcript variant X2 (removed)  | Funhe2EKm024148  |  ENSFHEP00000019510 | 
+| ATP-sensitive inward rectifier potassium channel 1 |  Funhe2EKm001965 | ENSFHEP00000015383  | 
+| inward rectifier potassium channel 2  |  Funhe2EKm023780 | ENSFHEP00000009753  | 
+| aquaporin-3  |   | ENSFHEP00000006725  | 
+| cftr  | Funhe2EKm024501  | ENSFHEP00000008393  | 
+| polyamine-modulated factor 1-like | Funhe2EKm031049  | ENSFHEP00000013324  | 
+| sodium/potassium/calcium exchanger 2  | Funhe2EKm025497 | ENSFHEP00000034177 | 
+| septin-2B isoform X2  |   | ENSFHEP00000015765  | 
+| CLOCK-interacting pacemaker-like  | Funhe2EKm026846  | ENSFHEP00000017303  | 
+| vasopressin V2 receptor-like  | Funhe2EKm026721  | ENSFHEP00000000036 | 
+| sodium/potassium-transporting ATPase subunit beta-1-interacting protein 1  | Funhe2EKm001174  | ENSFHEP00000031108  | 
+| septin-2  | Funhe2EKm012182  | ENSFHEP00000016853  | 
+| otopetrin-2  | Funhe2EKm035427  | ENSFHEP00000026411  | 
+| claudin 8  | Funhe2EKm037718  | ENSFHEP00000006282  | 
+| claudin 4  | Funhe2EKm007149  | ENSFHEP00000003908  | 
+
+If the Ensembl ID displays below, the gene is present in the whole data set and has not been filtered.
+
+```{r goi, results="show",warning=FALSE}
+
+# ---------------------------
+# Andrew Whitehead's genes of interest:
+# ---------------------------
+
+# zymogen granule membrane protein 16
+# Funhe2EKm029929
+# ENSFHEP00000007220.1
+countsfilt <- counts.filt
+countsfilt$row <- rownames(countsfilt)
+goi <- countsfilt$row[countsfilt$row == "ENSFHEP00000007220.1"]
+goi
+# zymogen granule membrane protein 16
+# Funhe2EKm029931
+# ENSFHEP00000025841
+goi <- countsfilt$row[countsfilt$row == "ENSFHEP00000025841"]
+goi
+# solute carrier family 12 member 3-like (removed) 
+# Funhe2EKm006896
+# ENSFHEP00000009214
+goi <- countsfilt$row[countsfilt$row == "ENSFHEP00000009214"]
+goi
+# chloride channel, voltage-sensitive 2 (clcn2), transcript variant X2 (removed)
+# Funhe2EKm024148
+# ENSFHEP00000019510
+goi <- countsfilt$row[countsfilt$row == "ENSFHEP00000019510"]
+goi
+# ATP-sensitive inward rectifier potassium channel 1 
+# Funhe2EKm001965
+# ENSFHEP00000015383
+goi <- countsfilt$row[countsfilt$row == "ENSFHEP00000015383"]
+goi
+# inward rectifier potassium channel 2
+# Funhe2EKm023780
+# ENSFHEP00000009753
+goi <- countsfilt$row[countsfilt$row == "ENSFHEP00000009753"]
+
+# --------------------------------
+# other salinity genes of interest
+# --------------------------------
+# ============================================
+# aquaporin-3
+# ENSFHEP00000006725
+goi <- countsfilt$row[countsfilt$row == "ENSFHEP00000006725"]
+goi
+# cftr
+# Funhe2EKm024501
+# ENSFHEP00000008393
+goi <- countsfilt$row[countsfilt$row == "ENSFHEP00000008393"]
+goi
+# polyamine-modulated factor 1-like
+# Funhe2EKm031049
+# ENSFHEP00000013324
+goi <- countsfilt$row[countsfilt$row == "ENSFHEP00000013324"]
+goi
+# sodium/potassium/calcium exchanger 2
+# ENSFHEP00000034177
+# Funhe2EKm025497
+goi <- countsfilt$row[countsfilt$row == "ENSFHEP00000034177"]
+goi
+# septin-2B isoform X2
+# ENSFHEP00000015765
+goi <- countsfilt$row[countsfilt$row == "ENSFHEP00000015765"]
+goi
+# CLOCK-interacting pacemaker-like
+# ENSFHEP00000017303
+# Funhe2EKm026846
+goi <- countsfilt$row[countsfilt$row == "ENSFHEP00000017303"]
+goi
+# vasopressin V2 receptor-like
+# Funhe2EKm026721
+# ENSFHEP00000000036
+goi <- countsfilt$row[countsfilt$row == "ENSFHEP00000000036"]
+goi
+# sodium/potassium-transporting ATPase subunit beta-1-interacting protein 1
+# ENSFHEP00000031108
+# Funhe2EKm001174
+goi <- countsfilt$row[countsfilt$row == "ENSFHEP00000031108"]
+goi
+# septin-2
+# Funhe2EKm012182
+# ENSFHEP00000016853
+goi <- countsfilt$row[countsfilt$row == "ENSFHEP00000016853"]
+goi
+# otopetrin-2
+# Funhe2EKm035427
+# ENSFHEP00000026411
+goi <- countsfilt$row[countsfilt$row == "ENSFHEP00000026411"]
+goi
+# claudin 8
+# Funhe2EKm037718
+# ENSFHEP00000006282
+goi <- countsfilt$row[countsfilt$row == "ENSFHEP00000006282"]
+goi
+# claudin 4
+# ENSFHEP00000003908
+# Funhe2EKm007149
+goi <- countsfilt$row[countsfilt$row == "ENSFHEP00000003908"]
+goi
+all_goi<-c("ENSFHEP00000007220.1","ENSFHEP00000025841","ENSFHEP00000019510",
+           "ENSFHEP00000015383","ENSFHEP00000009753","ENSFHEP00000006725","ENSFHEP00000008393",
+           "ENSFHEP00000013324","ENSFHEP00000001609","ENSFHEP00000013324","ENSFHEP00000034177",
+           "ENSFHEP00000015765","ENSFHEP00000017303","ENSFHEP00000000036","ENSFHEP00000031108",
+           "ENSFHEP00000016853","ENSFHEP00000003908")
+```
+
+# Exploratory Plots
+
+Log counts before normalization:
+```{r raw, results="show", fig.width=11, fig.path='figures/', dev=c('png', 'pdf'), warning=FALSE}
+
+# log counts before DE
+boxplot(log(counts.filt+1), las = 2, main = "")
+
+```
+
+Log counts after cpm normalization
+```{r norm, results="show", fig.width=11, fig.path='figures/', dev=c('png', 'pdf'), warning=FALSE}
+# ---------------
+
+# DE analysis
+
+# ---------------
+
+genes = DGEList(count = counts.filt, group = condition_physiology_clade)
+genes = calcNormFactors( genes )
+
+# write normalized counts
+dir <- "~/Documents/UCDavis/Whitehead/"
+tmp <- as.data.frame(cpm(genes))
+tmp$Ensembl <- rownames(tmp)
+tmp <- dplyr::select(tmp, Ensembl, everything())
+#write.csv(tmp, file = file.path(dir, "normalized_counts.csv"), quote = F, row.names = F)
+
+vobj = voom( genes, design, plot=TRUE)
+lcpm <- cpm(genes$counts, log = TRUE)
+
+# log counts after DE
+
+boxplot(lcpm, las = 2, main = "")
+plot(colSums(t(lcpm)))
+```
+
+Voom weights:
+
+```{r voom, results="show", fig.width=11, fig.path='figures/', dev=c('png', 'pdf'),warning=FALSE }
+
+vwts <- voomWithQualityWeights(genes, design=design, normalization="quantile", plot=TRUE)
+```
+
+The random effects of `species` are taken into account with the `duplicateCorrelation` function, which estimates the correlation between species. This reflects the between-species variability. The higher the correlation (0-1.0), the higher the variability between species.
+
+```{r randomeffects, results="show", fig.width=11, fig.path='figures/', dev=c('png', 'pdf'),warning=FALSE }
+corfit <- duplicateCorrelation(vobj,design,block=ExpDesign$species)
+
+corfit$consensus
+#[1] 0.758966
+```
+
+### PCA of un-normalized expression vs. limma-voom log cpm normalized
+
+Un-normalized log counts
+
+```{r PCA-un, fig.keep="last", fig.width=11, fig.path='figures/', dev=c('png', 'pdf'),warning=FALSE}
+
+x <- data.matrix(genes)
+dim(x)
+x <- x+1
+log_x<-log(x)
+names<-colnames(log_x)
+pca = prcomp(t(log_x))
+summary(pca)
+fac = factor(physiology)
+colours = function(vec){
+  cols=rainbow(length(unique(vec)))
+  return(cols[as.numeric(as.factor(vec))])}
+#mar.default <- c(5,4,4,2) + 0.1
+#par(mar = mar.default + c(0, 4, 0, 0)) 
+plot(pca$x[,1:2], 
+     col=colours(clade), 
+     pch = c(16, 2, 9)[as.numeric(as.factor(physiology))],
+     cex=2,
+     xlab="PC1",
+     ylab="PC2",
+     cex.lab=2,
+     cex.axis = 2)
+legend(140,100,legend=c("Clade 1","Clade 2","Clade 3"),col=rainbow(length(unique(clade))),cex=0.75, pch=19)
+legend(140,-67,legend=c("Freshwater","Marine"),cex=0.75,pch=c(16, 2, 9))
+#legend(-75,50,legend=c("Clade 1","Clade 2","Clade 3"),col=rainbow(length(unique(clade))),cex=0.75, pch=19)
+#legend(-75,25,legend=c("Freshwater","Marine"),cex=0.75,pch=c(16, 2, 9))
+```
+
+CPM-normalized log counts
+
+```{r PCA-norm, fig.keep="last", fig.width=11, fig.path='figures/', dev=c('png', 'pdf'),warning=FALSE}
+
+x <- data.matrix(cpm(genes))
+dim(x)
+x <- x+1
+log_x<-log(x)
+names<-colnames(log_x)
+pca = prcomp(t(log_x))
+summary(pca)
+fac = factor(physiology)
+colours = function(vec){
+  cols=rainbow(length(unique(vec)))
+  return(cols[as.numeric(as.factor(vec))])}
+#mar.default <- c(5,4,4,2) + 0.1
+#par(mar = mar.default + c(0, 4, 0, 0)) 
+plot(pca$x[,1:2], 
+     col=colours(clade), 
+     pch = c(16, 2, 9)[as.numeric(as.factor(physiology))],
+     cex=2,
+     xlab="PC1",
+     ylab="PC2",
+     cex.lab=2,
+     cex.axis = 2)
+#legend(140,100,legend=c("Clade 1","Clade 2","Clade 3"),col=rainbow(length(unique(clade))),cex=0.75, pch=19)
+#legend(140,-67,legend=c("Freshwater","Marine"),cex=0.75,pch=c(16, 2, 9))
+legend(-75,50,legend=c("Clade 1","Clade 2","Clade 3"),col=rainbow(length(unique(clade))),cex=0.75, pch=19)
+legend(-75,25,legend=c("Freshwater","Marine"),cex=0.75,pch=c(16, 2, 9))
+```
+
+
+### Individuals clustered by overall expression
+
+```{r PlainHeatmap, fig.keep="last", fig.width=11, fig.path='figures/', dev=c('png', 'pdf'),warning=FALSE}
+counts_round<-round(counts.filt,digits=0)
+dds <- DESeqDataSetFromMatrix(countData = counts_round,colData = ExpDesign,design = design)
+rld <- vst(dds, blind = FALSE,fitType='local')
+sampleDists <- dist(t(assay(rld)))
+df <- as.data.frame(colData(dds)[,c("physiology","condition","clade")])
+sampleDistMatrix <- as.matrix( sampleDists )
+colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
+pheatmap(sampleDistMatrix,
+         clustering_distance_rows = sampleDists,
+         clustering_distance_cols = sampleDists,
+         col = colors, annotation = df, show_rownames=F)
+```
+
+### Individuals clustered by Top 100 genes
+
+```{r MiniPlainGeneHeatmap, echo=FALSE, fig.keep="last", fig.width=11, fig.path='figures/', dev=c('png', 'pdf'),warning=FALSE}
+select100 <- order(rowMeans(counts(dds,normalized=FALSE)),decreasing=TRUE)[1:100]
+sampleDists <- dist(t(assay(rld)[select100,]))
+pheatmap(assay(rld)[select100,], show_rownames=TRUE,clustering_distance_rows = sampleDists,
+         clustering_distance_cols = sampleDists, annotation_col=df)
+```
+
+### Individuals clustered by top 50 gene expression
+
+
+```{r MiniPlainHeatmap, echo=FALSE, fig.keep="last", fig.width=11, fig.path='figures/', dev=c('png', 'pdf'),warning=FALSE}
+
+select50 <- order(rowMeans(counts(dds,normalized=FALSE)),decreasing=TRUE)[1:50]
+
+sampleDists <- dist(t(assay(rld)[select50,]))
+sampleDistMatrix <- as.matrix( sampleDists )
+
+pheatmap(sampleDistMatrix, show_rownames=T,clustering_distance_rows = sampleDists,
+         clustering_distance_cols = sampleDists, annotation_col=df)
+```
+
+### PCA for overall expression
+
+```{r plainPCA, fig.keep="last", fig.width=11, fig.path='figures/', dev=c('png', 'pdf'),warning=FALSE}
+
+cowplot::plot_grid( plotPCA(rld, intgroup="condition"),
+                    plotPCA(rld, intgroup="physiology"),
+                    plotPCA(rld, intgroup="clade"),
+                    plotPCA(rld, intgroup=c("clade","physiology","condition")),
+                           align="c", ncol=2)
+```
+
+
+```{r packages}
+
+sessionInfo()
+
+```

@@ -66,7 +66,7 @@ class(counts)
 design[] <- lapply( design, factor)
 
 # --------------------
-# design cateogories
+# design categories
 # --------------------
 
 species<-as.character(unlist(design[1,]))
@@ -94,6 +94,8 @@ colnames(design)
 # check rank of matrix
 Matrix::rankMatrix( design )
 dim(design)
+clade <- ExpDesign$clade
+physiology <- ExpDesign$physiology
 
 # ============================================
 # biomart annotation
@@ -247,7 +249,7 @@ boxplot(log(counts.filt+1), las = 2, main = "")
 #write.table(counts.filt,"~/Documents/UCDavis/Whitehead/exp.tsv",sep = "\t", quote = F, row.names = F)
 
 genes = DGEList(count = counts.filt, group = condition_physiology_clade)
-genes = calcNormFactors( genes )
+genes = calcNormFactors(genes)
 
 # write normalized counts
 dir <- "~/Documents/UCDavis/Whitehead/"
@@ -258,6 +260,7 @@ write.csv(tmp, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_
 
 vobj = voom( genes, design, plot=TRUE)
 lcpm <- cpm(genes$counts, log = TRUE)
+
 # log counts after DE
 
 boxplot(lcpm, las = 2, main = "")
@@ -266,8 +269,40 @@ plot(colSums(t(lcpm)))
 vwts <- voomWithQualityWeights(genes, design=design, normalization="quantile", plot=TRUE)
 corfit <- duplicateCorrelation(vobj,design,block=ExpDesign$species)
 corfit$consensus
-#[1]0.758966
+#[1] 0.758966
 fitRan <- lmFit(vobj,design,block=ExpDesign$species,correlation=corfit$consensus)
+
+
+# PCA, all counts
+
+# This is the PCA with all counts, not filtered. The dimensions of the counts table are listed below. Row=genes, Columns=samples
+# normal full counts
+x <- data.matrix(cpm(genes))
+dim(x)
+x <- x+1
+log_x<-log(x)
+names<-colnames(log_x)
+pca = prcomp(t(log_x))
+summary(pca)
+fac = factor(physiology)
+colours = function(vec){
+  cols=rainbow(length(unique(vec)))
+  return(cols[as.numeric(as.factor(vec))])}
+#mar.default <- c(5,4,4,2) + 0.1
+par(mar = mar.default + c(0, 4, 0, 0)) 
+plot(pca$x[,1:2], 
+     col=colours(clade), 
+     pch = c(16, 2, 9)[as.numeric(as.factor(physiology))],
+     cex=2,
+     xlab="PC1",
+     ylab="PC2",
+     cex.lab=2,
+     cex.axis = 2)
+#legend(140,100,legend=c("Clade 1","Clade 2","Clade 3"),col=rainbow(length(unique(clade))),cex=0.75, pch=19)
+#legend(140,-67,legend=c("Freshwater","Marine"),cex=0.75,pch=c(16, 2, 9))
+legend(-75,50,legend=c("Clade 1","Clade 2","Clade 3"),col=rainbow(length(unique(clade))),cex=0.75, pch=19)
+legend(-75,25,legend=c("Freshwater","Marine"),cex=0.75,pch=c(16, 2, 9))
+
 # -------------------
 # coefficient names
 # -------------------
@@ -432,4 +467,5 @@ dim(sig_threeway)
 dim(sig_main_clade)
 dim(sig_main_physiology)
 dim(sig_main_salinity)
+
 
