@@ -3,9 +3,9 @@ library(RColorBrewer)
 library(gplots)
 library(tximport)
 
-setwd("~/Documents/UCDavis/Whitehead/kfish_salmon")
-dir="~/Documents/UCDavis/Whitehead/kfish_salmon/kfish_salmon_by_species/"
-files_list = list.files("~/Documents/UCDavis/Whitehead/kfish_salmon/kfish_salmon_by_species/")
+setwd("~/Documents/UCDavis/Whitehead/RNAseq_15killifish")
+dir="salmon_denovo_by_species/"
+files_list = list.files("~/Documents/UCDavis/Whitehead/RNAseq_15killifish/salmon_denovo_by_species/")
 files_list
 #test one species out first
 species = "A_xenica"
@@ -16,7 +16,7 @@ print(species_files_list)
 files <- file.path(dir,species,species_files_list,"quant.sf")
 files
 print(file.exists(files))
-gene_names_file_ncbi = paste("~/Documents/UCDavis/Whitehead/kfish_salmon/tx2gene_ncbi/",species,sep="")
+gene_names_file_ncbi = paste("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/tx2gene_ncbi/",species,sep="")
 gene_names_ncbi <- read.csv(paste(gene_names_file_ncbi,".ncbi.tx2gene.csv",sep=""))
 print(dim(gene_names_ncbi))
 gene_names_id_ncbi <- gene_names_ncbi[,c(2,3)]
@@ -33,7 +33,7 @@ colnames(counts) <- species_files_list
 head(counts)
 counts_matrix = paste(dir,"tximport_counts",species,sep="")
 counts_matrix = paste(counts_matrix,"_counts.csv",sep="")
-write.csv(counts,counts_matrix)
+#write.csv(counts,counts_matrix)
 
 
 # all species ncbi
@@ -45,7 +45,7 @@ for (species in files_list){
   files <- file.path(dir,species,species_files_list,"quant.sf")
   files
   print(file.exists(files))
-  gene_names_file_ncbi = paste("~/Documents/UCDavis/Whitehead/kfish_salmon/tx2gene_ncbi/",species,sep="")
+  gene_names_file_ncbi = paste("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/tx2gene_ncbi/",species,sep="")
   gene_names_ncbi <- read.csv(paste(gene_names_file_ncbi,".ncbi.tx2gene.csv",sep=""))
   print(dim(gene_names_ncbi))
   gene_names_id_ncbi <- gene_names_ncbi[,c(2,3)]
@@ -57,7 +57,7 @@ for (species in files_list){
   print(dim(txi_ncbi.salmon$counts))
   counts <- txi_ncbi.salmon$counts
   colnames(counts) <- species_files_list
-  counts_matrix = paste("~/Documents/UCDavis/Whitehead/kfish_salmon/tximport_counts_ncbi/",species,sep="")
+  counts_matrix = paste("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/tximport_counts_ncbi/",species,sep="")
   counts_matrix = paste(counts_matrix,"_counts_ncbi.csv",sep="")
   write.table(counts, file=counts_matrix, quote=FALSE, sep='\t', col.names = NA)
 }
@@ -71,7 +71,7 @@ for (species in files_list){
   files <- file.path(dir,species,species_files_list,"quant.sf")
   files
   print(file.exists(files))
-  gene_names_file_ncbi = paste("~/Documents/UCDavis/Whitehead/kfish_salmon/tx2gene_evigene/",species,sep="")
+  gene_names_file_ncbi = paste("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/tx2gene_evigene/",species,sep="")
   gene_names_evigene <- read.csv(paste(gene_names_file_ncbi,".evigene.tx2gene.csv",sep=""))
   print(dim(gene_names_evigene))
   gene_names_id_evigene <- gene_names_evigene[,c(2,3)]
@@ -83,7 +83,7 @@ for (species in files_list){
   print(dim(txi_evigene.salmon$counts))
   counts <- txi_evigene.salmon$counts
   colnames(counts) <- species_files_list
-  counts_matrix = paste("~/Documents/UCDavis/Whitehead/kfish_salmon/tximport_counts_evigene/",species,sep="")
+  counts_matrix = paste("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/tximport_counts_evigene/",species,sep="")
   counts_matrix = paste(counts_matrix,"_counts_evigene.csv",sep="")
   write.table(counts, file=counts_matrix, quote=FALSE, sep='\t', col.names = NA)
 }
@@ -97,7 +97,7 @@ for (species in files_list){
   files <- file.path(dir,species,species_files_list,"quant.sf")
   files
   print(file.exists(files))
-  gene_names_file_ensembl = paste("~/Documents/UCDavis/Whitehead/kfish_salmon/tx2gene_ensembl/",species,sep="")
+  gene_names_file_ensembl = paste("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/tx2gene_ensembl/",species,sep="")
   gene_names_ensembl <- read.csv(paste(gene_names_file_ensembl,".ensembl.tx2gene.csv",sep=""))
   print(dim(gene_names_ensembl))
   gene_names_id_ensembl <- gene_names_ensembl[,c(2,3)]
@@ -109,7 +109,7 @@ for (species in files_list){
   print(dim(txi_ensembl.salmon$counts))
   counts <- txi_ensembl.salmon$counts
   colnames(counts) <- species_files_list
-  counts_matrix = paste("~/Documents/UCDavis/Whitehead/kfish_salmon/tximport_counts_ensembl/",species,sep="")
+  counts_matrix = paste("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/tximport_counts_ensembl/",species,sep="")
   counts_matrix = paste(counts_matrix,"_counts_ensembl.csv",sep="")
   write.table(counts, file=counts_matrix, quote=FALSE, sep='\t', col.names = NA)
 }
