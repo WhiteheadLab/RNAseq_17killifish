@@ -10,6 +10,6 @@ Differential expression analysis with RNAseq data from 16 species of Fundulus ki
 
 Raw data: https://www.ncbi.nlm.nih.gov/bioproject/473009 
 
-Analysis scripts: https://github.com/ljcohen/RNAseq_15killifish
+Analysis scripts: https://github.com/johnsolk/RNAseq_15killifish
 
-See [this repository](https://github.com/ljcohen/osmotic) for assembly/evaluation scripts and data.
+See [this repository](https://github.com/johnsolk/osmotic) for assembly/evaluation scripts and data.
