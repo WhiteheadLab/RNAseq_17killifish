@@ -468,4 +468,134 @@ dim(sig_main_clade)
 dim(sig_main_physiology)
 dim(sig_main_salinity)
 
+# make a summary table for Andrew:
+# ---------------------------------
+# cols:
+# Gene ID
+# gene name
+# gene descriptions
+# adj.P.value CLade
+# adj.P.value Salinity
+# adj.P.value Physiology
+# adj.P.value Salinity.Physiology
+# adj.P.value Physiology.Clade
+# adj.P.value Salinity.Clade
+# adj.P.value 3way
+# norm counts
+# ---------------------------------
+new <- merge(ann_clade,ann_physiology,by= "row.names")
+colnames(new)[13] <- "adj.P.Val.Clade"
+colnames(new)[28] <- "adj.P.Val.Physiology"
+new <- new[ -c(2:12, 19:27,29:33) ]
+colnames(new)[1] <- "ID"
+new <- merge(new,ann_salinity,by.x= "ID",by.y="row.names")
+colnames(new)[18] <- "adj.P.Val.Salinity"
+new <- new[ -c(9:17,19:23) ]
+new <- new[,c(1,3:7,2,8:9)]
+new <- merge(new,ann_clade_physiology_interaction,by.x= "ID",by.y="row.names")
+colnames(new)[17] <- "adj.P.Val.Physiology.Clade"
+new <- new[ -c(10:16,18:22) ]
+new <- merge(new,ann_salinity_physiology_interaction,by.x= "ID",by.y="row.names")
+colnames(new)[17] <- "adj.P.Val.Salinity.Physiology"
+new <- new[ -c(11:16,18:22) ]
+new <- merge(new,ann_salinity_clade_interaction,by.x= "ID",by.y="row.names")
+colnames(new)[19] <- "adj.P.Val.Salinity.Clade"
+new <- new[ -c(12:18,20:24) ]
+new <- merge(new,ann_threeway,by.x= "ID",by.y="row.names")
+colnames(new)[18] <- "adj.P.Val.3way"
+new <- new[ -c(13:17,19:23) ]
+colnames(new)[2] <- "ensembl_transcript_id"
+colnames(new)[3] <- "ensembl_gene_id"
+colnames(new)[4] <- "gene_biotype"
+colnames(new)[5] <- "external_gene_name"
+colnames(new)[6] <- "description"
+new <- merge(new,norm_counts,by.x= "ID",by.y="row.names")
+# ---------------------------------
+# mean expression each species BW
+# mean expression each species FW
+# x 14
+new$F.rath.BW.mean <- log2(rowMeans(new[c(14:16)], na.rm=TRUE)+1)
+new$F.rath.FW.mean <- log2(rowMeans(new[c(17:19)], na.rm=TRUE)+1)
+new$F.grandis.BW.mean <- log2(rowMeans(new[c(20:22)], na.rm=TRUE)+1)
+new$F.grandis.FW.mean <- log2(rowMeans(new[c(23:25)], na.rm=TRUE)+1)
+new$F.notatus.BW.mean <- log2(rowMeans(new[c(26:28)], na.rm=TRUE)+1)
+new$F.notatus.FW.mean <- log2(rowMeans(new[c(29:31)], na.rm=TRUE)+1)
+new$F.parv.BW.mean <- log2(rowMeans(new[c(32:34)], na.rm=TRUE)+1)
+new$F.parv.FW.mean <- log2(rowMeans(new[c(35:37)], na.rm=TRUE)+1)
+new$L.good.BW.mean <- log2(rowMeans(new[c(38:40)], na.rm=TRUE)+1)
+new$L.good.FW.mean <- log2(rowMeans(new[c(41:43)], na.rm=TRUE)+1)
+new$F.oli.BW.mean <- log2(rowMeans(new[c(44:46)], na.rm=TRUE)+1)
+new$F.oli.FW.mean <- log2(rowMeans(new[c(47:49)], na.rm=TRUE)+1)
+new$L.parv.BW.mean <- log2(rowMeans(new[c(50:52)], na.rm=TRUE)+1)
+new$L.parv.FW.mean <- log2(rowMeans(new[c(53:55)], na.rm=TRUE)+1)
+new$F.hetPP.BW.mean <- log2(rowMeans(new[c(56:58)], na.rm=TRUE)+1)
+new$F.hetPP.FW.mean <- log2(rowMeans(new[c(59:61)], na.rm=TRUE)+1)
+new$F.sim.BW.mean <- log2(rowMeans(new[c(62:64)], na.rm=TRUE)+1)
+new$F.sim.FW.mean <- log2(rowMeans(new[c(65:67)], na.rm=TRUE)+1)
+new$F.dia.BW.mean <- log2(rowMeans(new[c(68:69)], na.rm=TRUE)+1)
+new$F.dia.FW.mean <- log2(rowMeans(new[c(70:71)], na.rm=TRUE)+1)
+new$F.chry.BW.mean <- log2(rowMeans(new[c(72:74)], na.rm=TRUE)+1)
+new$F.chry.FW.mean <- log2(rowMeans(new[c(72:77)], na.rm=TRUE)+1)
+new$A.xen.BW.mean <- log2(rowMeans(new[c(78:80)], na.rm=TRUE)+1)
+new$A.xen.FW.mean <- log2(rowMeans(new[c(81:83)], na.rm=TRUE)+1)
+new$F.cat.BW.mean <- log2(rowMeans(new[c(84:86)], na.rm=TRUE)+1)
+new$F.cat.FW.mean <- log2(rowMeans(new[c(87:88)], na.rm=TRUE)+1)
+new$F.hetPL.BW.mean <- log2(rowMeans(new[c(89:91)], na.rm=TRUE)+1)
+new$F.hetPL.FW.mean <- log2(rowMeans(new[c(92:94)], na.rm=TRUE)+1)
+# ---------------------------------
+# log2FC FW=0 - each species - zero normalized
+# log2FC BW=15 - each species
+
+# subtract FW from itself = 0
+# subtract FW from BW = 15
+
+new$Frath.0 <- (new$F.rath.FW.mean - new$F.rath.FW.mean) 
+new$Frath.15 <- (new$F.rath.BW.mean - new$F.rath.FW.mean)
+new$F.grandis.0 <- (new$F.grandis.FW.mean - new$F.grandis.FW.mean)
+new$F.grandis.15 <- (new$F.grandis.BW.mean - new$F.grandis.FW.mean)
+new$F.notatus.0 <- (new$F.notatus.FW.mean - new$F.notatus.FW.mean)
+new$F.notatus.15 <- (new$F.notatus.BW.mean - new$F.notatus.FW.mean)
+new$F.parv.0 <- (new$F.parv.FW.mean - new$F.parv.FW.mean)
+new$F.parv.15 <- (new$F.parv.BW.mean - new$F.parv.FW.mean)
+new$L.good.0 <- (new$L.good.FW.mean - new$L.good.FW.mean)
+new$L.good.15 <- (new$L.good.BW.mean - new$L.good.FW.mean)
+new$F.oli.0 <- (new$F.oli.FW.mean - new$F.oli.FW.mean)  
+new$F.oli15 <- (new$F.oli.BW.mean - new$F.oli.FW.mean)  
+new$L.parv.0 <- (new$L.parv.FW.mean - new$L.parv.FW.mean) 
+new$L.parv.15 <- (new$L.parv.BW.mean - new$L.parv.FW.mean)
+new$F.hetPP.0 <- (new$F.hetPP.FW.mean - new$F.hetPP.FW.mean) 
+new$F.hetPP.15 <- (new$F.hetPP.BW.mean - new$F.hetPP.FW.mean)
+new$F.sim.0 <- (new$F.sim.FW.mean - new$F.sim.FW.mean)
+new$F.sim.15 <- (new$F.sim.BW.mean - new$F.sim.FW.mean)
+new$F.dia.0 <- (new$F.dia.FW.mean - new$F.dia.FW.mean)
+new$F.dia.15 <- (new$F.dia.BW.mean - new$F.dia.FW.mean)
+new$F.chry.0 <- (new$F.chry.FW.mean - new$F.chry.FW.mean)
+new$F.chry.15 <- (new$F.chry.BW.mean - new$F.chry.FW.mean)
+new$A.xen.0 <- (new$A.xen.FW.mean - new$A.xen.FW.mean)
+new$A.xen.15 <- (new$A.xen.BW.mean - new$A.xen.FW.mean)
+new$F.cat.0 <- (new$F.cat.FW.mean - new$F.cat.FW.mean)
+new$F.cat.15 <- (new$F.cat.BW.mean - new$F.cat.FW.mean)
+new$F.hetPL.0 <- (new$F.hetPL.FW.mean - new$F.hetPL.FW.mean)
+new$F.hetPL.15 <- (new$F.hetPL.BW.mean - new$F.hetPL.FW.mean)
+
+h <- new[,c(123:150)]
+rownames(h)<-new$ID
+head(sig_salinity_physiology_interaction)
+sig_sal_phy_id <- rownames(sig_salinity_physiology_interaction)
+h_sal_phy <- subset(h,rownames(h) %in% sig_sal_phy_id)
+
+######## SET HEATMAP COLOR SCALE ###########
+my.breaks <- c(seq(-2, 0, by=0.1), seq(0.1, 2, by=0.1))
+my.colors <- c(colorRampPalette(colors = c("#00FFFF", "black"))(length(my.breaks)/2), colorRampPalette(colors = c("black", "yellow"))(length(my.breaks)/2))
+
+###########
+pheatmap(h_sal_phy, cluster_rows = TRUE,
+         clustering_distance_rows = "correlation",
+         cluster_cols = FALSE,
+         show_rownames=F,
+         color = my.colors,
+         annotation_colors = annotation_colors,
+         breaks = my.breaks
+)
+
 
