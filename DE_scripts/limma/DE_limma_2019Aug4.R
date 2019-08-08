@@ -474,13 +474,13 @@ dim(sig_main_salinity)
 # Gene ID
 # gene name
 # gene descriptions
-# adj.P.value CLade
-# adj.P.value Salinity
-# adj.P.value Physiology
-# adj.P.value Salinity.Physiology
-# adj.P.value Physiology.Clade
-# adj.P.value Salinity.Clade
-# adj.P.value 3way
+# adj.P.Val.Clade
+# adj.P.Val.Salinity
+# adj.P.Val.Physiology
+# adj.P.Val.Salinity.Physiology
+# adj.P.Val.Physiology.Clade
+# adj.P.Val.Salinity.Clade
+# adj.P.Val.3way
 # norm counts
 # ---------------------------------
 new <- merge(ann_clade,ann_physiology,by= "row.names")
@@ -549,8 +549,8 @@ new$F.hetPL.FW.mean <- log2(rowMeans(new[c(92:94)], na.rm=TRUE)+1)
 # subtract FW from itself = 0
 # subtract FW from BW = 15
 
-new$Frath.0 <- (new$F.rath.FW.mean - new$F.rath.FW.mean) 
-new$Frath.15 <- (new$F.rath.BW.mean - new$F.rath.FW.mean)
+new$F.rath.0 <- (new$F.rath.FW.mean - new$F.rath.FW.mean) 
+new$F.rath.15 <- (new$F.rath.BW.mean - new$F.rath.FW.mean)
 new$F.grandis.0 <- (new$F.grandis.FW.mean - new$F.grandis.FW.mean)
 new$F.grandis.15 <- (new$F.grandis.BW.mean - new$F.grandis.FW.mean)
 new$F.notatus.0 <- (new$F.notatus.FW.mean - new$F.notatus.FW.mean)
@@ -560,7 +560,7 @@ new$F.parv.15 <- (new$F.parv.BW.mean - new$F.parv.FW.mean)
 new$L.good.0 <- (new$L.good.FW.mean - new$L.good.FW.mean)
 new$L.good.15 <- (new$L.good.BW.mean - new$L.good.FW.mean)
 new$F.oli.0 <- (new$F.oli.FW.mean - new$F.oli.FW.mean)  
-new$F.oli15 <- (new$F.oli.BW.mean - new$F.oli.FW.mean)  
+new$F.oli.15 <- (new$F.oli.BW.mean - new$F.oli.FW.mean)  
 new$L.parv.0 <- (new$L.parv.FW.mean - new$L.parv.FW.mean) 
 new$L.parv.15 <- (new$L.parv.BW.mean - new$L.parv.FW.mean)
 new$F.hetPP.0 <- (new$F.hetPP.FW.mean - new$F.hetPP.FW.mean) 
@@ -577,25 +577,58 @@ new$F.cat.0 <- (new$F.cat.FW.mean - new$F.cat.FW.mean)
 new$F.cat.15 <- (new$F.cat.BW.mean - new$F.cat.FW.mean)
 new$F.hetPL.0 <- (new$F.hetPL.FW.mean - new$F.hetPL.FW.mean)
 new$F.hetPL.15 <- (new$F.hetPL.BW.mean - new$F.hetPL.FW.mean)
+write.csv(new,file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/kfishosmotictolerance_Summary.Table.csv"), quote = F, row.names = T)
 
-h <- new[,c(123:150)]
-rownames(h)<-new$ID
-head(sig_salinity_physiology_interaction)
-sig_sal_phy_id <- rownames(sig_salinity_physiology_interaction)
-h_sal_phy <- subset(h,rownames(h) %in% sig_sal_phy_id)
+#-------------------
+# Set sample order
+#-------------------
 
-######## SET HEATMAP COLOR SCALE ###########
+sample <- c("F.grandis.0","F.grandis.15","F.hetPL.0","F.hetPL.15","F.hetPP.0","F.hetPP.15","F.dia.0","F.dia.15","F.cat.0","F.cat.15","F.rath.0","F.rath.15","F.parv.0","F.parv.15","L.parv.0","L.parv.15","L.good.0","L.good.15","A.xen.0","A.xen.15","F.chry.0","F.chry.15","F.sim.0","F.sim.15","F.notatus.0","F.notatus.15","F.oli.0","F.oli.15")
+clade <- c("clade1","clade1","clade1","clade1","clade1","clade1","clade1","clade1","clade1","clade1","clade1","clade1","clade2","clade2","clade2","clade2","clade2","clade2","clade3","clade3","clade3","clade3","clade3","clade3","clade3","clade3","clade3","clade3")
+physiology <- c("M","M","M","M","M","M","M","M","F","F","F","F","M","M","M","M","F","F","M","M","M","M","M","M","F","F","F","F")
+salinity <- c("0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt")
+sample_label_df <- data.frame(salinity,physiology,clade)
+rownames(sample_label_df) <- colnames(h)
+# ------------------------
+# Heatmaps
+# ------------------------
+# adj.P.Val.Clade
+# adj.P.Val.Salinity
+# adj.P.Val.Physiology
+# adj.P.Val.Salinity.Physiology
+# adj.P.Val.Physiology.Clade
+# adj.P.Val.Salinity.Clade
+# adj.P.Val.3way
+
+cons_salinity <- filter(new, adj.P.Val.Salinity<=0.05 & adj.P.Val.Salinity.Physiology>0.1 & adj.P.Val.3way>0.1)
+h <- cons_salinity[,c(123:150)]
+rownames(h)<-cons_salinity$ID
+h <- h[,sample]
+rownames(sample_label_df) <- colnames(h)
+#--------------------------
+# Set heatmap color scale
+#--------------------------
+
 my.breaks <- c(seq(-2, 0, by=0.1), seq(0.1, 2, by=0.1))
 my.colors <- c(colorRampPalette(colors = c("#00FFFF", "black"))(length(my.breaks)/2), colorRampPalette(colors = c("black", "yellow"))(length(my.breaks)/2))
 
-###########
-pheatmap(h_sal_phy, cluster_rows = TRUE,
+annotation_colors = list(salinity = c("0ppt"="red", "15ppt"="blue"),physiology = c("M"="blue", "F"="red"),clade = c("clade1"="green", "clade2"="orange", "clade3"="purple"))
+
+# ------------------
+# Run heatmap
+# ------------------
+
+out <- pheatmap(h, cluster_rows = TRUE,
          clustering_distance_rows = "correlation",
-         cluster_cols = FALSE,
+         cluster_cols = F,
+         annotation_col = sample_label_df,
          show_rownames=F,
+         cutree_rows = 3,
          color = my.colors,
          annotation_colors = annotation_colors,
-         breaks = my.breaks
+         breaks = my.breaks,
+         gaps_col = c(12,18)
 )
 
-
+sort(cutree(out$tree_row, k=3))
+ordered <- h[order(cutree(out$tree_row, k=3)),]
