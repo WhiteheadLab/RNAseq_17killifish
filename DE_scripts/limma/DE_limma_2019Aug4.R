@@ -110,7 +110,7 @@ ensembl_proteinID = rownames(counts)
 length(ensembl_proteinID)
 # can take >5 min
 # do only once
-#ann<-getBM(attributes=c('ensembl_peptide_id','ensembl_transcript_id','ensembl_gene_id','gene_biotype','external_gene_name','description'), filters = 'ensembl_peptide_id', values = ensembl_proteinID, mart=ensembl)
+ann<-getBM(attributes=c('ensembl_peptide_id','ensembl_transcript_id','ensembl_gene_id','gene_biotype','external_gene_name','description'), filters = 'ensembl_peptide_id', values = ensembl_proteinID, mart=ensembl)
 head(ann)
 dim(ann)
 length(unique(ann$ensembl_peptide_id))
@@ -135,6 +135,9 @@ keep<-filterByExpr(counts,design = design,group=condition_physiology,min.count =
 counts.filt <- counts[keep,]
 dim(counts.filt)
 #write.table(counts.filt,"~/Documents/UCDavis/Whitehead/exp.tsv",sep="\t",quote=FALSE)
+
+norm_counts <- read.csv("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/normalized_counts.csv",stringsAsFactors = FALSE, header = TRUE,row.names = "Ensembl")
+dim(norm_counts)
 
 # ============================================
 #
@@ -256,7 +259,7 @@ dir <- "~/Documents/UCDavis/Whitehead/"
 tmp <- as.data.frame(cpm(genes))
 tmp$Ensembl <- rownames(tmp)
 tmp <- dplyr::select(tmp, Ensembl, everything())
-write.csv(tmp, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/normalized_counts.csv"), quote = F, row.names = F)
+#write.csv(tmp, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/normalized_counts.csv"), quote = F, row.names = F)
 
 vobj = voom( genes, design, plot=TRUE)
 lcpm <- cpm(genes$counts, log = TRUE)
@@ -272,8 +275,9 @@ corfit$consensus
 #[1] 0.758966
 fitRan <- lmFit(vobj,design,block=ExpDesign$species,correlation=corfit$consensus)
 
-
+# -----------------
 # PCA, all counts
+# -----------------
 
 # This is the PCA with all counts, not filtered. The dimensions of the counts table are listed below. Row=genes, Columns=samples
 # normal full counts
@@ -333,7 +337,7 @@ dim(ann_salinity)
 ann_salinity <- ann_salinity[order(ann_salinity$adj.P.Val,decreasing = FALSE), ]
 rownames(ann_salinity) <- ann_salinity$Row.names
 ann_salinity <- ann_salinity[,-1]
-write.csv(ann_salinity, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/main_salinity.csv"), quote = F, row.names = T)
+#write.csv(ann_salinity, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/main_salinity.csv"), quote = F, row.names = T)
 
 # ---------------------
 # physiology main effect
@@ -352,7 +356,7 @@ dim(ann_physiology)
 ann_physiology <- ann_physiology[order(ann_physiology$adj.P.Val,decreasing = FALSE), ]
 rownames(ann_physiology) <- ann_physiology$Row.names
 ann_physiology <- ann_physiology[,-1]
-write.csv(ann_physiology, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/main_physiology.csv"), quote = F, row.names = T)
+#write.csv(ann_physiology, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/main_physiology.csv"), quote = F, row.names = T)
 
 
 # ---------------------
@@ -372,7 +376,7 @@ dim(ann_clade)
 ann_clade <- ann_clade[order(ann_clade$adj.P.Val,decreasing = FALSE), ]
 rownames(ann_clade) <- ann_clade$Row.names
 ann_clade <- ann_clade[,-1]
-write.csv(ann_clade, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/main_clade.csv"), quote = F, row.names = T)
+#write.csv(ann_clade, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/main_clade.csv"), quote = F, row.names = T)
 
 
 # ---------------------
@@ -392,7 +396,7 @@ dim(ann_threeway)
 ann_threeway <- ann_threeway[order(ann_threeway$adj.P.Val,decreasing = FALSE), ]
 rownames(ann_threeway) <- ann_threeway$Row.names
 ann_threeway <- ann_threeway[,-1]
-write.csv(ann_threeway, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/threeway.csv"), quote = F, row.names = T)
+#write.csv(ann_threeway, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/threeway.csv"), quote = F, row.names = T)
 
 # ---------------------
 # salinity x clade two-way interaction
@@ -411,7 +415,7 @@ dim(ann_salinity_clade_interaction)
 ann_salinity_clade_interaction <- ann_salinity_clade_interaction[order(ann_salinity_clade_interaction$adj.P.Val,decreasing = FALSE), ]
 rownames(ann_salinity_clade_interaction) <- ann_salinity_clade_interaction$Row.names
 ann_salinity_clade_interaction <- ann_salinity_clade_interaction[,-1]
-write.csv(ann_salinity_clade_interaction, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/salinity_clade_interaction.csv"), quote = F, row.names = T)
+#write.csv(ann_salinity_clade_interaction, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/salinity_clade_interaction.csv"), quote = F, row.names = T)
 
 # ---------------------
 # salinity x physiology two-way interaction
@@ -430,7 +434,7 @@ dim(ann_salinity_physiology_interaction)
 ann_salinity_physiology_interaction <- ann_salinity_physiology_interaction[order(ann_salinity_physiology_interaction$adj.P.Val,decreasing = FALSE), ]
 rownames(ann_salinity_physiology_interaction) <- ann_salinity_physiology_interaction$Row.names
 ann_salinity_physiology_interaction <- ann_salinity_physiology_interaction[,-1]
-write.csv(ann_salinity_physiology_interaction, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/salinity_physiology_interaction.csv"), quote = F, row.names = T)
+#write.csv(ann_salinity_physiology_interaction, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/salinity_physiology_interaction.csv"), quote = F, row.names = T)
 
 # ---------------------
 # physiology x clade two-way interaction
@@ -450,7 +454,7 @@ dim(ann_clade_physiology_interaction)
 ann_clade_physiology_interaction <- ann_clade_physiology_interaction[order(ann_clade_physiology_interaction$adj.P.Val,decreasing = FALSE), ]
 rownames(ann_clade_physiology_interaction) <- ann_clade_physiology_interaction$Row.names
 ann_clade_physiology_interaction <- ann_clade_physiology_interaction[,-1]
-write.csv(ann_clade_physiology_interaction, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/clade_physiology_interaction.csv"), quote = F, row.names = T)
+#write.csv(ann_clade_physiology_interaction, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/clade_physiology_interaction.csv"), quote = F, row.names = T)
 
 
 
@@ -577,7 +581,7 @@ new$F.cat.0 <- (new$F.cat.FW.mean - new$F.cat.FW.mean)
 new$F.cat.15 <- (new$F.cat.BW.mean - new$F.cat.FW.mean)
 new$F.hetPL.0 <- (new$F.hetPL.FW.mean - new$F.hetPL.FW.mean)
 new$F.hetPL.15 <- (new$F.hetPL.BW.mean - new$F.hetPL.FW.mean)
-write.csv(new,file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/kfishosmotictolerance_Summary.Table.csv"), quote = F, row.names = T)
+#write.csv(new,file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/kfishosmotictolerance_Summary.Table.csv"), quote = F, row.names = T)
 
 #-------------------
 # Set sample order
@@ -623,12 +627,57 @@ out <- pheatmap(h, cluster_rows = TRUE,
          cluster_cols = F,
          annotation_col = sample_label_df,
          show_rownames=F,
-         cutree_rows = 3,
+         cutree_rows = 2,
          color = my.colors,
          annotation_colors = annotation_colors,
          breaks = my.breaks,
          gaps_col = c(12,18)
 )
 
-sort(cutree(out$tree_row, k=3))
-ordered <- h[order(cutree(out$tree_row, k=3)),]
+# subset
+cut2groups <- data.frame(sort(cutree(out$tree_row, k=2)))
+colnames(cut2groups)[1] <- "group"
+cons_salinity_groups <- merge(cons_salinity,cut2groups,by.x="ID",by.y="row.names")
+group1up <- cons_salinity_groups[cons_salinity_groups$group == 1,]
+group2down <- cons_salinity_groups[cons_salinity_groups$group == 2,]
+h <- group1up[,c(123:150)]
+rownames(h)<-group1up$ID
+h <- h[,sample]
+rownames(sample_label_df) <- colnames(h)
+out <- pheatmap(h, cluster_rows = TRUE,
+                clustering_distance_rows = "correlation",
+                cluster_cols = F,
+                annotation_col = sample_label_df,
+                show_rownames=F,
+                color = my.colors,
+                annotation_colors = annotation_colors,
+                breaks = my.breaks,
+                gaps_col = c(12,18)
+)
+# could choose based on only pos across all 15 in h
+# could choose only group1, because visually group looks up (even though not all are)
+# pick a few first criteria, see how many don't match second
+up <- cons_salinity[,c(123:150)]
+rownames(up)<-cons_salinity$ID
+# only 15
+up <- up[,c(2,4,6,8,10,12,14,16,18,20,22,24,26,28)]
+up <- up[apply(up > 0, 1, all), ]
+# only 14
+upID <- rownames(up)
+new_up <- new[new$ID %in% upID,]
+new_up <- merge(new_up,cut2groups,by.x="ID",by.y="row.names")
+
+down <- cons_salinity[,c(123:150)]
+rownames(down)<-cons_salinity$ID
+down <- down[,c(2,4,6,8,10,12,14,16,18,20,22,24,26,28)]
+down <- down[apply(down < 0, 1, all), ]
+# only 4
+downID <- rownames(down)
+new_down <- new[new$ID %in% downID,]
+new_down <- merge(new_down,cut2groups,by.x="ID",by.y="row.names")
+
+# these go for GO analysis
+length(group1up$ID)
+length(group2down$ID)
+
+
