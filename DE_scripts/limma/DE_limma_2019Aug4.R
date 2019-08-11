@@ -604,11 +604,57 @@ rownames(sample_label_df) <- colnames(h)
 # adj.P.Val.Salinity.Clade
 # adj.P.Val.3way
 
+# conserved salinity
 cons_salinity <- filter(new, adj.P.Val.Salinity<=0.05 & adj.P.Val.Salinity.Physiology>0.1 & adj.P.Val.3way>0.1)
 h <- cons_salinity[,c(123:150)]
 rownames(h)<-cons_salinity$ID
 h <- h[,sample]
 rownames(sample_label_df) <- colnames(h)
+
+# conserved physiology
+cons_physiology <- filter(new, adj.P.Val.Physiology<=0.05 & adj.P.Val.Salinity.Physiology>0.1 & adj.P.Val.3way>0.1)
+h <- cons_physiology[,c(123:150)]
+rownames(h)<-cons_physiology$ID
+h <- h[,sample]
+rownames(sample_label_df) <- colnames(h)
+
+# Divergent clade effect 
+cons_clade <- filter(new, adj.P.Val.Clade<=0.05 & adj.P.Val.Salinity<=0.05)
+h <- cons_clade[,c(123:150)]
+rownames(h)<-cons_clade$ID
+h <- h[,sample]
+rownames(sample_label_df) <- colnames(h)
+
+# CONVERGENT? salinity-physiology interaction
+phys_salinity <- filter(new, adj.P.Val.Salinity.Physiology<=0.05 & adj.P.Val.3way>0.1)
+h <- phys_salinity[,c(123:150)]
+rownames(h)<-phys_salinity$ID
+h <- h[,sample]
+rownames(sample_label_df) <- colnames(h)
+
+# salinity-clade interaction
+salinity_clade <- filter(new, adj.P.Val.Salinity.Clade<=0.05 & adj.P.Val.3way>0.1)
+h <- salinity_clade[,c(123:150)]
+rownames(h)<-salinity_clade$ID
+h <- h[,sample]
+rownames(sample_label_df) <- colnames(h)
+
+# physiolgy-clade interaction
+physiology_clade <- filter(new, adj.P.Val.Physiology.Clade<=0.05 & adj.P.Val.3way>0.1)
+h <- physiology_clade[,c(123:150)]
+rownames(h)<-physiology_clade$ID
+h <- h[,sample]
+rownames(sample_label_df) <- colnames(h)
+
+# threeway interaction
+threeway <- filter(new, adj.P.Val.3way<=0.05)
+h <- threeway[,c(123:150)]
+rownames(h)<-threeway$ID
+h <- h[,sample]
+rownames(sample_label_df) <- colnames(h)
+
+
+
 #--------------------------
 # Set heatmap color scale
 #--------------------------
@@ -637,9 +683,16 @@ out <- pheatmap(h, cluster_rows = TRUE,
 # subset
 cut2groups <- data.frame(sort(cutree(out$tree_row, k=2)))
 colnames(cut2groups)[1] <- "group"
+
+phys_salinity$ID <- as.character(phys_salinity$ID)
+salinity_phys <- merge(phys_salinity,cut2groups,by.x="ID",by.y="row.names")
+group1up <- salinity_phys[salinity_phys$group == 1,]
+group2down <- salinity_phys[salinity_phys$group == 2,]
+
 cons_salinity_groups <- merge(cons_salinity,cut2groups,by.x="ID",by.y="row.names")
 group1up <- cons_salinity_groups[cons_salinity_groups$group == 1,]
 group2down <- cons_salinity_groups[cons_salinity_groups$group == 2,]
+
 h <- group1up[,c(123:150)]
 rownames(h)<-group1up$ID
 h <- h[,sample]
@@ -654,9 +707,8 @@ out <- pheatmap(h, cluster_rows = TRUE,
                 breaks = my.breaks,
                 gaps_col = c(12,18)
 )
-# could choose based on only pos across all 15 in h
-# could choose only group1, because visually group looks up (even though not all are)
-# pick a few first criteria, see how many don't match second
+
+# visually group looks up (even though not all are)
 up <- cons_salinity[,c(123:150)]
 rownames(up)<-cons_salinity$ID
 # only 15
@@ -676,8 +728,10 @@ downID <- rownames(down)
 new_down <- new[new$ID %in% downID,]
 new_down <- merge(new_down,cut2groups,by.x="ID",by.y="row.names")
 
+
+circ_genes
 # these go for GO analysis
 length(group1up$ID)
 length(group2down$ID)
 
-
+# find all circadian 
