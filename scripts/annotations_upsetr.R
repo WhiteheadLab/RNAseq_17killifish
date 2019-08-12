@@ -21,23 +21,6 @@ for (species_file in files_list){
 }
 
 # Dataset
-input <- c(A_xenica = 21733,
-           F_catanatus = 22226,
-           F_chrysotus = 22222,
-           F_diaphanus = 21457,
-           F_grandis = 24245,
-           F_heteroclitusMDPL = 22806,
-           F_heteroclitusMDPP = 22922,
-           F_notatus = 22290,
-           F_nottii = 18113,
-           F_olivaceous = 21482,
-           F_parvapinis = 20432,
-           F_rathbuni = 22781,
-           F_sciadicus = 19881,
-           F_similis = 21828,
-           F_zebrinus = 20275,
-           L_goodei = 21897,
-           L_parva = 22157)
 
 pa <- read.csv("/Users/johnsolk/Documents/UCDavis/Whitehead/kfish_expression_July2019/presence_absence.csv")
 pa <- pa[,-c(1)]
