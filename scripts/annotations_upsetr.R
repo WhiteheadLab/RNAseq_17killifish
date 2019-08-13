@@ -8,7 +8,9 @@ dim(sig_main_clade)
 dim(sig_main_physiology)
 dim(sig_main_salinity)
 
-input <- c()
+
+# get species and gene annotation numbers
+# (Turns out this wasn't necessary.)
 
 dir <- "/Users/johnsolk/Documents/UCDavis/Whitehead/kfish_expression_July2019/tximport_counts_ensembl/"
 files_list <- list.files(dir)
@@ -21,6 +23,7 @@ for (species_file in files_list){
 }
 
 # Dataset
+# This is the part that works.
 
 pa <- read.csv("/Users/johnsolk/Documents/UCDavis/Whitehead/kfish_expression_July2019/presence_absence.csv")
 pa <- pa[,-c(1)]
