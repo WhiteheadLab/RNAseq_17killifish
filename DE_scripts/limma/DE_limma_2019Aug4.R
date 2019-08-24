@@ -593,6 +593,8 @@ physiology <- c("M","M","M","M","M","M","M","M","F","F","F","F","M","M","M","M",
 salinity <- c("0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt")
 sample_label_df <- data.frame(salinity,physiology,clade)
 rownames(sample_label_df) <- colnames(h)
+
+
 # ------------------------
 # Heatmaps
 # ------------------------
@@ -732,6 +734,10 @@ new_down <- merge(new_down,cut2groups,by.x="ID",by.y="row.names")
 circ_genes
 # these go for GO analysis
 length(group1up$ID)
+# 272
 length(group2down$ID)
+# 310
+dim(cons_salinity)
+# 582
 
 # find all circadian 

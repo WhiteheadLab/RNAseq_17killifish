@@ -178,17 +178,6 @@ output<-enricher(gene, pvalueCutoff = 0.2, pAdjustMethod = "BH", universe,
                  TERM2NAME = df)
 dotplot(output)
 
-
-
-
-
-
-
-
-
-
-
-
 # find all circadian regulation of gene expression genes
 # df has the GOterm
 # which GO_ID corresponds to "circadian regulation of gene expression"
