@@ -111,8 +111,31 @@ dim(salphysGO)
 dim(salphysGO_up)
 dim(salphysGO_down)
 
+# GO only - PHYSIOLOGY
+phys <- query[query$ensembl_peptide_id %in% cons_physiology$ID,]
+physGO <- phys[,c('ensembl_peptide_id','go_id')]
 
+phys_up <- query[query$ensembl_peptide_id %in% group1up$ID,]
+physGO_up <- phys_up[,c('ensembl_peptide_id','go_id')]
 
+phys_down <- query[query$ensembl_peptide_id %in% group2down$ID,]
+physGO_down <- phys_down[,c('ensembl_peptide_id','go_id')]
+
+colnames(physGO_up) <- c("ensembl_peptide_id","go_id")
+colnames(physGO_down) <- c("ensembl_peptide_id","go_id")
+colnames(physGO) <- c("ensembl_peptide_id","go_id")
+
+dim(physGO_up)
+dim(physGO_down)
+dim(physGO)
+
+physGO <- physGO[physGO$go_id != "",]
+physGO_up <- physGO_up[physGO_up$go_id != "",]
+physGO_down <- physGO_down[physGO_down$go_id != "",]
+
+dim(physGO)
+dim(physGO_up)
+dim(physGO_down)
 
 
 
@@ -168,6 +191,18 @@ gene <- salphysGO_down$ensembl_peptide_id[salphysGO_down$ensembl_peptide_id %in%
 
 salphysGO$ensembl_peptide_id <- as.character(salphysGO$ensembl_peptide_id)
 gene <- salphysGO$ensembl_peptide_id[salphysGO$ensembl_peptide_id %in% universe]
+
+# PHYSIOLOGY response
+physGO_up$ensembl_peptide_id <- as.character(physGO_up$ensembl_peptide_id)
+gene <- physGO_up$ensembl_peptide_id[physGO_up$ensembl_peptide_id %in% universe]
+
+physGO_down$ensembl_peptide_id <- as.character(physGO_down$ensembl_peptide_id)
+gene <- physGO_down$ensembl_peptide_id[physGO_down$ensembl_peptide_id %in% universe]
+
+physGO$ensembl_peptide_id <- as.character(physGO$ensembl_peptide_id)
+gene <- physGO$ensembl_peptide_id[physGO$ensembl_peptide_id %in% universe]
+
+
 
 
 gene<-as.character(unique(gene))

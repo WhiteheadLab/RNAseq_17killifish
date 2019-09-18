@@ -41,6 +41,9 @@ upset(pa, sets = c(c("A_xenica","F_catanatus","F_chrysotus","F_diaphanus","F_gra
 
 upset(pa, sets = c(c("A_xenica","F_catanatus","F_notatus"), c("F_chrysotus","F_diaphanus","F_nottii")),mb.ratio = c(0.55, 0.45),nsets = 6,keep.order = F)
 
-upset(pa, sets = c(c("A_xenica","F_catanatus"),c("F_chrysotus","F_diaphanus"),c("F_grandis","F_heteroclitusMDPL"),c("F_heteroclitusMDPP","F_notatus"),c("F_nottii","F_olivaceous"),c("F_parvapinis","F_rathbuni"),c("F_sciadicus","F_similis"),c("F_zebrinus","L_goodei"),c("L_parva")),mb.ratio = c(0.55, 0.45),keep.order = F)
+upset(pa, sets = c(c("A_xenica","F_catanatus"),c("F_chrysotus","F_diaphanus"),c("F_grandis","F_heteroclitusMDPL"),c("F_heteroclitusMDPP","F_notatus"),c("F_nottii","F_olivaceous"),c("F_parvapinis","F_rathbuni"),c("F_sciadicus","F_similis"),c("F_zebrinus","L_goodei"),c("L_parva")),mb.ratio = c(0.55, 0.45),order.by="freq",nintersects=100)
 
 upset(pa, sets = c(c(c("A_xenica","F_catanatus"),c("F_chrysotus","F_diaphanus"),c("F_grandis","F_heteroclitusMDPL"))),mb.ratio = c(0.55, 0.45),keep.order = F)
+
+upset(pa, sets = c(c("A_xenica","F_catanatus","F_notatus"), c("F_chrysotus","F_diaphanus","F_nottii")),mb.ratio = c(0.55, 0.45),nsets = 6,order.by="freq")
+

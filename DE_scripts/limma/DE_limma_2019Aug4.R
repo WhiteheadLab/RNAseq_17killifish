@@ -106,7 +106,9 @@ ensembl=useMart("ENSEMBL_MART_ENSEMBL")
 ensembl = useDataset("fheteroclitus_gene_ensembl",mart=ensembl)
 # test
 # id <- c("ENSGMOP00000000001.1","ENSGMOP00000000002.1","ENSGMOP00000000003.1")
-ensembl_proteinID = rownames(counts)
+ensembl_proteinID <- rownames(counts)
+ensembl_proteinID <- unlist(strsplit(ensembl_proteinID,split="[.]1"))
+
 length(ensembl_proteinID)
 # can take >5 min
 # do only once
@@ -137,8 +139,10 @@ dim(counts.filt)
 #write.table(counts.filt,"~/Documents/UCDavis/Whitehead/exp.tsv",sep="\t",quote=FALSE)
 
 norm_counts <- read.csv("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/normalized_counts.csv",stringsAsFactors = FALSE, header = TRUE,row.names = "Ensembl")
-dim(norm_counts)
 
+dim(norm_counts)
+# fix rownames to chop .1 off
+rownames(norm_counts) <- unlist(strsplit(rownames(norm_counts),split="[.]1"))
 # ============================================
 #
 # Genes of Interest
@@ -328,9 +332,11 @@ rownames(contrasts_salinity_main) <- colnames(coef(fitRan))
 vfit <- contrasts.fit(fitRan, contrasts = contrasts_salinity_main)
 vfit <- eBayes(vfit)
 main_salinity<-topTableF(vfit,n = Inf, sort.by = "F")
-sig_main_salinity <- main_salinity[main_salinity$adj.P.Val<0.01,]
+sig_main_salinity <- main_salinity[main_salinity$adj.P.Val<0.05,]
 dim(sig_main_salinity)
 dim(main_salinity)
+# fix rownames to chop .1 off
+rownames(main_salinity) <- unlist(strsplit(rownames(main_salinity),split="[.]1"))
 ann_salinity <- merge(main_salinity,ann,all=TRUE,by.x = "row.names", by.y  = "ensembl_peptide_id")
 ann_salinity <- ann_salinity[!is.na(ann_salinity$adj.P.Val),]
 dim(ann_salinity)
@@ -350,6 +356,8 @@ main_physiology<-topTableF(vfit,n = Inf, sort.by = "F")
 sig_main_physiology <- main_physiology[main_physiology$adj.P.Val<0.05,]
 dim(sig_main_physiology)
 dim(main_physiology)
+# fix rownames to chop .1 off
+rownames(main_physiology) <- unlist(strsplit(rownames(main_physiology),split="[.]1"))
 ann_physiology <- merge(main_physiology,ann,all=TRUE,by.x = "row.names", by.y  = "ensembl_peptide_id")
 ann_physiology <- ann_physiology[!is.na(ann_physiology$adj.P.Val),]
 dim(ann_physiology)
@@ -370,6 +378,8 @@ main_clade<-topTableF(vfit,n = Inf, sort.by = "F")
 sig_main_clade <- main_clade[main_clade$adj.P.Val<0.05,]
 dim(sig_main_clade)
 dim(main_clade)
+# fix rownames to chop .1 off
+rownames(main_clade) <- unlist(strsplit(rownames(main_clade),split="[.]1"))
 ann_clade <- merge(main_clade,ann,all=TRUE,by.x = "row.names", by.y  = "ensembl_peptide_id")
 ann_clade <- ann_clade[!is.na(ann_clade$adj.P.Val),]
 dim(ann_clade)
@@ -390,6 +400,8 @@ main_threeway<-topTableF(vfit,n = Inf, sort.by = "F")
 sig_threeway <- main_threeway[main_threeway$adj.P.Val<0.05,]
 dim(sig_threeway)
 dim(main_threeway)
+# fix rownames to chop .1 off
+rownames(main_threeway) <- unlist(strsplit(rownames(main_threeway),split="[.]1"))
 ann_threeway <- merge(main_threeway,ann,all=TRUE,by.x = "row.names", by.y  = "ensembl_peptide_id")
 ann_threeway <- ann_threeway[!is.na(ann_threeway$adj.P.Val),]
 dim(ann_threeway)
@@ -409,6 +421,8 @@ main_salinity_clade_interaction<-topTableF(vfit,n = Inf, sort.by = "F")
 sig_salinity_clade_interaction <- main_salinity_clade_interaction[main_salinity_clade_interaction$adj.P.Val<0.05,]
 dim(sig_salinity_clade_interaction)
 dim(main_salinity_clade_interaction)
+# fix rownames to chop .1 off
+rownames(main_salinity_clade_interaction) <- unlist(strsplit(rownames(main_salinity_clade_interaction),split="[.]1"))
 ann_salinity_clade_interaction <- merge(main_salinity_clade_interaction,ann,all=TRUE,by.x = "row.names", by.y  = "ensembl_peptide_id")
 ann_salinity_clade_interaction <- ann_salinity_clade_interaction[!is.na(ann_salinity_clade_interaction$adj.P.Val),]
 dim(ann_salinity_clade_interaction)
@@ -428,6 +442,8 @@ main_salinity_physiology_interaction<-topTableF(vfit,n = Inf, sort.by = "F")
 sig_salinity_physiology_interaction <- main_salinity_physiology_interaction[main_salinity_physiology_interaction$adj.P.Val<0.05,]
 dim(sig_salinity_physiology_interaction)
 dim(main_salinity_physiology_interaction)
+# fix rownames to chop .1 off
+rownames(main_salinity_physiology_interaction) <- unlist(strsplit(rownames(main_salinity_physiology_interaction),split="[.]1"))
 ann_salinity_physiology_interaction <- merge(main_salinity_physiology_interaction,ann,all=TRUE,by.x = "row.names", by.y  = "ensembl_peptide_id")
 ann_salinity_physiology_interaction <- ann_salinity_physiology_interaction[!is.na(ann_salinity_physiology_interaction$adj.P.Val),]
 dim(ann_salinity_physiology_interaction)
@@ -448,6 +464,8 @@ main_clade_physiology_interaction<-topTableF(vfit,n = Inf, sort.by = "F")
 sig_clade_physiology_interaction <- main_clade_physiology_interaction[main_clade_physiology_interaction$adj.P.Val<0.05,]
 dim(sig_clade_physiology_interaction)
 dim(main_clade_physiology_interaction)
+# fix rownames to chop .1 off
+rownames(main_clade_physiology_interaction) <- unlist(strsplit(rownames(main_clade_physiology_interaction),split="[.]1"))
 ann_clade_physiology_interaction <- merge(main_clade_physiology_interaction,ann,all=TRUE,by.x = "row.names", by.y  = "ensembl_peptide_id")
 ann_clade_physiology_interaction <- ann_clade_physiology_interaction[!is.na(ann_clade_physiology_interaction$adj.P.Val),]
 dim(ann_clade_physiology_interaction)
@@ -487,6 +505,7 @@ dim(sig_main_salinity)
 # adj.P.Val.3way
 # norm counts
 # ---------------------------------
+
 new <- merge(ann_clade,ann_physiology,by= "row.names")
 colnames(new)[13] <- "adj.P.Val.Clade"
 colnames(new)[28] <- "adj.P.Val.Physiology"
@@ -547,7 +566,7 @@ new$F.cat.FW.mean <- log2(rowMeans(new[c(87:88)], na.rm=TRUE)+1)
 new$F.hetPL.BW.mean <- log2(rowMeans(new[c(89:91)], na.rm=TRUE)+1)
 new$F.hetPL.FW.mean <- log2(rowMeans(new[c(92:94)], na.rm=TRUE)+1)
 # ---------------------------------
-# log2FC FW=0 - each species - zero normalized
+# log2FC FW=0 - each species - zero normalized for salinity
 # log2FC BW=15 - each species
 
 # subtract FW from itself = 0
@@ -581,13 +600,63 @@ new$F.cat.0 <- (new$F.cat.FW.mean - new$F.cat.FW.mean)
 new$F.cat.15 <- (new$F.cat.BW.mean - new$F.cat.FW.mean)
 new$F.hetPL.0 <- (new$F.hetPL.FW.mean - new$F.hetPL.FW.mean)
 new$F.hetPL.15 <- (new$F.hetPL.BW.mean - new$F.hetPL.FW.mean)
+# ---------------------------------
+# clade-specific grand mean normalization
+new$Clade1mean <- log2(rowMeans(new[c(14:25,56:61,84:94,68:71)], na.rm=TRUE)+1)
+new$Clade2mean <- log2(rowMeans(new[c(32:43,50:55)], na.rm=TRUE)+1)
+new$Clade3mean <- log2(rowMeans(new[c(78:83,72:77,62:67,26:31,44:49)], na.rm=TRUE)+1)
+
+# subtract each species/condition for mean
+# clade 1
+new$F.rath.0.clade <- (new$F.rath.FW.mean - new$Clade1mean) 
+new$F.rath.15.clade <- (new$F.rath.BW.mean - new$Clade1mean)
+new$F.grandis.0.clade <- (new$F.grandis.FW.mean - new$Clade1mean)
+new$F.grandis.15.clade <- (new$F.grandis.BW.mean - new$Clade1mean)
+new$F.hetPP.0.clade <- (new$F.hetPP.FW.mean - new$Clade1mean) 
+new$F.hetPP.15.clade <- (new$F.hetPP.BW.mean - new$Clade1mean)
+new$F.dia.0.clade <- (new$F.dia.FW.mean - new$Clade1mean)
+new$F.dia.15.clade <- (new$F.dia.BW.mean - new$Clade1mean)
+new$F.hetPL.0.clade <- (new$F.hetPL.FW.mean - new$Clade1mean)
+new$F.hetPL.15.clade <- (new$F.hetPL.BW.mean - new$Clade1mean)
+new$F.cat.0.clade <- (new$F.cat.FW.mean - new$Clade1mean)
+new$F.cat.15.clade <- (new$F.cat.BW.mean - new$Clade1mean)
+#clade 2
+new$F.parv.0.clade <- (new$F.parv.FW.mean - new$Clade2mean)
+new$F.parv.15.clade <- (new$F.parv.BW.mean - new$Clade2mean)
+new$L.good.0.clade <- (new$L.good.FW.mean - new$Clade2mean)
+new$L.good.15.clade <- (new$L.good.BW.mean - new$Clade2mean)
+new$L.parv.0.clade <- (new$L.parv.FW.mean - new$Clade2mean) 
+new$L.parv.15.clade <- (new$L.parv.BW.mean - new$Clade2mean)
+# clade 3
+new$F.oli.0.clade <- (new$F.oli.FW.mean - new$Clade3mean)  
+new$F.oli.15.clade <- (new$F.oli.BW.mean - new$Clade3mean)  
+new$F.sim.0.clade <- (new$F.sim.FW.mean - new$Clade3mean)
+new$F.sim.15.clade <- (new$F.sim.BW.mean - new$Clade3mean)
+new$F.chry.0.clade <- (new$F.chry.FW.mean - new$Clade3mean)
+new$F.chry.15.clade <- (new$F.chry.BW.mean - new$Clade3mean)
+new$A.xen.0.clade <- (new$A.xen.FW.mean - new$Clade3mean)
+new$A.xen.15.clade <- (new$A.xen.BW.mean - new$Clade3mean)
+new$F.notatus.0.clade <- (new$F.notatus.FW.mean - new$Clade3mean)
+new$F.notatus.15.clade <- (new$F.notatus.BW.mean - new$Clade3mean)
+
+
+
+
+
 #write.csv(new,file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/kfishosmotictolerance_Summary.Table.csv"), quote = F, row.names = T)
+
+write.table(new,"~/Documents/UCDavis/Whitehead/kfish_expression_July2019/kfishosmotictolerance_Summary.Table.tsv",sep="\t",quote=F,row.names=FALSE)
+
+dim(new)
 
 #-------------------
 # Set sample order
 #-------------------
 
+sample_phys <-c("F.grandis.0.clade","F.grandis.15.clade","F.hetPL.0.clade","F.hetPL.15.clade","F.hetPP.0.clade","F.hetPP.15.clade","F.dia.0.clade","F.dia.15.clade","F.cat.0.clade","F.cat.15.clade","F.rath.0.clade","F.rath.15.clade","F.parv.0.clade","F.parv.15.clade","L.parv.0.clade","L.parv.15.clade","L.good.0.clade","L.good.15.clade","A.xen.0.clade","A.xen.15.clade","F.chry.0.clade","F.chry.15.clade","F.sim.0.clade","F.sim.15.clade","F.notatus.0.clade","F.notatus.15.clade","F.oli.0.clade","F.oli.15.clade")
+
 sample <- c("F.grandis.0","F.grandis.15","F.hetPL.0","F.hetPL.15","F.hetPP.0","F.hetPP.15","F.dia.0","F.dia.15","F.cat.0","F.cat.15","F.rath.0","F.rath.15","F.parv.0","F.parv.15","L.parv.0","L.parv.15","L.good.0","L.good.15","A.xen.0","A.xen.15","F.chry.0","F.chry.15","F.sim.0","F.sim.15","F.notatus.0","F.notatus.15","F.oli.0","F.oli.15")
+
 clade <- c("clade1","clade1","clade1","clade1","clade1","clade1","clade1","clade1","clade1","clade1","clade1","clade1","clade2","clade2","clade2","clade2","clade2","clade2","clade3","clade3","clade3","clade3","clade3","clade3","clade3","clade3","clade3","clade3")
 physiology <- c("M","M","M","M","M","M","M","M","F","F","F","F","M","M","M","M","F","F","M","M","M","M","M","M","F","F","F","F")
 salinity <- c("0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt","0ppt","15ppt")
@@ -613,11 +682,12 @@ rownames(h)<-cons_salinity$ID
 h <- h[,sample]
 rownames(sample_label_df) <- colnames(h)
 
+# main effect of physiology, with no physiology*condition interaction
 # conserved physiology
 cons_physiology <- filter(new, adj.P.Val.Physiology<=0.05 & adj.P.Val.Salinity.Physiology>0.1 & adj.P.Val.3way>0.1)
-h <- cons_physiology[,c(123:150)]
+h <- cons_physiology[,c(154:181)]
 rownames(h)<-cons_physiology$ID
-h <- h[,sample]
+h <- h[,sample_phys]
 rownames(sample_label_df) <- colnames(h)
 
 # Divergent clade effect 
@@ -675,7 +745,7 @@ out <- pheatmap(h, cluster_rows = TRUE,
          cluster_cols = F,
          annotation_col = sample_label_df,
          show_rownames=F,
-         cutree_rows = 2,
+         cutree_rows = 1,
          color = my.colors,
          annotation_colors = annotation_colors,
          breaks = my.breaks,
@@ -740,4 +810,18 @@ length(group2down$ID)
 dim(cons_salinity)
 # 582
 
-# find all circadian 
+
+# cons_physiology
+
+cut2groups <- data.frame(sort(cutree(out$tree_row, k=2)))
+colnames(cut2groups)[1] <- "group"
+
+cons_physiology$ID <- as.character(cons_physiology$ID)
+physiology_cons <- merge(cons_physiology,cut2groups,by.x="ID",by.y="row.names")
+group1up <- physiology_cons[physiology_cons$group == 1,]
+group2down <- physiology_cons[physiology_cons$group == 2,]
+dim(group1up)
+dim(group2down)
+
+
+
