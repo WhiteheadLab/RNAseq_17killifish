@@ -44,21 +44,24 @@ locations <- read.csv("https://raw.githubusercontent.com/johnsolk/RNAseq_15killi
 st_crs(locations)
 
 # make a map ------------------------------------------------------------
+cols <- c("FW" = "#FF3300", "M" = "#0000FF")
 ggplot() + 
   geom_sf(data= us_states, fill="gray50", alpha=0.5) + 
   geom_point(data=locations, aes(x=Long, y=Lat, 
-                                 fill=Native.Physiology), pch=21, size=3) + 
-  theme_bw(base_size = 8) +
-  annotation_scale(location = "bl",style = "bar", pad_y=unit(0.2, "cm")) +
+                                 fill=Native.Physiology), pch=21, size=6) + 
+  theme_bw(base_size = 12) +
+  annotation_scale(location = "bl",style = "bar",pad_y=unit(0.2, "cm")) +
   coord_sf() + 
   theme(plot.background = element_blank(),
         legend.position = c(0.1, 0.2),
+        legend.title = element_text(size=16),
+        legend.text = element_text(size=16),
         legend.key = element_blank(),
         panel.border = element_blank(),
-        plot.margin = unit(c(0, 0, 0 ,0), "mm"))+
-  ggthemes::scale_fill_colorblind("Native Physiology") +
-  ggrepel::geom_label_repel(data=locations, aes(x = Long, y=Lat, label=Species), segment.color = "gray50",
-                            cex=3, segment.alpha = 0.7,
-                            force = 3,  box.padding=1, nudge_y = 0.3)
+        plot.margin = unit(c(0, 0, 0 ,0), "mm")) +
+  scale_colour_manual(values = cols,aesthetics = c("colour", "fill")) +
+  ggrepel::geom_label_repel(data=locations, size=5,aes(x = Long, y=Lat, label=Species), segment.color = "black",
+                            cex=3, segment.alpha = 1,
+                            force = 3,  box.padding=1, nudge_y = 0.3) 
 
 ggsave(filename = "figs/map_example_killifish.png", dpi=300, width = 8, height = 6, units="in")

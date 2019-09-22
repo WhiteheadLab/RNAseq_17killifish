@@ -124,9 +124,6 @@ mean_norm_counts_ordered <- mean_norm_counts[,sample_order]
 colnames(mean_norm_counts_ordered)
 
 
-
-
-
 #-------------------------------------
 # significant genes
 #-------------------------------------
@@ -138,7 +135,6 @@ dim(sig_threeway)
 dim(sig_main_clade)
 dim(sig_main_physiology)
 dim(sig_main_salinity)
-
 
 
 # ----------------
@@ -162,7 +158,6 @@ tcounts <- t(ltmp) %>%
   merge(ExpDesign, ., by="row.names") %>% 
   gather(gene, expression, (ncol(.)-length(rownames(tmp))+1):ncol(.))
 tcounts %>% dplyr::select(Row.names, clade, species, physiology, condition, gene, expression) %>% head %>% knitr::kable() %>% kable_styling()
-
 
 
 C1<-ggplot(tcounts %>% filter(clade=='Clade1'), aes(factor(condition,levels = c("0.2_ppt","15_ppt")), expression)) +
@@ -230,7 +225,6 @@ grid.arrange(C1,C2,C3,ncol=3, widths = c(7,3,4))
 
 # ENSFHEP00000033747
 # per3
-# this one is not expressed in every species
 goi <- c("ENSFHEP00000019155")
 # use this one:
 goi <- c("ENSFHEP00000033747")
@@ -414,6 +408,17 @@ goi <- c("ENSFHEP00000032833")
 # per3
 goi <- c("ENSFHEP00000033747")
 
+# physiology genes
+#ext
+goi <- c("ENSFHEP00000018189")
+#slc25a12
+goi <- c("ENSFHEP00000017152")
+# vti1a
+goi <- c("ENSFHEP00000030532")
+# exoc7
+goi <- c("ENSFHEP00000009514")
+# slc35a3a
+goi <- c("ENSFHEP00000001090")
 
 tmp <- norm_counts[rownames(norm_counts) %in% goi,]
 tmp_ann <- merge(tmp,ann,by.x = "row.names", by.y  = "ensembl_peptide_id")
@@ -501,3 +506,11 @@ C3<-ggplot(tcounts %>% filter(clade=='Clade3'), aes(factor(condition,levels = c(
   ggtitle("Clade 3")
 plot(C3)
 grid.arrange(C1,C2,C3,ncol=3, widths = c(7,3,4))
+
+
+
+
+# find NKCC
+# NKATP a1
+# NKATP a2
+

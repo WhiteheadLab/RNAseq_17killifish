@@ -52,12 +52,14 @@ ensembl=useMart("ENSEMBL_MART_ENSEMBL")
 ensembl = useDataset("fheteroclitus_gene_ensembl",mart=ensembl)
 ensembl_proteinID = rownames(counts)
 length(ensembl_proteinID)
-query<-getBM(attributes=c('ensembl_peptide_id','ensembl_transcript_id','ensembl_gene_id','gene_biotype','external_gene_name','go_id','description'), filters = 'ensembl_peptide_id', values = ensembl_proteinID, mart=ensembl)
+query<-getBM(attributes=c('ensembl_peptide_id','ensembl_transcript_id','ensembl_gene_id','gene_biotype','external_gene_name','go_id','name_1006','description'), filters = 'ensembl_peptide_id', values = ensembl_proteinID, mart=ensembl)
 head(query)
 dim(query)
 length(unique(query$ensembl_peptide_id))
+query.filt <- query[query$ensembl_peptide_id %in% rownames(counts.filt),]
+length(unique(query.filt$ensembl_peptide_id))
 
-
+query <- query.filt
 # GO only - SALINITY
 sal <- query[query$ensembl_peptide_id %in% cons_salinity$ID,]
 salGO <- sal[,c('ensembl_peptide_id','go_id')]
@@ -112,7 +114,7 @@ dim(salphysGO_up)
 dim(salphysGO_down)
 
 # GO only - PHYSIOLOGY
-phys <- query[query$ensembl_peptide_id %in% cons_physiology$ID,]
+phys <- query[query$ensembl_peptide_id %in% group3$ID,]
 physGO <- phys[,c('ensembl_peptide_id','go_id')]
 
 phys_up <- query[query$ensembl_peptide_id %in% group1up$ID,]
@@ -164,6 +166,8 @@ TERM2GENE$gene <- as.character(TERM2GENE$gene)
 dim(TERM2GENE)
 universe <- universe[universe %in% TERM2GENE$gene]
 length(universe)
+
+# only run once, takes ~15 min
 #df = NULL
 #for (GO_ID in TERM2GENE$GO_ID){
 #  GOterm <- Term(as.list(GOTERM[GO_ID])[[1]])

@@ -645,7 +645,7 @@ new$F.notatus.15.clade <- (new$F.notatus.BW.mean - new$Clade3mean)
 
 #write.csv(new,file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/kfishosmotictolerance_Summary.Table.csv"), quote = F, row.names = T)
 
-write.table(new,"~/Documents/UCDavis/Whitehead/kfish_expression_July2019/kfishosmotictolerance_Summary.Table.tsv",sep="\t",quote=F,row.names=FALSE)
+#write.table(new,"~/Documents/UCDavis/Whitehead/kfish_expression_July2019/kfishosmotictolerance_Summary.Table.tsv",sep="\t",quote=F,row.names=FALSE)
 
 dim(new)
 
@@ -697,7 +697,7 @@ rownames(h)<-cons_clade$ID
 h <- h[,sample]
 rownames(sample_label_df) <- colnames(h)
 
-# CONVERGENT? salinity-physiology interaction
+# salinity-physiology interaction
 phys_salinity <- filter(new, adj.P.Val.Salinity.Physiology<=0.05 & adj.P.Val.3way>0.1)
 h <- phys_salinity[,c(123:150)]
 rownames(h)<-phys_salinity$ID
@@ -745,7 +745,7 @@ out <- pheatmap(h, cluster_rows = TRUE,
          cluster_cols = F,
          annotation_col = sample_label_df,
          show_rownames=F,
-         cutree_rows = 1,
+         cutree_rows = 3,
          color = my.colors,
          annotation_colors = annotation_colors,
          breaks = my.breaks,
@@ -813,15 +813,35 @@ dim(cons_salinity)
 
 # cons_physiology
 
-cut2groups <- data.frame(sort(cutree(out$tree_row, k=2)))
+cut2groups <- data.frame(sort(cutree(out$tree_row, k=3)))
 colnames(cut2groups)[1] <- "group"
 
 cons_physiology$ID <- as.character(cons_physiology$ID)
 physiology_cons <- merge(cons_physiology,cut2groups,by.x="ID",by.y="row.names")
-group1up <- physiology_cons[physiology_cons$group == 1,]
+group1up <- physiology_cons[physiology_cons$group== 1,]
 group2down <- physiology_cons[physiology_cons$group == 2,]
+group3 <- physiology_cons[physiology_cons$group == 3,]
 dim(group1up)
 dim(group2down)
+dim(group3)
 
+
+
+# sort by adj.P.Val.Physiology
+# get top 20
+# make table of genes and GO terms
+cons_physiology_sort <- group3[order(group3$adj.P.Val.Physiology),]
+cons_physiology_50 <- cons_physiology_sort[1:50,]
+  
+# sort by phys-sal
+# get top 20
+  
+# sort by adj.P.Val.Salinity
+# get top 20
+# make table of genes and GO terms
+cons_salinity_sort <- cons_salinity
+
+
+  
 
 
