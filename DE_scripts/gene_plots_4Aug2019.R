@@ -420,6 +420,11 @@ goi <- c("ENSFHEP00000009514")
 # slc35a3a
 goi <- c("ENSFHEP00000001090")
 
+goi <- c("ENSFHEP00000008352")
+
+# taok1b
+goi <- c("ENSFHEP00000028829")
+
 tmp <- norm_counts[rownames(norm_counts) %in% goi,]
 tmp_ann <- merge(tmp,ann,by.x = "row.names", by.y  = "ensembl_peptide_id")
 dim(tmp_ann)
