@@ -343,7 +343,7 @@ dim(ann_salinity)
 ann_salinity <- ann_salinity[order(ann_salinity$adj.P.Val,decreasing = FALSE), ]
 rownames(ann_salinity) <- ann_salinity$Row.names
 ann_salinity <- ann_salinity[,-1]
-#write.csv(ann_salinity, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/main_salinity.csv"), quote = F, row.names = T)
+write.csv(ann_salinity, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/main_salinity.csv"), quote = F, row.names = T)
 
 # ---------------------
 # physiology main effect
@@ -364,7 +364,7 @@ dim(ann_physiology)
 ann_physiology <- ann_physiology[order(ann_physiology$adj.P.Val,decreasing = FALSE), ]
 rownames(ann_physiology) <- ann_physiology$Row.names
 ann_physiology <- ann_physiology[,-1]
-#write.csv(ann_physiology, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/main_physiology.csv"), quote = F, row.names = T)
+write.csv(ann_physiology, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/main_physiology.csv"), quote = F, row.names = T)
 
 
 # ---------------------
@@ -386,7 +386,7 @@ dim(ann_clade)
 ann_clade <- ann_clade[order(ann_clade$adj.P.Val,decreasing = FALSE), ]
 rownames(ann_clade) <- ann_clade$Row.names
 ann_clade <- ann_clade[,-1]
-#write.csv(ann_clade, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/main_clade.csv"), quote = F, row.names = T)
+write.csv(ann_clade, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/main_clade.csv"), quote = F, row.names = T)
 
 
 # ---------------------
@@ -408,7 +408,7 @@ dim(ann_threeway)
 ann_threeway <- ann_threeway[order(ann_threeway$adj.P.Val,decreasing = FALSE), ]
 rownames(ann_threeway) <- ann_threeway$Row.names
 ann_threeway <- ann_threeway[,-1]
-#write.csv(ann_threeway, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/threeway.csv"), quote = F, row.names = T)
+write.csv(ann_threeway, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/threeway.csv"), quote = F, row.names = T)
 
 # ---------------------
 # salinity x clade two-way interaction
@@ -429,7 +429,7 @@ dim(ann_salinity_clade_interaction)
 ann_salinity_clade_interaction <- ann_salinity_clade_interaction[order(ann_salinity_clade_interaction$adj.P.Val,decreasing = FALSE), ]
 rownames(ann_salinity_clade_interaction) <- ann_salinity_clade_interaction$Row.names
 ann_salinity_clade_interaction <- ann_salinity_clade_interaction[,-1]
-#write.csv(ann_salinity_clade_interaction, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/salinity_clade_interaction.csv"), quote = F, row.names = T)
+write.csv(ann_salinity_clade_interaction, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/salinity_clade_interaction.csv"), quote = F, row.names = T)
 
 # ---------------------
 # salinity x physiology two-way interaction
@@ -450,7 +450,7 @@ dim(ann_salinity_physiology_interaction)
 ann_salinity_physiology_interaction <- ann_salinity_physiology_interaction[order(ann_salinity_physiology_interaction$adj.P.Val,decreasing = FALSE), ]
 rownames(ann_salinity_physiology_interaction) <- ann_salinity_physiology_interaction$Row.names
 ann_salinity_physiology_interaction <- ann_salinity_physiology_interaction[,-1]
-#write.csv(ann_salinity_physiology_interaction, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/salinity_physiology_interaction.csv"), quote = F, row.names = T)
+write.csv(ann_salinity_physiology_interaction, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/salinity_physiology_interaction.csv"), quote = F, row.names = T)
 
 # ---------------------
 # physiology x clade two-way interaction
@@ -472,7 +472,7 @@ dim(ann_clade_physiology_interaction)
 ann_clade_physiology_interaction <- ann_clade_physiology_interaction[order(ann_clade_physiology_interaction$adj.P.Val,decreasing = FALSE), ]
 rownames(ann_clade_physiology_interaction) <- ann_clade_physiology_interaction$Row.names
 ann_clade_physiology_interaction <- ann_clade_physiology_interaction[,-1]
-#write.csv(ann_clade_physiology_interaction, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/clade_physiology_interaction.csv"), quote = F, row.names = T)
+write.csv(ann_clade_physiology_interaction, file = file.path("~/Documents/UCDavis/Whitehead/kfish_expression_July2019/clade_physiology_interaction.csv"), quote = F, row.names = T)
 
 
 
