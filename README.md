@@ -2,6 +2,8 @@
 
 **This repository is a WORK IN PROGRESS**
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3483743.svg)](https://doi.org/10.5281/zenodo.3483743)
+
 Differential expression analysis with RNAseq data from 16 species of Fundulus killifish following a salinity exposure experiment (FW, BW, transfer). 
 
 *De novo* transcriptome assemblies and annotations for each species are located here:
